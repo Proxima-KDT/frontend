@@ -34,6 +34,10 @@ const TeacherDashboard = lazy(() => import('@/pages/teacher/Dashboard'));
 const StudentDetail = lazy(() => import('@/pages/teacher/StudentDetail'));
 const TeacherQuestions = lazy(() => import('@/pages/teacher/Questions'));
 const Counseling = lazy(() => import('@/pages/teacher/Counseling'));
+const CounselingSchedule = lazy(
+  () => import('@/pages/teacher/CounselingSchedule'),
+);
+const AttendanceCheck = lazy(() => import('@/pages/teacher/AttendanceCheck'));
 const AssignmentManagement = lazy(
   () => import('@/pages/teacher/AssignmentManagement'),
 );
@@ -46,7 +50,13 @@ const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'));
 const EquipmentManagement = lazy(
   () => import('@/pages/admin/EquipmentManagement'),
 );
-const StudentManagement = lazy(() => import('@/pages/admin/StudentManagement'));
+const AdminStudentDetail = lazy(() => import('@/pages/admin/StudentDetail'));
+const RoomReservationManagement = lazy(
+  () => import('@/pages/admin/RoomReservationManagement'),
+);
+const AdminCounselingSchedule = lazy(
+  () => import('@/pages/admin/CounselingSchedule'),
+);
 
 function PageLoader() {
   return (
@@ -231,6 +241,22 @@ export default function AppRouter() {
           }
         />
         <Route
+          path="/teacher/counseling-schedule"
+          element={
+            <ProtectedRoute role="teacher">
+              <CounselingSchedule />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/attendance-check"
+          element={
+            <ProtectedRoute role="teacher">
+              <AttendanceCheck />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/teacher/assignments"
           element={
             <ProtectedRoute role="teacher">
@@ -265,10 +291,26 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/admin/students"
+          path="/admin/students/:id"
           element={
             <ProtectedRoute role="admin">
-              <StudentManagement />
+              <AdminStudentDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/room-reservation"
+          element={
+            <ProtectedRoute role="admin">
+              <RoomReservationManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/counseling-schedule"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminCounselingSchedule />
             </ProtectedRoute>
           }
         />

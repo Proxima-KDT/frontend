@@ -12,14 +12,45 @@ import {
   Sparkles,
   MessageSquare,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
-import { mockTeacherAssignments } from '@/data/mockData';
+import { mockTeacherAssignments, mockStudents } from '@/data/mockData';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import Modal from '@/components/common/Modal';
+import Input from '@/components/common/Input';
+import Select from '@/components/common/Select';
 import Textarea from '@/components/common/Textarea';
 import ProgressBar from '@/components/common/ProgressBar';
 import { useToast } from '@/context/ToastContext';
+
+const SUBJECT_OPTIONS = [
+  { value: 'Python 기초', label: 'Python 기초' },
+  { value: 'JavaScript & React', label: 'JavaScript & React' },
+  { value: 'DB & SQL', label: 'DB & SQL' },
+  { value: '알고리즘 & 자료구조', label: '알고리즘 & 자료구조' },
+  { value: '풀스택 프로젝트', label: '풀스택 프로젝트' },
+  { value: 'ML/DL & 취업준비', label: 'ML/DL & 취업준비' },
+];
+
+const PHASE_OPTIONS = [
+  { value: '1', label: 'Phase 1 — Python 기초' },
+  { value: '2', label: 'Phase 2 — JavaScript & React' },
+  { value: '3', label: 'Phase 3 — DB & SQL' },
+  { value: '4', label: 'Phase 4 — 알고리즘 & 자료구조' },
+  { value: '5', label: 'Phase 5 — 풀스택 프로젝트' },
+  { value: '6', label: 'Phase 6 — ML/DL & 취업준비' },
+];
+
+const EMPTY_FORM = {
+  title: '',
+  subject: '',
+  phase: '',
+  description: '',
+  openDate: '',
+  dueDate: '',
+  rubric: [{ item: '', maxScore: '' }],
+};
 
 const STATUS_CONFIG = {
   pending: {
@@ -75,6 +106,90 @@ export default function AssignmentManagement() {
     rubricScores: [],
     score: 0,
   });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newAssignment, setNewAssignment] = useState({ ...EMPTY_FORM });
+
+  const rubricTotal = newAssignment.rubric.reduce(
+    (sum, r) => sum + (Number(r.maxScore) || 0),
+    0,
+  );
+
+  // ── 과제 추가 핸들러 ──────────────────────────────
+  const handleAddRubricRow = () =>
+    setNewAssignment((prev) => ({
+      ...prev,
+      rubric: [...prev.rubric, { item: '', maxScore: '' }],
+    }));
+
+  const handleRemoveRubricRow = (index) =>
+    setNewAssignment((prev) => ({
+      ...prev,
+      rubric: prev.rubric.filter((_, i) => i !== index),
+    }));
+
+  const handleRubricChange = (index, field, value) =>
+    setNewAssignment((prev) => ({
+      ...prev,
+      rubric: prev.rubric.map((r, i) =>
+        i === index ? { ...r, [field]: value } : r,
+      ),
+    }));
+
+  const handleCreateAssignment = () => {
+    const { title, subject, phase, description, openDate, dueDate, rubric } =
+      newAssignment;
+    if (
+      !title.trim() ||
+      !subject ||
+      !phase ||
+      !description.trim() ||
+      !openDate ||
+      !dueDate
+    ) {
+      showToast({ message: '모든 필수 항목을 입력하세요.', type: 'error' });
+      return;
+    }
+    const validRubric = rubric.filter(
+      (r) => r.item.trim() && Number(r.maxScore) > 0,
+    );
+    if (validRubric.length === 0) {
+      showToast({
+        message: '루브릭 항목을 최소 1개 이상 입력하세요.',
+        type: 'error',
+      });
+      return;
+    }
+    const newId = Math.max(0, ...assignments.map((a) => a.id)) + 1;
+    const created = {
+      id: newId,
+      title: title.trim(),
+      subject,
+      phase: Number(phase),
+      description: description.trim(),
+      openDate,
+      dueDate,
+      maxScore: validRubric.reduce((sum, r) => sum + Number(r.maxScore), 0),
+      attachments: [],
+      rubric: validRubric.map((r) => ({
+        item: r.item.trim(),
+        maxScore: Number(r.maxScore),
+      })),
+      studentSubmissions: mockStudents.map((s) => ({
+        studentId: s.id,
+        studentName: s.name,
+        status: 'pending',
+        submittedAt: null,
+        files: [],
+        score: null,
+        feedback: null,
+        rubricScores: null,
+      })),
+    };
+    setAssignments((prev) => [...prev, created]);
+    setNewAssignment({ ...EMPTY_FORM });
+    setShowAddModal(false);
+    showToast({ message: '과제가 추가되었습니다.', type: 'success' });
+  };
 
   const totalPending = assignments.reduce(
     (acc, a) =>
@@ -180,7 +295,12 @@ export default function AssignmentManagement() {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-h1 font-bold text-gray-900">과제 관리</h1>
-        <Button variant="primary" size="sm" icon={Plus}>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={Plus}
+          onClick={() => setShowAddModal(true)}
+        >
           과제 추가
         </Button>
       </div>
@@ -388,6 +508,144 @@ export default function AssignmentManagement() {
           );
         })}
       </div>
+
+      {/* 과제 추가 모달 */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setNewAssignment({ ...EMPTY_FORM });
+        }}
+        title="과제 추가"
+        maxWidth="max-w-[560px]"
+      >
+        <div className="space-y-4">
+          <Input
+            label="과제 제목"
+            placeholder="예: Python 클래스 설계 과제"
+            value={newAssignment.title}
+            onChange={(e) =>
+              setNewAssignment((prev) => ({ ...prev, title: e.target.value }))
+            }
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Select
+              label="과목"
+              options={SUBJECT_OPTIONS}
+              value={newAssignment.subject}
+              onChange={(e) =>
+                setNewAssignment((prev) => ({
+                  ...prev,
+                  subject: e.target.value,
+                }))
+              }
+            />
+            <Select
+              label="Phase"
+              options={PHASE_OPTIONS}
+              value={newAssignment.phase}
+              onChange={(e) =>
+                setNewAssignment((prev) => ({ ...prev, phase: e.target.value }))
+              }
+            />
+          </div>
+          <Textarea
+            label="과제 설명"
+            placeholder="과제의 요구사항을 상세히 작성하세요."
+            value={newAssignment.description}
+            onChange={(e) =>
+              setNewAssignment((prev) => ({
+                ...prev,
+                description: e.target.value,
+              }))
+            }
+            rows={3}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="공개일"
+              type="date"
+              value={newAssignment.openDate}
+              onChange={(e) =>
+                setNewAssignment((prev) => ({
+                  ...prev,
+                  openDate: e.target.value,
+                }))
+              }
+            />
+            <Input
+              label="마감일"
+              type="date"
+              value={newAssignment.dueDate}
+              onChange={(e) =>
+                setNewAssignment((prev) => ({
+                  ...prev,
+                  dueDate: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-gray-700">
+                채점 기준 (루브릭)
+              </p>
+              <span className="text-xs text-gray-500">
+                총 배점: {rubricTotal}점
+              </span>
+            </div>
+            <div className="space-y-2">
+              {newAssignment.rubric.map((r, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="평가 항목명"
+                    value={r.item}
+                    onChange={(e) =>
+                      handleRubricChange(idx, 'item', e.target.value)
+                    }
+                    className="flex-1 h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  />
+                  <input
+                    type="number"
+                    placeholder="배점"
+                    min={1}
+                    value={r.maxScore}
+                    onChange={(e) =>
+                      handleRubricChange(idx, 'maxScore', e.target.value)
+                    }
+                    className="w-20 h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-center text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  />
+                  {newAssignment.rubric.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveRubricRow(idx)}
+                      className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={handleAddRubricRow}
+              className="mt-2 flex items-center gap-1.5 text-sm text-primary-600 font-medium hover:text-primary-700 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              항목 추가
+            </button>
+          </div>
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+            <p className="text-xs text-blue-700">
+              과제가 추가되면 전체 수강생({mockStudents.length}명)에게 자동으로
+              배정됩니다.
+            </p>
+          </div>
+          <Button variant="primary" fullWidth onClick={handleCreateAssignment}>
+            과제 추가하기
+          </Button>
+        </div>
+      </Modal>
 
       {/* 피드백 모달 */}
       {feedbackModal && (

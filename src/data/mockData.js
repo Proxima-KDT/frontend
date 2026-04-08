@@ -831,7 +831,8 @@ export const mockQuestions = [
     is_anonymous: false,
     created_at: '2026-04-03 13:10',
     author: '박서연',
-    answer: '최소 3개월 전부터 하루 1-2문제씩 꾸준히 푸는 것을 추천합니다. LeetCode Easy→Medium 순서로 진행하고, 기업별 기출 유형을 파악해서 집중 학습하세요.',
+    answer:
+      '최소 3개월 전부터 하루 1-2문제씩 꾸준히 푸는 것을 추천합니다. LeetCode Easy→Medium 순서로 진행하고, 기업별 기출 유형을 파악해서 집중 학습하세요.',
     answered_at: '2026-04-04 09:30',
   },
   {
@@ -857,7 +858,8 @@ export const mockQuestions = [
   {
     id: 11,
     user_id: 'uuid-student-005',
-    content: 'TypeScript를 꼭 배워야 하나요? JavaScript만으로도 충분하지 않을까요?',
+    content:
+      'TypeScript를 꼭 배워야 하나요? JavaScript만으로도 충분하지 않을까요?',
     is_anonymous: false,
     created_at: '2026-03-31 11:45',
     author: '최유진',
@@ -867,11 +869,13 @@ export const mockQuestions = [
   {
     id: 12,
     user_id: 'uuid-student-005',
-    content: 'CI/CD 파이프라인을 직접 구성해본 경험이 없는데 어디서 실습할 수 있나요?',
+    content:
+      'CI/CD 파이프라인을 직접 구성해본 경험이 없는데 어디서 실습할 수 있나요?',
     is_anonymous: true,
     created_at: '2026-03-30 09:00',
     author: null,
-    answer: 'GitHub Actions로 시작하는 걸 추천합니다. 무료 퍼블릭 레포에서 바로 실습 가능하고, 공식 문서와 예제가 잘 갖춰져 있습니다.',
+    answer:
+      'GitHub Actions로 시작하는 걸 추천합니다. 무료 퍼블릭 레포에서 바로 실습 가능하고, 공식 문서와 예제가 잘 갖춰져 있습니다.',
     answered_at: '2026-03-30 14:00',
   },
 ];
@@ -3862,6 +3866,13 @@ export const teacherMenuItems = [
     group: '홈',
   },
   {
+    key: 'attendance-check',
+    label: '출석 확인',
+    icon: 'UserCheck',
+    path: '/teacher/attendance-check',
+    group: '수업 관리',
+  },
+  {
     key: 'assignments',
     label: '과제 관리',
     icon: 'ClipboardList',
@@ -3883,11 +3894,18 @@ export const teacherMenuItems = [
     group: '수업 관리',
   },
   {
+    key: 'counseling-schedule',
+    label: '상담일정',
+    icon: 'CalendarDays',
+    path: '/teacher/counseling-schedule',
+    group: '수강생 면담',
+  },
+  {
     key: 'counseling',
     label: '상담 기록',
     icon: 'Headphones',
     path: '/teacher/counseling',
-    group: '학생 지원',
+    group: '수강생 면담',
   },
 ];
 
@@ -3900,18 +3918,25 @@ export const adminMenuItems = [
     group: '홈',
   },
   {
-    key: 'students',
-    label: '학생 관리',
-    icon: 'Users',
-    path: '/admin/students',
-    group: '인원 관리',
-  },
-  {
     key: 'equipment',
     label: '장비 관리',
     icon: 'Monitor',
     path: '/admin/equipment',
     group: '운영 관리',
+  },
+  {
+    key: 'room-reservation',
+    label: '시설 예약 관리',
+    icon: 'CalendarRange',
+    path: '/admin/room-reservation',
+    group: '운영 관리',
+  },
+  {
+    key: 'counseling-schedule',
+    label: '상담 일정',
+    icon: 'CalendarClock',
+    path: '/admin/counseling-schedule',
+    group: '수강생 관리',
   },
 ];
 
@@ -4454,3 +4479,322 @@ export const mockMyReservations = [
     status: 'completed',
   },
 ];
+
+// --- 강사 상담일정 ---
+export const mockTeacherBlockedSlots = {
+  '2026-04-09': ['12:00', '12:30', '13:00'],
+  '2026-04-10': ['12:00', '12:30'],
+  '2026-04-14': ['09:00', '09:30', '15:00', '15:30', '16:00'],
+  '2026-04-15': ['12:00', '12:30', '13:00', '13:30'],
+  '2026-04-17': ['09:00', '09:30'],
+};
+
+export const mockTeacherCounselingBookings = [
+  {
+    id: 1,
+    student_id: 'uuid-student-001',
+    student_name: '이지호',
+    date: '2026-04-15',
+    time: '10:00',
+    duration: 30,
+    reason: '취업 준비 방향 상담',
+    status: 'confirmed',
+  },
+  {
+    id: 2,
+    student_id: 'uuid-student-002',
+    student_name: '김민준',
+    date: '2026-04-17',
+    time: '14:00',
+    duration: 30,
+    reason: '과제 채점 기준 질문',
+    status: 'pending',
+  },
+  {
+    id: 3,
+    student_id: 'uuid-student-003',
+    student_name: '박서연',
+    date: '2026-04-22',
+    time: '09:30',
+    duration: 30,
+    reason: '진도 따라가기 힘들어서 상담 요청드립니다',
+    status: 'pending',
+  },
+  {
+    id: 4,
+    student_id: 'uuid-student-004',
+    student_name: '최유진',
+    date: '2026-04-24',
+    time: '11:00',
+    duration: 30,
+    reason: '포트폴리오 피드백',
+    status: 'confirmed',
+  },
+];
+
+// --- 관리자(멘토) 상담일정 ---
+export const mockAdminBlockedSlots = {
+  '2026-04-09': ['12:00', '12:30'],
+  '2026-04-14': ['09:30', '15:00', '15:30'],
+  '2026-04-16': ['12:00', '12:30', '13:00'],
+  '2026-04-22': ['17:00', '17:30'],
+  '2026-04-28': ['12:00', '12:30', '13:00'],
+};
+
+export const mockAdminCounselingBookings = [
+  {
+    id: 1,
+    student_id: 'uuid-student-001',
+    student_name: '김민준',
+    date: '2026-04-09',
+    time: '10:00',
+    duration: 30,
+    reason: '훈련 수당 관련 문의',
+    status: 'confirmed',
+  },
+  {
+    id: 2,
+    student_id: 'uuid-student-003',
+    student_name: '박서연',
+    date: '2026-04-15',
+    time: '14:00',
+    duration: 30,
+    reason: '개인 사정으로 인한 출석 유연화 요청',
+    status: 'pending',
+  },
+  {
+    id: 3,
+    student_id: 'uuid-student-005',
+    student_name: '강예린',
+    date: '2026-04-22',
+    time: '09:00',
+    duration: 30,
+    reason: '진로 방향 상담 요청드립니다',
+    status: 'pending',
+  },
+  {
+    id: 4,
+    student_id: 'uuid-student-002',
+    student_name: '이지호',
+    date: '2026-04-28',
+    time: '14:30',
+    duration: 30,
+    reason: '수료 후 취업 지원 절차 안내 요청',
+    status: 'confirmed',
+  },
+];
+
+// --- 강의실 좌석 배치 ---
+export const mockClassroomSeats = [
+  {
+    seat_id: 'A1',
+    row: 1,
+    col: 1,
+    student_id: 'uuid-student-001',
+    student_name: '김민준',
+  },
+  {
+    seat_id: 'A2',
+    row: 1,
+    col: 2,
+    student_id: 'uuid-student-002',
+    student_name: '이서윤',
+  },
+  {
+    seat_id: 'A3',
+    row: 1,
+    col: 3,
+    student_id: 'uuid-student-003',
+    student_name: '이지호',
+  },
+  {
+    seat_id: 'B1',
+    row: 2,
+    col: 1,
+    student_id: 'uuid-student-004',
+    student_name: '박하은',
+  },
+  {
+    seat_id: 'B2',
+    row: 2,
+    col: 2,
+    student_id: 'uuid-student-005',
+    student_name: '박수현',
+  },
+  {
+    seat_id: 'B3',
+    row: 2,
+    col: 3,
+    student_id: 'uuid-student-006',
+    student_name: '최유나',
+  },
+  {
+    seat_id: 'C1',
+    row: 3,
+    col: 1,
+    student_id: 'uuid-student-007',
+    student_name: '정서율',
+  },
+  { seat_id: 'C2', row: 3, col: 2, student_id: null, student_name: null },
+  { seat_id: 'C3', row: 3, col: 3, student_id: null, student_name: null },
+  { seat_id: 'D1', row: 4, col: 1, student_id: null, student_name: null },
+  { seat_id: 'D2', row: 4, col: 2, student_id: null, student_name: null },
+  { seat_id: 'D3', row: 4, col: 3, student_id: null, student_name: null },
+];
+
+// --- 날짜별 출석 현황 (강사 뷰) ---
+export const mockAttendanceByDate = {
+  '2026-04-08': [
+    {
+      student_id: 'uuid-student-001',
+      student_name: '김민준',
+      seat_id: 'A1',
+      status: 'present',
+      check_in_time: '08:52',
+    },
+    {
+      student_id: 'uuid-student-002',
+      student_name: '이서윤',
+      seat_id: 'A2',
+      status: 'late',
+      check_in_time: '09:10',
+    },
+    {
+      student_id: 'uuid-student-003',
+      student_name: '이지호',
+      seat_id: 'A3',
+      status: 'absent',
+      check_in_time: null,
+    },
+    {
+      student_id: 'uuid-student-004',
+      student_name: '박하은',
+      seat_id: 'B1',
+      status: 'present',
+      check_in_time: '08:48',
+    },
+    {
+      student_id: 'uuid-student-005',
+      student_name: '박수현',
+      seat_id: 'B2',
+      status: 'present',
+      check_in_time: '08:55',
+    },
+    {
+      student_id: 'uuid-student-006',
+      student_name: '최유나',
+      seat_id: 'B3',
+      status: null,
+      check_in_time: null,
+    },
+    {
+      student_id: 'uuid-student-007',
+      student_name: '정서율',
+      seat_id: 'C1',
+      status: 'present',
+      check_in_time: '08:50',
+    },
+  ],
+  '2026-04-07': [
+    {
+      student_id: 'uuid-student-001',
+      student_name: '김민준',
+      seat_id: 'A1',
+      status: 'present',
+      check_in_time: '08:50',
+    },
+    {
+      student_id: 'uuid-student-002',
+      student_name: '이서윤',
+      seat_id: 'A2',
+      status: 'present',
+      check_in_time: '08:45',
+    },
+    {
+      student_id: 'uuid-student-003',
+      student_name: '이지호',
+      seat_id: 'A3',
+      status: 'late',
+      check_in_time: '09:15',
+    },
+    {
+      student_id: 'uuid-student-004',
+      student_name: '박하은',
+      seat_id: 'B1',
+      status: 'present',
+      check_in_time: '08:52',
+    },
+    {
+      student_id: 'uuid-student-005',
+      student_name: '박수현',
+      seat_id: 'B2',
+      status: 'absent',
+      check_in_time: null,
+    },
+    {
+      student_id: 'uuid-student-006',
+      student_name: '최유나',
+      seat_id: 'B3',
+      status: 'present',
+      check_in_time: '08:58',
+    },
+    {
+      student_id: 'uuid-student-007',
+      student_name: '정서율',
+      seat_id: 'C1',
+      status: 'present',
+      check_in_time: '08:44',
+    },
+  ],
+  '2026-04-04': [
+    {
+      student_id: 'uuid-student-001',
+      student_name: '김민준',
+      seat_id: 'A1',
+      status: 'present',
+      check_in_time: '08:53',
+    },
+    {
+      student_id: 'uuid-student-002',
+      student_name: '이서윤',
+      seat_id: 'A2',
+      status: 'late',
+      check_in_time: '09:05',
+    },
+    {
+      student_id: 'uuid-student-003',
+      student_name: '이지호',
+      seat_id: 'A3',
+      status: 'absent',
+      check_in_time: null,
+    },
+    {
+      student_id: 'uuid-student-004',
+      student_name: '박하은',
+      seat_id: 'B1',
+      status: 'present',
+      check_in_time: '08:49',
+    },
+    {
+      student_id: 'uuid-student-005',
+      student_name: '박수현',
+      seat_id: 'B2',
+      status: 'present',
+      check_in_time: '08:55',
+    },
+    {
+      student_id: 'uuid-student-006',
+      student_name: '최유나',
+      seat_id: 'B3',
+      status: 'absent',
+      check_in_time: null,
+    },
+    {
+      student_id: 'uuid-student-007',
+      student_name: '정서율',
+      seat_id: 'C1',
+      status: 'present',
+      check_in_time: '08:47',
+    },
+  ],
+};
