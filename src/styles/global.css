@@ -23,6 +23,7 @@
   --color-student-400: #60A5FA;
   --color-student-500: #3B82F6;
   --color-student-600: #2563EB;
+  --color-student-900: #1E3A8A;
 
   /* Role Accent - Teacher (Teal) */
   --color-teacher-50: #F0FDFA;
@@ -30,6 +31,7 @@
   --color-teacher-400: #2DD4BF;
   --color-teacher-500: #14B8A6;
   --color-teacher-600: #0D9488;
+  --color-teacher-900: #134E4A;
 
   /* Role Accent - Admin (Deep Purple) */
   --color-admin-50: #F5F3FF;
@@ -37,6 +39,7 @@
   --color-admin-400: #A78BFA;
   --color-admin-500: #8B5CF6;
   --color-admin-600: #7C3AED;
+  --color-admin-900: #2E1065;
 
   /* Semantic Colors */
   --color-success-50: #F0FDF4;

@@ -35,7 +35,9 @@ export const mockCurriculum = [
     id: 1,
     phase: 1,
     title: 'Python 기초',
-    description: 'Python 문법, 자료형, 함수, 클래스, 파일 입출력 등 프로그래밍 기초를 학습합니다.',
+    icon: 'Terminal',
+    description:
+      'Python 문법, 자료형, 함수, 클래스, 파일 입출력 등 프로그래밍 기초를 학습합니다.',
     start_date: '2025-10-01',
     end_date: '2025-10-31',
     status: 'completed',
@@ -52,7 +54,9 @@ export const mockCurriculum = [
     id: 2,
     phase: 2,
     title: 'JavaScript & React',
-    description: 'JavaScript ES6+, React 18, 컴포넌트 설계, 상태 관리를 학습합니다.',
+    icon: 'Code2',
+    description:
+      'JavaScript ES6+, React 18, 컴포넌트 설계, 상태 관리를 학습합니다.',
     start_date: '2025-11-01',
     end_date: '2025-12-15',
     status: 'completed',
@@ -69,7 +73,9 @@ export const mockCurriculum = [
     id: 3,
     phase: 3,
     title: 'DB & SQL',
-    description: 'PostgreSQL, 데이터 모델링, SQL 쿼리, 인덱싱, 트랜잭션을 학습합니다.',
+    icon: 'Database',
+    description:
+      'PostgreSQL, 데이터 모델링, SQL 쿼리, 인덱싱, 트랜잭션을 학습합니다.',
     start_date: '2025-12-16',
     end_date: '2026-01-31',
     status: 'completed',
@@ -86,7 +92,9 @@ export const mockCurriculum = [
     id: 4,
     phase: 4,
     title: '알고리즘 & 자료구조',
-    description: '배열, 연결리스트, 트리, 그래프, 정렬, 탐색 알고리즘을 학습합니다.',
+    icon: 'GitBranch',
+    description:
+      '배열, 연결리스트, 트리, 그래프, 정렬, 탐색 알고리즘을 학습합니다.',
     start_date: '2026-02-01',
     end_date: '2026-02-28',
     status: 'in_progress',
@@ -103,7 +111,9 @@ export const mockCurriculum = [
     id: 5,
     phase: 5,
     title: '프로젝트 & 협업',
-    description: '팀 프로젝트, Git 협업, CI/CD, 코드 리뷰, Agile 방법론을 실습합니다.',
+    icon: 'Users',
+    description:
+      '팀 프로젝트, Git 협업, CI/CD, 코드 리뷰, Agile 방법론을 실습합니다.',
     start_date: '2026-03-01',
     end_date: '2026-03-31',
     status: 'upcoming',
@@ -119,8 +129,10 @@ export const mockCurriculum = [
   {
     id: 6,
     phase: 6,
-    title: 'ML/DL 입문 & 취업준비',
-    description: '머신러닝 기초, 딥러닝 입문, 포트폴리오 정리, 이력서 작성, 면접 준비를 합니다.',
+    title: 'ML/DL & 취업준비',
+    icon: 'BrainCircuit',
+    description:
+      '머신러닝 기초, 딥러닝 입문, 포트폴리오 정리, 이력서 작성, 면접 준비를 합니다.',
     start_date: '2026-04-01',
     end_date: '2026-04-30',
     status: 'upcoming',
@@ -140,7 +152,8 @@ export const mockProblems = [
   {
     id: 1,
     title: 'Two Sum 문제',
-    description: '정수 배열 nums와 정수 target이 주어질 때, 합이 target이 되는 두 수의 인덱스를 반환하세요.\n\n예시:\nInput: nums = [2, 7, 11, 15], target = 9\nOutput: [0, 1]\n\n제약 조건:\n- 2 <= nums.length <= 10^4\n- 각 입력에 대해 정확히 하나의 답이 존재합니다.',
+    description:
+      '정수 배열 nums와 정수 target이 주어질 때, 합이 target이 되는 두 수의 인덱스를 반환하세요.\n\n예시:\nInput: nums = [2, 7, 11, 15], target = 9\nOutput: [0, 1]\n\n제약 조건:\n- 2 <= nums.length <= 10^4\n- 각 입력에 대해 정확히 하나의 답이 존재합니다.',
     type: 'code',
     difficulty: '하',
     tags: ['배열', '해시맵'],
@@ -151,7 +164,8 @@ export const mockProblems = [
   {
     id: 2,
     title: 'HTTP 상태 코드 의미',
-    description: '다음 HTTP 상태 코드의 의미를 올바르게 연결하세요.\n\nA) 200\nB) 301\nC) 404\nD) 500',
+    description:
+      '다음 HTTP 상태 코드의 의미를 올바르게 연결하세요.\n\nA) 200\nB) 301\nC) 404\nD) 500',
     type: 'multiple_choice',
     difficulty: '하',
     tags: ['웹', 'HTTP'],
@@ -169,7 +183,8 @@ export const mockProblems = [
   {
     id: 3,
     title: 'React에서 useEffect의 역할',
-    description: 'React의 useEffect 훅이 수행하는 역할과 사용 시 주의사항에 대해 설명하세요.',
+    description:
+      'React의 useEffect 훅이 수행하는 역할과 사용 시 주의사항에 대해 설명하세요.',
     type: 'short_answer',
     difficulty: '중',
     tags: ['React', 'Hooks'],
@@ -180,7 +195,8 @@ export const mockProblems = [
   {
     id: 4,
     title: '이진 탐색 구현',
-    description: '정렬된 배열에서 target 값의 인덱스를 반환하는 이진 탐색 함수를 구현하세요.\n\ntarget이 없으면 -1을 반환합니다.',
+    description:
+      '정렬된 배열에서 target 값의 인덱스를 반환하는 이진 탐색 함수를 구현하세요.\n\ntarget이 없으면 -1을 반환합니다.',
     type: 'code',
     difficulty: '중',
     tags: ['알고리즘', '이진탐색'],
@@ -191,7 +207,8 @@ export const mockProblems = [
   {
     id: 5,
     title: 'SQL JOIN 종류 비교',
-    description: 'INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN의 차이점을 설명하고, 각각의 사용 사례를 예시와 함께 서술하세요.',
+    description:
+      'INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN의 차이점을 설명하고, 각각의 사용 사례를 예시와 함께 서술하세요.',
     type: 'short_answer',
     difficulty: '중',
     tags: ['DB', 'SQL'],
@@ -202,7 +219,8 @@ export const mockProblems = [
   {
     id: 6,
     title: '스택을 이용한 괄호 검사',
-    description: '주어진 문자열에서 괄호 (), {}, []가 올바르게 짝지어져 있는지 검사하는 함수를 작성하세요.',
+    description:
+      '주어진 문자열에서 괄호 (), {}, []가 올바르게 짝지어져 있는지 검사하는 함수를 작성하세요.',
     type: 'code',
     difficulty: '중',
     tags: ['자료구조', '스택'],
@@ -231,7 +249,8 @@ export const mockProblems = [
   {
     id: 8,
     title: 'BFS와 DFS 구현',
-    description: '그래프의 인접 리스트가 주어질 때, BFS와 DFS를 모두 구현하세요.\n\nInput: graph = {0: [1,2], 1: [0,3], 2: [0,3], 3: [1,2]}, start = 0',
+    description:
+      '그래프의 인접 리스트가 주어질 때, BFS와 DFS를 모두 구현하세요.\n\nInput: graph = {0: [1,2], 1: [0,3], 2: [0,3], 3: [1,2]}, start = 0',
     type: 'code',
     difficulty: '상',
     tags: ['그래프', '탐색'],
@@ -242,7 +261,8 @@ export const mockProblems = [
   {
     id: 9,
     title: 'REST API 설계 원칙',
-    description: 'RESTful API의 핵심 설계 원칙 5가지를 나열하고 각각을 간단히 설명하세요.',
+    description:
+      'RESTful API의 핵심 설계 원칙 5가지를 나열하고 각각을 간단히 설명하세요.',
     type: 'short_answer',
     difficulty: '중',
     tags: ['API', 'REST'],
@@ -253,7 +273,8 @@ export const mockProblems = [
   {
     id: 10,
     title: '동적 프로그래밍: 피보나치',
-    description: 'n번째 피보나치 수를 DP 방식(bottom-up)으로 구하는 함수를 작성하세요.\n시간 복잡도 O(n), 공간 복잡도 O(1)로 구현하세요.',
+    description:
+      'n번째 피보나치 수를 DP 방식(bottom-up)으로 구하는 함수를 작성하세요.\n시간 복잡도 O(n), 공간 복잡도 O(1)로 구현하세요.',
     type: 'code',
     difficulty: '상',
     tags: ['DP', '알고리즘'],
@@ -264,7 +285,8 @@ export const mockProblems = [
   {
     id: 11,
     title: 'CSS Flexbox vs Grid',
-    description: 'CSS Flexbox와 Grid의 주요 차이점과 각각 적합한 사용 사례를 설명하세요.',
+    description:
+      'CSS Flexbox와 Grid의 주요 차이점과 각각 적합한 사용 사례를 설명하세요.',
     type: 'short_answer',
     difficulty: '하',
     tags: ['CSS', '레이아웃'],
@@ -275,7 +297,8 @@ export const mockProblems = [
   {
     id: 12,
     title: 'LRU 캐시 구현',
-    description: 'LRU(Least Recently Used) 캐시를 구현하세요.\n\nget(key): key가 존재하면 값을 반환하고 사용 순서를 갱신\nput(key, value): key-value를 저장하고, 용량 초과 시 가장 오래된 항목 삭제',
+    description:
+      'LRU(Least Recently Used) 캐시를 구현하세요.\n\nget(key): key가 존재하면 값을 반환하고 사용 순서를 갱신\nput(key, value): key-value를 저장하고, 용량 초과 시 가장 오래된 항목 삭제',
     type: 'code',
     difficulty: '상',
     tags: ['자료구조', '해시맵'],
@@ -285,54 +308,33 @@ export const mockProblems = [
   },
 ];
 
-// --- 스킬 점수 (레이더 차트용) ---
+// --- 역량 점수 (5각형 레이더 차트용) ---
 export const mockSkillScores = [
-  { subject: 'Python', score: 78, fullMark: 100 },
-  { subject: 'JavaScript', score: 65, fullMark: 100 },
-  { subject: 'DB/SQL', score: 52, fullMark: 100 },
-  { subject: '알고리즘', score: 58, fullMark: 100 },
-  { subject: '프로젝트', score: 82, fullMark: 100 },
-  { subject: 'ML/DL', score: 25, fullMark: 100 },
+  { subject: '출결', score: 92, abbr: 'ATT', fullMark: 100 },
+  { subject: 'AI 말하기', score: 75, abbr: 'SPK', fullMark: 100 },
+  { subject: 'AI 면접', score: 68, abbr: 'INT', fullMark: 100 },
+  { subject: '포트폴리오', score: 80, abbr: 'PFL', fullMark: 100 },
+  { subject: '프로젝트·과제·시험', score: 85, abbr: 'PRJ', fullMark: 100 },
 ];
 
-// --- 뱃지 ---
-export const mockBadges = [
-  { id: 1, name: '첫 걸음', icon: 'Footprints', description: '첫 문제 제출 완료', earned: true, earned_date: '2025-10-05' },
-  { id: 2, name: '연속 7일', icon: 'Flame', description: '7일 연속 문제 제출', earned: true, earned_date: '2025-10-15' },
-  { id: 3, name: '만점왕', icon: 'Crown', description: '100점 문제 5개 달성', earned: true, earned_date: '2025-12-20' },
-  { id: 4, name: '알고리즘 마스터', icon: 'Trophy', description: '상 난이도 문제 10개 해결', earned: false, earned_date: null },
+// --- 학생 프로필 (마이페이지) ---
+export const mockStudentProfile = {
+  overallScore: 80,
+  tier: 'Advanced',
+  targetJob: 'fullstack_developer',
+};
+
+// --- 목표 직무 옵션 ---
+export const mockJobPositions = [
+  { value: 'frontend_developer', label: '프론트엔드 개발자' },
+  { value: 'backend_developer', label: '백엔드 개발자' },
+  { value: 'fullstack_developer', label: '풀스택 개발자' },
+  { value: 'data_engineer', label: '데이터 엔지니어' },
+  { value: 'ai_ml_engineer', label: 'AI/ML 엔지니어' },
+  { value: 'cloud_engineer', label: '클라우드 엔지니어' },
+  { value: 'devops_engineer', label: 'DevOps 엔지니어' },
+  { value: 'qa_engineer', label: 'QA 엔지니어' },
 ];
-
-// --- 기여 그래프 (잔디) 365일 데이터 ---
-const generateContributions = () => {
-  const data = [];
-  const today = new Date('2026-04-07');
-  for (let i = 364; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dayOfWeek = date.getDay();
-    let count = 0;
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      count = Math.random() > 0.2 ? Math.floor(Math.random() * 4) + 1 : 0;
-    }
-    data.push({
-      date: date.toISOString().split('T')[0],
-      count,
-    });
-  }
-  return data;
-};
-export const mockContributions = generateContributions();
-
-// --- 취업 예측 ---
-export const mockCareerPrediction = {
-  probability: 78,
-  avg_salary: 3200,
-  recommended_field: '풀스택 개발',
-  similar_graduates: 5,
-  strengths: ['프로젝트 경험', 'Python 역량'],
-  improvements: ['알고리즘 심화', 'ML/DL 학습'],
-};
 
 // --- 음성 피드백 키워드 ---
 export const mockKeywords = [
@@ -350,19 +352,125 @@ export const mockVoiceFeedbackResult = {
   correct: 3,
   inaccurate: 1,
   missing: 2,
-  feedback: '핵심 개념인 HTTP 프로토콜과 TCP/IP에 대해 잘 설명했습니다. 하지만 3-way handshake와 로드밸런싱에 대한 언급이 없었습니다. DNS 조회 과정에 대한 설명이 부정확했으니 복습이 필요합니다.',
+  feedback:
+    '핵심 개념인 HTTP 프로토콜과 TCP/IP에 대해 잘 설명했습니다. 하지만 3-way handshake와 로드밸런싱에 대한 언급이 없었습니다. DNS 조회 과정에 대한 설명이 부정확했으니 복습이 필요합니다.',
   topic: '웹 브라우저에 URL을 입력하면 일어나는 일',
 };
 
+// --- AI 말하기 학습 기록 ---
+export const mockVoiceHistory = [
+  {
+    id: 'vh1',
+    date: '2026-04-07',
+    time: '10:30',
+    topic: '웹 브라우저에 URL을 입력하면 일어나는 일',
+    duration: '02:34',
+    score: 72,
+    correct: 3,
+    inaccurate: 1,
+    missing: 2,
+    keywords: [
+      { word: 'HTTP 프로토콜', status: 'correct' },
+      { word: 'TCP/IP', status: 'correct' },
+      { word: 'DNS 조회', status: 'inaccurate' },
+      { word: '3-way handshake', status: 'missing' },
+      { word: 'SSL/TLS', status: 'correct' },
+      { word: '로드밸런싱', status: 'missing' },
+    ],
+    feedback:
+      '핵심 개념인 HTTP 프로토콜과 TCP/IP에 대해 잘 설명했습니다. 하지만 3-way handshake와 로드밸런싱에 대한 언급이 없었습니다. DNS 조회 과정에 대한 설명이 부정확했으니 복습이 필요합니다.',
+    transcript:
+      'HTTP 프로토콜은 응용 계층 프로토콜로 클라이언트와 서버 간 통신을 담당합니다. TCP/IP 스택을 통해 데이터가 전송되며 신뢰성 있는 통신이 이루어집니다.',
+  },
+  {
+    id: 'vh2',
+    date: '2026-04-06',
+    time: '16:20',
+    topic: 'RESTful API 설계 원칙',
+    duration: '03:11',
+    score: 85,
+    correct: 4,
+    inaccurate: 1,
+    missing: 1,
+    keywords: [
+      { word: 'Stateless', status: 'correct' },
+      { word: 'HTTP 메서드', status: 'correct' },
+      { word: '리소스 URI', status: 'correct' },
+      { word: '상태 코드', status: 'inaccurate' },
+      { word: 'HATEOAS', status: 'missing' },
+      { word: '버전 관리', status: 'correct' },
+    ],
+    feedback:
+      'REST API의 핵심 원칙들을 대체로 잘 설명했습니다. 특히 Stateless와 HTTP 메서드 활용에 대한 설명이 명확했습니다. HTTP 상태 코드에 대한 설명이 일부 부정확했으며 HATEOAS 개념은 언급되지 않았습니다.',
+    transcript:
+      'RESTful API는 Stateless한 아키텍처로 각 요청은 독립적으로 처리됩니다. GET, POST, PUT, DELETE 등 HTTP 메서드를 활용하여 리소스를 조작합니다.',
+  },
+  {
+    id: 'vh3',
+    date: '2026-04-05',
+    time: '14:00',
+    topic: '자바스크립트 이벤트 루프',
+    duration: '01:58',
+    score: 61,
+    correct: 2,
+    inaccurate: 2,
+    missing: 2,
+    keywords: [
+      { word: '콜 스택', status: 'correct' },
+      { word: '콜백 큐', status: 'inaccurate' },
+      { word: '이벤트 루프', status: 'correct' },
+      { word: 'Web API', status: 'missing' },
+      { word: '마이크로태스크', status: 'inaccurate' },
+      { word: 'Promise', status: 'missing' },
+    ],
+    feedback:
+      '콜 스택과 이벤트 루프의 기본 개념은 설명했으나 콜백 큐와 마이크로태스크 큐의 차이가 명확하지 않았습니다. Web API와 Promise에 대한 설명이 필요합니다. 비동기 처리 흐름 전체를 다시 복습해 보세요.',
+    transcript:
+      '자바스크립트는 싱글 스레드 언어로 콜 스택을 통해 함수를 실행합니다. 이벤트 루프는 콜 스택이 비어있을 때 큐에서 작업을 가져와 실행합니다.',
+  },
+];
+
 // --- 모의면접 ---
 export const mockInterviewMessages = [
-  { id: 1, role: 'ai', content: '안녕하세요! AI 모의면접을 시작하겠습니다. 자기소개를 해주세요.' },
-  { id: 2, role: 'user', content: '안녕하세요. 저는 6개월 IT 직업훈련 과정을 수강 중인 김민준입니다. Python과 JavaScript를 주로 다루며, 풀스택 개발자를 목표로 하고 있습니다.' },
-  { id: 3, role: 'ai', content: '좋습니다. Python에서 리스트와 튜플의 차이점에 대해 설명해주세요.' },
-  { id: 4, role: 'user', content: '리스트는 변경 가능(mutable)한 자료형이고, 튜플은 변경 불가능(immutable)한 자료형입니다. 리스트는 대괄호[]로, 튜플은 소괄호()로 생성합니다.' },
-  { id: 5, role: 'ai', content: '정확합니다. 그렇다면 튜플을 사용하면 좋은 상황은 어떤 것이 있을까요?' },
-  { id: 6, role: 'user', content: '딕셔너리의 키로 사용할 때, 함수에서 여러 값을 반환할 때, 그리고 데이터가 변경되지 않아야 할 때 튜플을 사용합니다.' },
-  { id: 7, role: 'ai', content: 'REST API에서 GET과 POST 메서드의 차이를 설명해주세요.' },
+  {
+    id: 1,
+    role: 'ai',
+    content: '안녕하세요! AI 모의면접을 시작하겠습니다. 자기소개를 해주세요.',
+  },
+  {
+    id: 2,
+    role: 'user',
+    content:
+      '안녕하세요. 저는 6개월 IT 직업훈련 과정을 수강 중인 김민준입니다. Python과 JavaScript를 주로 다루며, 풀스택 개발자를 목표로 하고 있습니다.',
+  },
+  {
+    id: 3,
+    role: 'ai',
+    content: '좋습니다. Python에서 리스트와 튜플의 차이점에 대해 설명해주세요.',
+  },
+  {
+    id: 4,
+    role: 'user',
+    content:
+      '리스트는 변경 가능(mutable)한 자료형이고, 튜플은 변경 불가능(immutable)한 자료형입니다. 리스트는 대괄호[]로, 튜플은 소괄호()로 생성합니다.',
+  },
+  {
+    id: 5,
+    role: 'ai',
+    content:
+      '정확합니다. 그렇다면 튜플을 사용하면 좋은 상황은 어떤 것이 있을까요?',
+  },
+  {
+    id: 6,
+    role: 'user',
+    content:
+      '딕셔너리의 키로 사용할 때, 함수에서 여러 값을 반환할 때, 그리고 데이터가 변경되지 않아야 할 때 튜플을 사용합니다.',
+  },
+  {
+    id: 7,
+    role: 'ai',
+    content: 'REST API에서 GET과 POST 메서드의 차이를 설명해주세요.',
+  },
 ];
 
 export const mockInterviewReport = {
@@ -373,7 +481,8 @@ export const mockInterviewReport = {
     { name: '커뮤니케이션', score: 88 },
     { name: '구조화', score: 75 },
   ],
-  summary: '전반적으로 기술 개념에 대한 이해도가 높고, 답변이 간결하고 명확합니다. 문제 해결 과정을 좀 더 단계적으로 설명하면 더 좋겠습니다.',
+  summary:
+    '전반적으로 기술 개념에 대한 이해도가 높고, 답변이 간결하고 명확합니다. 문제 해결 과정을 좀 더 단계적으로 설명하면 더 좋겠습니다.',
   improvements: [
     '답변 시 구체적인 예시를 더 추가하세요',
     '문제 해결 과정을 단계별로 나누어 설명하세요',
@@ -382,21 +491,114 @@ export const mockInterviewReport = {
 };
 
 export const mockInterviewHistory = [
-  { id: 1, company: '네이버', position: '프론트엔드 개발자', date: '2026-04-05', score: 82, mode: 'text' },
-  { id: 2, company: '카카오', position: '백엔드 개발자', date: '2026-04-02', score: 75, mode: 'voice' },
-  { id: 3, company: '라인', position: '풀스택 개발자', date: '2026-03-28', score: 88, mode: 'text' },
+  {
+    id: 1,
+    company: '네이버',
+    position: '프론트엔드 개발자',
+    date: '2026-04-05',
+    score: 82,
+    mode: 'text',
+  },
+  {
+    id: 2,
+    company: '카카오',
+    position: '백엔드 개발자',
+    date: '2026-04-02',
+    score: 75,
+    mode: 'voice',
+  },
+  {
+    id: 3,
+    company: '라인',
+    position: '풀스택 개발자',
+    date: '2026-03-28',
+    score: 88,
+    mode: 'text',
+  },
 ];
 
 // --- 채용 매칭 ---
 export const mockJobs = [
-  { id: 1, company: '테크스타트', position: '주니어 프론트엔드 개발자', match_score: 92, tech_stack: ['React', 'TypeScript', 'Tailwind'], deadline: '2026-04-30', location: '서울 강남구', experience: '신입' },
-  { id: 2, company: '데이터브릿지', position: '주니어 백엔드 개발자', match_score: 85, tech_stack: ['Python', 'FastAPI', 'PostgreSQL'], deadline: '2026-04-25', location: '서울 서초구', experience: '신입' },
-  { id: 3, company: '클라우드나인', position: '풀스택 개발자', match_score: 78, tech_stack: ['React', 'Node.js', 'AWS'], deadline: '2026-05-15', location: '서울 마포구', experience: '신입~1년' },
-  { id: 4, company: '에이아이랩', position: 'ML 엔지니어', match_score: 45, tech_stack: ['Python', 'PyTorch', 'Docker'], deadline: '2026-05-01', location: '성남 분당구', experience: '신입~2년' },
-  { id: 5, company: '핀테크원', position: '웹 개발자', match_score: 88, tech_stack: ['JavaScript', 'React', 'Node.js'], deadline: '2026-04-20', location: '서울 영등포구', experience: '신입' },
-  { id: 6, company: '헬스케어IT', position: '주니어 개발자', match_score: 72, tech_stack: ['Java', 'Spring', 'MySQL'], deadline: '2026-05-10', location: '서울 강서구', experience: '신입' },
-  { id: 7, company: '에듀테크코리아', position: '프론트엔드 개발자', match_score: 90, tech_stack: ['React', 'Next.js', 'Tailwind'], deadline: '2026-04-28', location: '서울 성동구', experience: '신입' },
-  { id: 8, company: '로보틱스랩', position: '임베디드 SW 개발자', match_score: 30, tech_stack: ['C++', 'Python', 'ROS'], deadline: '2026-05-20', location: '대전 유성구', experience: '신입~1년' },
+  {
+    id: 1,
+    company: '테크스타트',
+    position: '주니어 프론트엔드 개발자',
+    match_score: 92,
+    tech_stack: ['React', 'TypeScript', 'Tailwind'],
+    deadline: '2026-04-30',
+    location: '서울 강남구',
+    experience: '신입',
+  },
+  {
+    id: 2,
+    company: '데이터브릿지',
+    position: '주니어 백엔드 개발자',
+    match_score: 85,
+    tech_stack: ['Python', 'FastAPI', 'PostgreSQL'],
+    deadline: '2026-04-25',
+    location: '서울 서초구',
+    experience: '신입',
+  },
+  {
+    id: 3,
+    company: '클라우드나인',
+    position: '풀스택 개발자',
+    match_score: 78,
+    tech_stack: ['React', 'Node.js', 'AWS'],
+    deadline: '2026-05-15',
+    location: '서울 마포구',
+    experience: '신입~1년',
+  },
+  {
+    id: 4,
+    company: '에이아이랩',
+    position: 'ML 엔지니어',
+    match_score: 45,
+    tech_stack: ['Python', 'PyTorch', 'Docker'],
+    deadline: '2026-05-01',
+    location: '성남 분당구',
+    experience: '신입~2년',
+  },
+  {
+    id: 5,
+    company: '핀테크원',
+    position: '웹 개발자',
+    match_score: 88,
+    tech_stack: ['JavaScript', 'React', 'Node.js'],
+    deadline: '2026-04-20',
+    location: '서울 영등포구',
+    experience: '신입',
+  },
+  {
+    id: 6,
+    company: '헬스케어IT',
+    position: '주니어 개발자',
+    match_score: 72,
+    tech_stack: ['Java', 'Spring', 'MySQL'],
+    deadline: '2026-05-10',
+    location: '서울 강서구',
+    experience: '신입',
+  },
+  {
+    id: 7,
+    company: '에듀테크코리아',
+    position: '프론트엔드 개발자',
+    match_score: 90,
+    tech_stack: ['React', 'Next.js', 'Tailwind'],
+    deadline: '2026-04-28',
+    location: '서울 성동구',
+    experience: '신입',
+  },
+  {
+    id: 8,
+    company: '로보틱스랩',
+    position: '임베디드 SW 개발자',
+    match_score: 30,
+    tech_stack: ['C++', 'Python', 'ROS'],
+    deadline: '2026-05-20',
+    location: '대전 유성구',
+    experience: '신입~1년',
+  },
 ];
 
 // --- 출석 기록 ---
@@ -422,57 +624,513 @@ export const mockAttendanceMonthly = {
 
 // --- 장비 ---
 export const mockEquipment = [
-  { id: 1, name: 'MacBook Pro 14"', serial: 'MBP-2024-001', category: '노트북', status: 'available', borrower: null, borrowed_date: null },
-  { id: 2, name: 'MacBook Pro 14"', serial: 'MBP-2024-002', category: '노트북', status: 'borrowed', borrower: '김민준', borrower_id: 'uuid-student-001', borrowed_date: '2026-03-15' },
-  { id: 3, name: 'Dell Monitor 27"', serial: 'MON-2024-001', category: '모니터', status: 'available', borrower: null, borrowed_date: null },
-  { id: 4, name: 'Dell Monitor 27"', serial: 'MON-2024-002', category: '모니터', status: 'borrowed', borrower: '이지호', borrower_id: 'uuid-student-003', borrowed_date: '2026-04-01' },
-  { id: 5, name: '무선 키보드', serial: 'KB-2024-001', category: '주변기기', status: 'available', borrower: null, borrowed_date: null },
-  { id: 6, name: '무선 마우스', serial: 'MS-2024-001', category: '주변기기', status: 'maintenance', borrower: null, borrowed_date: null },
-  { id: 7, name: 'iPad Air', serial: 'IPA-2024-001', category: '태블릿', status: 'available', borrower: null, borrowed_date: null },
-  { id: 8, name: 'Wacom 펜타블렛', serial: 'WAC-2024-001', category: '주변기기', status: 'borrowed', borrower: '박수현', borrower_id: 'uuid-student-005', borrowed_date: '2026-03-20' },
-  { id: 9, name: 'USB-C 허브', serial: 'HUB-2024-001', category: '주변기기', status: 'retired', borrower: null, borrowed_date: null },
-  { id: 10, name: 'MacBook Air', serial: 'MBA-2024-001', category: '노트북', status: 'available', borrower: null, borrowed_date: null },
+  {
+    id: 1,
+    name: 'MacBook Pro 14"',
+    serial: 'MBP-2024-001',
+    category: '노트북',
+    status: 'available',
+    borrower: null,
+    borrowed_date: null,
+  },
+  {
+    id: 2,
+    name: 'MacBook Pro 14"',
+    serial: 'MBP-2024-002',
+    category: '노트북',
+    status: 'borrowed',
+    borrower: '김민준',
+    borrower_id: 'uuid-student-001',
+    borrowed_date: '2026-03-15',
+  },
+  {
+    id: 3,
+    name: 'Dell Monitor 27"',
+    serial: 'MON-2024-001',
+    category: '모니터',
+    status: 'available',
+    borrower: null,
+    borrowed_date: null,
+  },
+  {
+    id: 4,
+    name: 'Dell Monitor 27"',
+    serial: 'MON-2024-002',
+    category: '모니터',
+    status: 'borrowed',
+    borrower: '이지호',
+    borrower_id: 'uuid-student-003',
+    borrowed_date: '2026-04-01',
+  },
+  {
+    id: 5,
+    name: '무선 키보드',
+    serial: 'KB-2024-001',
+    category: '주변기기',
+    status: 'available',
+    borrower: null,
+    borrowed_date: null,
+  },
+  {
+    id: 6,
+    name: '무선 마우스',
+    serial: 'MS-2024-001',
+    category: '주변기기',
+    status: 'maintenance',
+    borrower: null,
+    borrowed_date: null,
+  },
+  {
+    id: 7,
+    name: 'iPad Air',
+    serial: 'IPA-2024-001',
+    category: '태블릿',
+    status: 'available',
+    borrower: null,
+    borrowed_date: null,
+  },
+  {
+    id: 8,
+    name: 'Wacom 펜타블렛',
+    serial: 'WAC-2024-001',
+    category: '주변기기',
+    status: 'borrowed',
+    borrower: '박수현',
+    borrower_id: 'uuid-student-005',
+    borrowed_date: '2026-03-20',
+  },
+  {
+    id: 9,
+    name: 'USB-C 허브',
+    serial: 'HUB-2024-001',
+    category: '주변기기',
+    status: 'retired',
+    borrower: null,
+    borrowed_date: null,
+  },
+  {
+    id: 10,
+    name: 'MacBook Air',
+    serial: 'MBA-2024-001',
+    category: '노트북',
+    status: 'available',
+    borrower: null,
+    borrowed_date: null,
+  },
 ];
 
 export const mockEquipmentRequests = [
-  { id: 1, student_name: '최유나', equipment_name: 'iPad Air', request_date: '2026-04-06', reason: '디자인 수업 실습용', status: 'pending' },
-  { id: 2, student_name: '한도윤', equipment_name: 'Dell Monitor 27"', request_date: '2026-04-05', reason: '듀얼 모니터 개발 환경 구축', status: 'pending' },
-  { id: 3, student_name: '정서율', equipment_name: 'MacBook Air', request_date: '2026-04-07', reason: '개인 노트북 고장으로 대체 필요', status: 'pending' },
+  {
+    id: 1,
+    student_name: '최유나',
+    equipment_name: 'iPad Air',
+    request_date: '2026-04-06',
+    reason: '디자인 수업 실습용',
+    status: 'pending',
+  },
+  {
+    id: 2,
+    student_name: '한도윤',
+    equipment_name: 'Dell Monitor 27"',
+    request_date: '2026-04-05',
+    reason: '듀얼 모니터 개발 환경 구축',
+    status: 'pending',
+  },
+  {
+    id: 3,
+    student_name: '정서율',
+    equipment_name: 'MacBook Air',
+    request_date: '2026-04-07',
+    reason: '개인 노트북 고장으로 대체 필요',
+    status: 'pending',
+  },
 ];
 
 // --- 질문 (익명) ---
 export const mockQuestions = [
-  { id: 1, content: 'Python에서 decorator는 언제 사용하나요? 실무에서 자주 쓰이나요?', is_anonymous: true, created_at: '2026-04-07 10:30', author: null },
-  { id: 2, content: 'React에서 useMemo와 useCallback의 차이가 헷갈립니다. 간단한 예시를 들어 설명해주실 수 있나요?', is_anonymous: true, created_at: '2026-04-07 09:15', author: null },
-  { id: 3, content: 'SQL에서 인덱스를 너무 많이 걸면 오히려 성능이 떨어진다고 했는데 이유가 뭔가요?', is_anonymous: false, created_at: '2026-04-06 16:45', author: '김민준' },
-  { id: 4, content: 'Git에서 cherry-pick은 어떤 상황에서 쓰나요?', is_anonymous: true, created_at: '2026-04-06 14:20', author: null },
-  { id: 5, content: '비동기 프로그래밍에서 Promise와 async/await의 내부 동작 원리가 궁금합니다.', is_anonymous: true, created_at: '2026-04-05 11:00', author: null },
-  { id: 6, content: 'Docker 없이 개발해도 되나요? Docker를 왜 배워야 하나요?', is_anonymous: true, created_at: '2026-04-05 09:30', author: null },
-  { id: 7, content: '포트폴리오에 어떤 프로젝트를 넣는 게 취업에 유리한가요?', is_anonymous: false, created_at: '2026-04-04 15:00', author: '이지호' },
+  {
+    id: 1,
+    user_id: 'uuid-student-001',
+    content: 'Python에서 decorator는 언제 사용하나요? 실무에서 자주 쓰이나요?',
+    is_anonymous: true,
+    created_at: '2026-04-07 10:30',
+    author: null,
+    answer: null,
+    answered_at: null,
+  },
+  {
+    id: 2,
+    user_id: 'uuid-student-001',
+    content:
+      'React에서 useMemo와 useCallback의 차이가 헷갈립니다. 간단한 예시를 들어 설명해주실 수 있나요?',
+    is_anonymous: true,
+    created_at: '2026-04-07 09:15',
+    author: null,
+    answer:
+      'useMemo는 계산 결과값을 메모이제이션하고, useCallback은 함수 자체를 메모이제이션합니다.\n\n예시:\n- useMemo(() => expensiveCalc(a, b), [a, b]) → 계산된 값 반환\n- useCallback(() => handleClick(id), [id]) → 함수 반환\n\n리렌더링 시 의존성 배열이 바뀌지 않으면 이전 값/함수를 재사용합니다. 자식 컴포넌트에 함수를 props로 넘길 때는 useCallback, 무거운 계산이 있을 때는 useMemo를 쓰세요.',
+    answered_at: '2026-04-07 14:20',
+  },
+  {
+    id: 3,
+    user_id: 'uuid-student-001',
+    content:
+      'SQL에서 인덱스를 너무 많이 걸면 오히려 성능이 떨어진다고 했는데 이유가 뭔가요?',
+    is_anonymous: false,
+    created_at: '2026-04-06 16:45',
+    author: '김민준',
+    answer:
+      '인덱스는 SELECT 속도를 높이지만 INSERT, UPDATE, DELETE 시 인덱스도 함께 갱신해야 합니다. 인덱스가 많을수록 쓰기 작업이 느려지고 저장 공간도 추가로 소비됩니다. 자주 조회하는 컬럼, WHERE/JOIN/ORDER BY에 자주 쓰이는 컬럼에만 선택적으로 인덱스를 걸어야 합니다.',
+    answered_at: '2026-04-07 09:00',
+  },
+  {
+    id: 4,
+    user_id: 'uuid-student-001',
+    content: 'Git에서 cherry-pick은 어떤 상황에서 쓰나요?',
+    is_anonymous: true,
+    created_at: '2026-04-06 14:20',
+    author: null,
+    answer: null,
+    answered_at: null,
+  },
+  {
+    id: 5,
+    user_id: 'uuid-student-002',
+    content:
+      '비동기 프로그래밍에서 Promise와 async/await의 내부 동작 원리가 궁금합니다.',
+    is_anonymous: true,
+    created_at: '2026-04-05 11:00',
+    author: null,
+    answer: null,
+    answered_at: null,
+  },
+  {
+    id: 6,
+    user_id: 'uuid-student-002',
+    content: 'Docker 없이 개발해도 되나요? Docker를 왜 배워야 하나요?',
+    is_anonymous: true,
+    created_at: '2026-04-05 09:30',
+    author: null,
+    answer:
+      '개발 자체는 Docker 없이 가능하지만, "내 PC에서는 됐는데 서버에서 안 돼요" 문제를 막기 위해 씁니다. Docker는 개발 환경을 컨테이너로 격리해서 어디서나 동일하게 실행되도록 보장합니다. 취업 시장에서도 Docker 기본 사용 능력은 거의 필수로 요구되니 기초는 익혀두세요.',
+    answered_at: '2026-04-06 10:15',
+  },
+  {
+    id: 7,
+    user_id: 'uuid-student-003',
+    content: '포트폴리오에 어떤 프로젝트를 넣는 게 취업에 유리한가요?',
+    is_anonymous: false,
+    created_at: '2026-04-04 15:00',
+    author: '이지호',
+    answer: null,
+    answered_at: null,
+  },
 ];
 
 export const mockQuestionClusters = [
-  { id: 1, topic: 'React 심화 개념', count: 8, representative: 'useMemo, useCallback, React 렌더링 최적화 관련 질문이 많습니다.', questions: [2] },
-  { id: 2, topic: '비동기 프로그래밍', count: 5, representative: 'Promise, async/await, 이벤트 루프 관련 질문입니다.', questions: [5] },
-  { id: 3, topic: 'DevOps/배포', count: 4, representative: 'Docker, CI/CD, 배포 환경 관련 질문입니다.', questions: [6] },
-  { id: 4, topic: '취업/커리어', count: 6, representative: '포트폴리오, 이력서, 면접 준비 관련 질문입니다.', questions: [7] },
-  { id: 5, topic: 'Python 고급', count: 3, representative: 'decorator, generator, 메타클래스 관련 질문입니다.', questions: [1] },
+  {
+    id: 1,
+    topic: 'React 심화 개념',
+    count: 8,
+    representative:
+      'useMemo, useCallback, React 렌더링 최적화 관련 질문이 많습니다.',
+    questions: [2],
+  },
+  {
+    id: 2,
+    topic: '비동기 프로그래밍',
+    count: 5,
+    representative: 'Promise, async/await, 이벤트 루프 관련 질문입니다.',
+    questions: [5],
+  },
+  {
+    id: 3,
+    topic: 'DevOps/배포',
+    count: 4,
+    representative: 'Docker, CI/CD, 배포 환경 관련 질문입니다.',
+    questions: [6],
+  },
+  {
+    id: 4,
+    topic: '취업/커리어',
+    count: 6,
+    representative: '포트폴리오, 이력서, 면접 준비 관련 질문입니다.',
+    questions: [7],
+  },
+  {
+    id: 5,
+    topic: 'Python 고급',
+    count: 3,
+    representative: 'decorator, generator, 메타클래스 관련 질문입니다.',
+    questions: [1],
+  },
 ];
 
 // --- 학생 리스트 (강사 뷰) ---
 export const mockStudents = [
-  { id: 'uuid-student-001', name: '김민준', email: 'minjun@edupilot.kr', attendance_rate: 91, submission_rate: 88, accuracy: 76, is_at_risk: false, last_active: '2026-04-07', enrolled_at: '2025-10-01', skills: { Python: 78, JavaScript: 65, 'DB/SQL': 52, '알고리즘': 58, '프로젝트': 82, 'ML/DL': 25 } },
-  { id: 'uuid-student-002', name: '이서윤', email: 'seoyun@edupilot.kr', attendance_rate: 95, submission_rate: 92, accuracy: 88, is_at_risk: false, last_active: '2026-04-07', enrolled_at: '2025-10-01', skills: { Python: 85, JavaScript: 78, 'DB/SQL': 70, '알고리즘': 72, '프로젝트': 90, 'ML/DL': 40 } },
-  { id: 'uuid-student-003', name: '이지호', email: 'jiho@edupilot.kr', attendance_rate: 72, submission_rate: 55, accuracy: 62, is_at_risk: true, last_active: '2026-04-04', enrolled_at: '2025-10-01', skills: { Python: 50, JavaScript: 42, 'DB/SQL': 35, '알고리즘': 30, '프로젝트': 55, 'ML/DL': 10 } },
-  { id: 'uuid-student-004', name: '박하은', email: 'haeun@edupilot.kr', attendance_rate: 88, submission_rate: 82, accuracy: 71, is_at_risk: false, last_active: '2026-04-07', enrolled_at: '2025-10-01', skills: { Python: 70, JavaScript: 60, 'DB/SQL': 55, '알고리즘': 48, '프로젝트': 75, 'ML/DL': 20 } },
-  { id: 'uuid-student-005', name: '박수현', email: 'suhyun@edupilot.kr', attendance_rate: 93, submission_rate: 90, accuracy: 82, is_at_risk: false, last_active: '2026-04-07', enrolled_at: '2025-10-01', skills: { Python: 80, JavaScript: 72, 'DB/SQL': 68, '알고리즘': 65, '프로젝트': 85, 'ML/DL': 35 } },
-  { id: 'uuid-student-006', name: '최유나', email: 'yuna@edupilot.kr', attendance_rate: 78, submission_rate: 48, accuracy: 55, is_at_risk: true, last_active: '2026-04-03', enrolled_at: '2025-10-01', skills: { Python: 40, JavaScript: 35, 'DB/SQL': 28, '알고리즘': 22, '프로젝트': 50, 'ML/DL': 8 } },
-  { id: 'uuid-student-007', name: '정서율', email: 'seoyul@edupilot.kr', attendance_rate: 97, submission_rate: 95, accuracy: 91, is_at_risk: false, last_active: '2026-04-07', enrolled_at: '2025-10-01', skills: { Python: 90, JavaScript: 85, 'DB/SQL': 78, '알고리즘': 80, '프로젝트': 92, 'ML/DL': 50 } },
-  { id: 'uuid-student-008', name: '한도윤', email: 'doyun@edupilot.kr', attendance_rate: 85, submission_rate: 78, accuracy: 68, is_at_risk: false, last_active: '2026-04-06', enrolled_at: '2025-10-01', skills: { Python: 65, JavaScript: 58, 'DB/SQL': 45, '알고리즘': 42, '프로젝트': 70, 'ML/DL': 15 } },
-  { id: 'uuid-student-009', name: '강예린', email: 'yerin@edupilot.kr', attendance_rate: 68, submission_rate: 42, accuracy: 50, is_at_risk: true, last_active: '2026-04-01', enrolled_at: '2025-10-01', skills: { Python: 35, JavaScript: 30, 'DB/SQL': 20, '알고리즘': 18, '프로젝트': 40, 'ML/DL': 5 } },
-  { id: 'uuid-student-010', name: '윤시우', email: 'siwoo@edupilot.kr', attendance_rate: 90, submission_rate: 85, accuracy: 79, is_at_risk: false, last_active: '2026-04-07', enrolled_at: '2025-10-01', skills: { Python: 75, JavaScript: 68, 'DB/SQL': 60, '알고리즘': 55, '프로젝트': 80, 'ML/DL': 30 } },
-  { id: 'uuid-student-011', name: '임채원', email: 'chaewon@edupilot.kr', attendance_rate: 92, submission_rate: 88, accuracy: 84, is_at_risk: false, last_active: '2026-04-07', enrolled_at: '2025-10-01', skills: { Python: 82, JavaScript: 75, 'DB/SQL': 65, '알고리즘': 70, '프로젝트': 88, 'ML/DL': 38 } },
-  { id: 'uuid-student-012', name: '조현우', email: 'hyunwoo@edupilot.kr', attendance_rate: 82, submission_rate: 72, accuracy: 65, is_at_risk: false, last_active: '2026-04-06', enrolled_at: '2025-10-01', skills: { Python: 60, JavaScript: 55, 'DB/SQL': 48, '알고리즘': 40, '프로젝트': 65, 'ML/DL': 18 } },
+  {
+    id: 'uuid-student-001',
+    name: '김민준',
+    email: 'minjun@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 91,
+    submission_rate: 88,
+    accuracy: 76,
+    is_at_risk: false,
+    last_active: '2026-04-07',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 91,
+      'AI 말하기': 72,
+      'AI 면접': 65,
+      포트폴리오: 80,
+      '프로젝트·과제·시험': 82,
+    },
+    files: [
+      { name: '김민준_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-15' },
+      { name: '김민준_포트폴리오.pdf', type: 'portfolio', url: '#', uploaded_at: '2026-03-20' },
+    ],
+  },
+  {
+    id: 'uuid-student-002',
+    name: '이서윤',
+    email: 'seoyun@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 95,
+    submission_rate: 92,
+    accuracy: 88,
+    is_at_risk: false,
+    last_active: '2026-04-07',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 95,
+      'AI 말하기': 85,
+      'AI 면접': 78,
+      포트폴리오: 88,
+      '프로젝트·과제·시험': 90,
+    },
+    files: [
+      { name: '이서윤_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-18' },
+      { name: '이서윤_포트폴리오.pdf', type: 'portfolio', url: '#', uploaded_at: '2026-03-22' },
+    ],
+  },
+  {
+    id: 'uuid-student-003',
+    name: '이지호',
+    email: 'jiho@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 72,
+    submission_rate: 55,
+    accuracy: 62,
+    is_at_risk: true,
+    last_active: '2026-04-04',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 72,
+      'AI 말하기': 45,
+      'AI 면접': 38,
+      포트폴리오: 50,
+      '프로젝트·과제·시험': 55,
+    },
+    files: [],
+  },
+  {
+    id: 'uuid-student-004',
+    name: '박하은',
+    email: 'haeun@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 88,
+    submission_rate: 82,
+    accuracy: 71,
+    is_at_risk: false,
+    last_active: '2026-04-07',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 88,
+      'AI 말하기': 68,
+      'AI 면접': 60,
+      포트폴리오: 72,
+      '프로젝트·과제·시험': 75,
+    },
+    files: [
+      { name: '박하은_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-25' },
+    ],
+  },
+  {
+    id: 'uuid-student-005',
+    name: '박수현',
+    email: 'suhyun@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 93,
+    submission_rate: 90,
+    accuracy: 82,
+    is_at_risk: false,
+    last_active: '2026-04-07',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 93,
+      'AI 말하기': 80,
+      'AI 면접': 74,
+      포트폴리오: 85,
+      '프로젝트·과제·시험': 88,
+    },
+    files: [
+      { name: '박수현_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-10' },
+      { name: '박수현_포트폴리오.pdf', type: 'portfolio', url: '#', uploaded_at: '2026-03-28' },
+    ],
+  },
+  {
+    id: 'uuid-student-006',
+    name: '최유나',
+    email: 'yuna@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 78,
+    submission_rate: 48,
+    accuracy: 55,
+    is_at_risk: true,
+    last_active: '2026-04-03',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 78,
+      'AI 말하기': 35,
+      'AI 면접': 28,
+      포트폴리오: 42,
+      '프로젝트·과제·시험': 48,
+    },
+    files: [],
+  },
+  {
+    id: 'uuid-student-007',
+    name: '정서율',
+    email: 'seoyul@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 97,
+    submission_rate: 95,
+    accuracy: 91,
+    is_at_risk: false,
+    last_active: '2026-04-07',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 97,
+      'AI 말하기': 90,
+      'AI 면접': 85,
+      포트폴리오: 92,
+      '프로젝트·과제·시험': 95,
+    },
+    files: [
+      { name: '정서율_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-05' },
+      { name: '정서율_포트폴리오.pdf', type: 'portfolio', url: '#', uploaded_at: '2026-03-12' },
+    ],
+  },
+  {
+    id: 'uuid-student-008',
+    name: '한도윤',
+    email: 'doyun@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 85,
+    submission_rate: 78,
+    accuracy: 68,
+    is_at_risk: false,
+    last_active: '2026-04-06',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 85,
+      'AI 말하기': 62,
+      'AI 면접': 55,
+      포트폴리오: 68,
+      '프로젝트·과제·시험': 72,
+    },
+    files: [
+      { name: '한도윤_포트폴리오.pdf', type: 'portfolio', url: '#', uploaded_at: '2026-04-01' },
+    ],
+  },
+  {
+    id: 'uuid-student-009',
+    name: '강예린',
+    email: 'yerin@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 68,
+    submission_rate: 42,
+    accuracy: 50,
+    is_at_risk: true,
+    last_active: '2026-04-01',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 68,
+      'AI 말하기': 30,
+      'AI 면접': 25,
+      포트폴리오: 35,
+      '프로젝트·과제·시험': 40,
+    },
+    files: [],
+  },
+  {
+    id: 'uuid-student-010',
+    name: '윤시우',
+    email: 'siwoo@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 90,
+    submission_rate: 85,
+    accuracy: 79,
+    is_at_risk: false,
+    last_active: '2026-04-07',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 90,
+      'AI 말하기': 76,
+      'AI 면접': 70,
+      포트폴리오: 82,
+      '프로젝트·과제·시험': 85,
+    },
+    files: [
+      { name: '윤시우_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-30' },
+      { name: '윤시우_포트폴리오.pdf', type: 'portfolio', url: '#', uploaded_at: '2026-04-02' },
+    ],
+  },
+  {
+    id: 'uuid-student-011',
+    name: '임채원',
+    email: 'chaewon@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 92,
+    submission_rate: 88,
+    accuracy: 84,
+    is_at_risk: false,
+    last_active: '2026-04-07',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 92,
+      'AI 말하기': 82,
+      'AI 면접': 76,
+      포트폴리오: 86,
+      '프로젝트·과제·시험': 88,
+    },
+    files: [
+      { name: '임채원_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-08' },
+    ],
+  },
+  {
+    id: 'uuid-student-012',
+    name: '조현우',
+    email: 'hyunwoo@edupilot.kr',
+    avatar_url: null,
+    attendance_rate: 82,
+    submission_rate: 72,
+    accuracy: 65,
+    is_at_risk: false,
+    last_active: '2026-04-06',
+    enrolled_at: '2025-10-01',
+    skills: {
+      출결: 82,
+      'AI 말하기': 58,
+      'AI 면접': 52,
+      포트폴리오: 64,
+      '프로젝트·과제·시험': 68,
+    },
+    files: [
+      { name: '조현우_이력서.pdf', type: 'resume', url: '#', uploaded_at: '2026-03-20' },
+      { name: '조현우_포트폴리오.pdf', type: 'portfolio', url: '#', uploaded_at: '2026-03-27' },
+    ],
+  },
 ];
 
 // --- 상담 기록 ---
@@ -482,8 +1140,13 @@ export const mockCounselingRecords = [
     student_name: '이지호',
     date: '2026-04-03',
     duration: '25분',
-    summary: '출석률 저하 원인 파악. 개인 사정(가족 건강 문제)으로 인한 불규칙 출석. 유연한 학습 계획 수립 논의.',
-    action_items: ['출석 유연화 방안 검토', '온라인 보충학습 자료 제공', '다음 주 재상담 예약'],
+    summary:
+      '출석률 저하 원인 파악. 개인 사정(가족 건강 문제)으로 인한 불규칙 출석. 유연한 학습 계획 수립 논의.',
+    action_items: [
+      '출석 유연화 방안 검토',
+      '온라인 보충학습 자료 제공',
+      '다음 주 재상담 예약',
+    ],
     speakers: ['강사: 박서연', '학생: 이지호'],
   },
   {
@@ -491,8 +1154,13 @@ export const mockCounselingRecords = [
     student_name: '최유나',
     date: '2026-03-28',
     duration: '30분',
-    summary: '학습 진도 부진 상담. Python 기초 부분에서 어려움 경험. 추가 튜터링 세션 배정.',
-    action_items: ['Python 기초 보충 교재 제공', '주 2회 방과후 튜터링 배정', '학습 일지 작성 시작'],
+    summary:
+      '학습 진도 부진 상담. Python 기초 부분에서 어려움 경험. 추가 튜터링 세션 배정.',
+    action_items: [
+      'Python 기초 보충 교재 제공',
+      '주 2회 방과후 튜터링 배정',
+      '학습 일지 작성 시작',
+    ],
     speakers: ['강사: 박서연', '학생: 최유나'],
   },
   {
@@ -500,34 +1168,2196 @@ export const mockCounselingRecords = [
     student_name: '강예린',
     date: '2026-03-25',
     duration: '20분',
-    summary: '동기부여 저하 상담. 목표 재설정 필요. 관심 분야(디자인+개발) 탐색 권유.',
-    action_items: ['UI/UX 관련 부가 학습 자료 제공', '소규모 프로젝트 참여 기회 제공', '멘토 매칭'],
+    summary:
+      '동기부여 저하 상담. 목표 재설정 필요. 관심 분야(디자인+개발) 탐색 권유.',
+    action_items: [
+      'UI/UX 관련 부가 학습 자료 제공',
+      '소규모 프로젝트 참여 기회 제공',
+      '멘토 매칭',
+    ],
     speakers: ['강사: 박서연', '학생: 강예린'],
+  },
+];
+
+// --- 과목별 개념 학습 & 문제 ---
+export const mockSubjects = [
+  {
+    id: 'python',
+    phase: 1,
+    title: 'Python 기초',
+    icon: 'Code2',
+    color: 'from-blue-500 to-blue-600',
+    description: 'Python 문법, 자료형, 함수, 클래스 등 프로그래밍 기초',
+    concepts: [
+      {
+        id: 'variables',
+        title: '변수와 자료형',
+        description:
+          '변수 선언, 숫자형, 문자열, 불리언 등 기본 자료형을 학습합니다.',
+        problems: [
+          {
+            id: 'py-var-1',
+            question: 'Python에서 변수 이름으로 사용할 수 없는 것은?',
+            choices: ['my_var', '_count', '2ndValue', 'total_sum'],
+            answer: 2,
+            explanation:
+              '변수 이름은 숫자로 시작할 수 없습니다. 2ndValue는 숫자 2로 시작하므로 유효하지 않습니다.',
+          },
+          {
+            id: 'py-var-2',
+            question: '다음 중 Python의 불변(immutable) 자료형이 아닌 것은?',
+            choices: ['int', 'str', 'tuple', 'list'],
+            answer: 3,
+            explanation:
+              'list는 변경 가능한(mutable) 자료형입니다. int, str, tuple은 모두 불변(immutable)입니다.',
+          },
+          {
+            id: 'py-var-3',
+            question: 'type(3.14)의 결과는?',
+            choices: [
+              "<class 'int'>",
+              "<class 'float'>",
+              "<class 'str'>",
+              "<class 'decimal'>",
+            ],
+            answer: 1,
+            explanation: '3.14는 소수점이 있는 숫자이므로 float 타입입니다.',
+          },
+          {
+            id: 'py-var-4',
+            question: "x = '10'; y = 20 일 때, x + str(y)의 결과는?",
+            choices: ['30', "'1020'", '오류 발생', "'30'"],
+            answer: 1,
+            explanation:
+              "x는 문자열 '10'이고, str(y)는 문자열 '20'이므로 문자열 결합이 일어나 '1020'이 됩니다.",
+          },
+        ],
+      },
+      {
+        id: 'list',
+        title: '리스트',
+        description:
+          '리스트 생성, 인덱싱, 슬라이싱, 메서드 활용법을 학습합니다.',
+        problems: [
+          {
+            id: 'py-list-1',
+            question: 'a = [1, 2, 3, 4, 5] 일 때, a[1:4]의 결과는?',
+            choices: ['[1, 2, 3]', '[2, 3, 4]', '[2, 3, 4, 5]', '[1, 2, 3, 4]'],
+            answer: 1,
+            explanation:
+              '슬라이싱 a[1:4]는 인덱스 1부터 3까지(4 미포함)의 요소를 반환합니다.',
+          },
+          {
+            id: 'py-list-2',
+            question: '리스트에 요소를 추가할 때 사용하는 메서드가 아닌 것은?',
+            choices: ['append()', 'extend()', 'insert()', 'add()'],
+            answer: 3,
+            explanation:
+              'add()는 set(집합)의 메서드입니다. 리스트에는 append, extend, insert를 사용합니다.',
+          },
+          {
+            id: 'py-list-3',
+            question: 'a = [3, 1, 4, 1, 5] 일 때, a.sort() 후 a의 값은?',
+            choices: [
+              '[5, 4, 3, 1, 1]',
+              '[1, 1, 3, 4, 5]',
+              '[3, 1, 4, 1, 5]',
+              'None',
+            ],
+            answer: 1,
+            explanation:
+              'sort()는 리스트를 오름차순으로 정렬합니다. 원본 리스트가 변경됩니다.',
+          },
+        ],
+      },
+      {
+        id: 'tuple',
+        title: '튜플',
+        description: '튜플의 특성, 패킹/언패킹, 활용 사례를 학습합니다.',
+        problems: [
+          {
+            id: 'py-tuple-1',
+            question: '튜플이 리스트와 다른 가장 큰 특징은?',
+            choices: [
+              '순서가 없다',
+              '중복을 허용하지 않는다',
+              '변경이 불가능하다(immutable)',
+              '인덱싱이 불가능하다',
+            ],
+            answer: 2,
+            explanation:
+              '튜플은 생성 후 요소를 변경, 추가, 삭제할 수 없는 불변(immutable) 자료형입니다.',
+          },
+          {
+            id: 'py-tuple-2',
+            question: '요소가 하나인 튜플을 만드는 올바른 방법은?',
+            choices: ['t = (1)', 't = [1]', 't = (1,)', 't = {1}'],
+            answer: 2,
+            explanation:
+              '요소가 하나인 튜플은 쉼표를 반드시 붙여야 합니다. (1)은 정수 1로 인식됩니다.',
+          },
+          {
+            id: 'py-tuple-3',
+            question: 'a, b, c = (10, 20, 30)에서 b의 값은?',
+            choices: ['10', '20', '30', '(10, 20, 30)'],
+            answer: 1,
+            explanation: '튜플 언패킹에 의해 a=10, b=20, c=30이 됩니다.',
+          },
+        ],
+      },
+      {
+        id: 'dictionary',
+        title: '딕셔너리',
+        description: 'key-value 구조, 딕셔너리 메서드, 활용 패턴을 학습합니다.',
+        problems: [
+          {
+            id: 'py-dict-1',
+            question: "d = {'a': 1, 'b': 2} 일 때, d.get('c', 0)의 결과는?",
+            choices: ['None', '0', '오류 발생', "'c'"],
+            answer: 1,
+            explanation:
+              "get() 메서드는 키가 없으면 기본값을 반환합니다. 'c'가 없으므로 0을 반환합니다.",
+          },
+          {
+            id: 'py-dict-2',
+            question: '딕셔너리의 키(key)로 사용할 수 없는 것은?',
+            choices: ['문자열', '정수', '튜플', '리스트'],
+            answer: 3,
+            explanation:
+              '딕셔너리의 키는 해시 가능(hashable)해야 합니다. 리스트는 mutable이므로 키로 사용할 수 없습니다.',
+          },
+          {
+            id: 'py-dict-3',
+            question:
+              "d = {'x': 10, 'y': 20, 'z': 30} 일 때, list(d.values())의 결과는?",
+            choices: [
+              "['x', 'y', 'z']",
+              '[10, 20, 30]',
+              "[('x',10), ('y',20), ('z',30)]",
+              "{'x': 10, 'y': 20, 'z': 30}",
+            ],
+            answer: 1,
+            explanation: 'values()는 딕셔너리의 값들만 반환합니다.',
+          },
+          {
+            id: 'py-dict-4',
+            question: '딕셔너리 d에서 키와 값을 동시에 순회하는 방법은?',
+            choices: [
+              'for k in d:',
+              'for k, v in d.items():',
+              'for v in d.values():',
+              'for k in d.keys():',
+            ],
+            answer: 1,
+            explanation:
+              'items()는 (key, value) 쌍을 반환하므로 키와 값을 동시에 순회할 수 있습니다.',
+          },
+        ],
+      },
+      {
+        id: 'condition-loop',
+        title: '조건문과 반복문',
+        description: 'if/elif/else, for, while, break/continue를 학습합니다.',
+        problems: [
+          {
+            id: 'py-cl-1',
+            question: 'Python에서 if 조건문의 특징이 아닌 것은?',
+            choices: [
+              '들여쓰기로 블록을 구분한다',
+              'elif로 추가 조건을 처리한다',
+              '중괄호 {}로 블록을 구분한다',
+              'else는 생략할 수 있다',
+            ],
+            answer: 2,
+            explanation:
+              'Python은 중괄호가 아닌 들여쓰기(indentation)로 코드 블록을 구분합니다.',
+          },
+          {
+            id: 'py-cl-2',
+            question: 'for i in range(3, 8, 2): 에서 i가 취하는 값은?',
+            choices: ['3, 4, 5, 6, 7', '3, 5, 7', '3, 5, 7, 8', '4, 6, 8'],
+            answer: 1,
+            explanation:
+              'range(3, 8, 2)는 3부터 시작해서 2씩 증가하며 8 미만까지 → 3, 5, 7',
+          },
+          {
+            id: 'py-cl-3',
+            question:
+              'while 루프에서 현재 반복을 건너뛰고 다음 반복으로 넘어가는 키워드는?',
+            choices: ['break', 'continue', 'pass', 'return'],
+            answer: 1,
+            explanation:
+              'continue는 현재 반복의 나머지를 건너뛰고 다음 반복으로 이동합니다. break는 루프 자체를 종료합니다.',
+          },
+        ],
+      },
+      {
+        id: 'function',
+        title: '함수',
+        description:
+          '함수 정의, 매개변수, 반환값, 스코프, 람다 함수를 학습합니다.',
+        problems: [
+          {
+            id: 'py-func-1',
+            question: '다음 중 함수의 기본값 매개변수 사용이 올바른 것은?',
+            choices: [
+              'def f(a=1, b):',
+              'def f(a, b=2):',
+              'def f(a=1, b, c=3):',
+              'def f(, a=1):',
+            ],
+            answer: 1,
+            explanation:
+              '기본값이 있는 매개변수는 기본값이 없는 매개변수 뒤에 위치해야 합니다.',
+          },
+          {
+            id: 'py-func-2',
+            question:
+              '다음 함수 실행 결과는?\ndef f(lst=[]):\n    lst.append(1)\n    return lst\nprint(f())\nprint(f())',
+            choices: [
+              '[1]\\n[1]',
+              '[1]\\n[1, 1]',
+              '[1, 1]\\n[1, 1]',
+              '오류 발생',
+            ],
+            answer: 1,
+            explanation:
+              '기본값으로 사용된 리스트는 함수 정의 시 한 번만 생성됩니다. 호출할 때마다 같은 리스트 객체를 공유하므로 요소가 누적됩니다.',
+          },
+          {
+            id: 'py-func-3',
+            question: 'lambda x, y: x + y 는 무엇을 의미하는가?',
+            choices: [
+              'x와 y를 출력하는 함수',
+              'x + y를 반환하는 익명 함수',
+              'x + y를 저장하는 변수',
+              '오류가 발생하는 코드',
+            ],
+            answer: 1,
+            explanation:
+              'lambda는 이름 없는 익명 함수를 생성합니다. x와 y를 받아 더한 값을 반환합니다.',
+          },
+        ],
+      },
+      {
+        id: 'class',
+        title: '클래스와 OOP',
+        description:
+          '클래스 정의, 인스턴스, 상속, 캡슐화, 다형성을 학습합니다.',
+        problems: [
+          {
+            id: 'py-cls-1',
+            question: 'Python 클래스에서 인스턴스 자신을 가리키는 키워드는?',
+            choices: ['this', 'self', 'me', 'instance'],
+            answer: 1,
+            explanation:
+              'Python에서는 관례적으로 self를 사용하여 인스턴스 자신을 가리킵니다.',
+          },
+          {
+            id: 'py-cls-2',
+            question: '__init__ 메서드의 역할은?',
+            choices: [
+              '클래스를 삭제한다',
+              '인스턴스를 초기화한다',
+              '클래스를 상속한다',
+              '메서드를 오버라이딩한다',
+            ],
+            answer: 1,
+            explanation:
+              '__init__은 생성자로, 인스턴스가 생성될 때 자동으로 호출되어 초기화를 수행합니다.',
+          },
+          {
+            id: 'py-cls-3',
+            question:
+              'class Dog(Animal): 에서 괄호 안의 Animal은 무엇을 의미하는가?',
+            choices: [
+              'Animal 타입의 변수',
+              'Dog가 Animal을 상속',
+              'Animal 모듈 임포트',
+              'Dog의 인스턴스 이름',
+            ],
+            answer: 1,
+            explanation:
+              '클래스 정의 시 괄호 안에 부모 클래스를 넣으면 상속 관계가 형성됩니다.',
+          },
+          {
+            id: 'py-cls-4',
+            question:
+              '다음 중 캡슐화(Encapsulation)에 대한 설명으로 올바른 것은?',
+            choices: [
+              '모든 속성을 public으로 만드는 것',
+              '데이터와 메서드를 하나로 묶고 접근을 제한하는 것',
+              '같은 이름의 메서드를 여러 개 만드는 것',
+              '부모 클래스의 기능을 물려받는 것',
+            ],
+            answer: 1,
+            explanation:
+              '캡슐화는 데이터와 메서드를 하나의 단위로 묶고, 외부에서의 직접 접근을 제한하는 OOP 원칙입니다.',
+          },
+        ],
+      },
+      {
+        id: 'file-io',
+        title: '파일 입출력',
+        description: '파일 읽기/쓰기, with 문, CSV/JSON 처리를 학습합니다.',
+        problems: [
+          {
+            id: 'py-file-1',
+            question: '파일을 안전하게 열고 닫기 위해 권장되는 방식은?',
+            choices: [
+              "f = open('file.txt')",
+              "with open('file.txt') as f:",
+              "open('file.txt').read()",
+              "try: open('file.txt')",
+            ],
+            answer: 1,
+            explanation:
+              'with 문을 사용하면 블록이 끝날 때 자동으로 파일이 닫혀 리소스 누수를 방지합니다.',
+          },
+          {
+            id: 'py-file-2',
+            question: "open('data.txt', 'a')에서 'a' 모드의 의미는?",
+            choices: [
+              '읽기 전용',
+              '쓰기(덮어쓰기)',
+              '추가(append)',
+              '바이너리 읽기',
+            ],
+            answer: 2,
+            explanation:
+              "'a' 모드는 파일 끝에 내용을 추가합니다. 기존 내용은 유지됩니다.",
+          },
+          {
+            id: 'py-file-3',
+            question:
+              'JSON 파일을 Python 딕셔너리로 변환할 때 사용하는 함수는?',
+            choices: [
+              'json.dumps()',
+              'json.load()',
+              'json.parse()',
+              'json.read()',
+            ],
+            answer: 1,
+            explanation:
+              'json.load()는 파일 객체에서 JSON 데이터를 읽어 Python 객체로 변환합니다.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'javascript-react',
+    phase: 2,
+    title: 'JavaScript & React',
+    icon: 'Globe',
+    color: 'from-yellow-500 to-orange-500',
+    description: 'JavaScript ES6+, React 컴포넌트, Hooks, 상태 관리',
+    concepts: [
+      {
+        id: 'js-basics',
+        title: 'JS 기초 문법',
+        description:
+          'let/const, 화살표 함수, 템플릿 리터럴, 구조분해 할당을 학습합니다.',
+        problems: [
+          {
+            id: 'js-basic-1',
+            question: 'let과 const의 차이점으로 올바른 것은?',
+            choices: [
+              'let은 전역, const는 지역 변수',
+              'let은 재할당 가능, const는 재할당 불가',
+              'let은 호이스팅 안됨, const는 호이스팅 됨',
+              '차이 없음',
+            ],
+            answer: 1,
+            explanation:
+              'let은 값을 재할당할 수 있지만, const는 선언 시 초기화 후 재할당이 불가능합니다.',
+          },
+          {
+            id: 'js-basic-2',
+            question: '다음 중 화살표 함수(Arrow Function)의 올바른 형태는?',
+            choices: [
+              'function => (a, b) { return a + b }',
+              '(a, b) => a + b',
+              '(a, b) -> a + b',
+              'arrow(a, b) => a + b',
+            ],
+            answer: 1,
+            explanation:
+              '화살표 함수는 => 기호를 사용하며, 본문이 한 줄이면 return과 중괄호를 생략할 수 있습니다.',
+          },
+          {
+            id: 'js-basic-3',
+            question: 'const { name, age } = person; 이 코드의 의미는?',
+            choices: [
+              'person 객체를 삭제',
+              'person에서 name, age를 추출',
+              '새 객체 생성',
+              '배열 분해',
+            ],
+            answer: 1,
+            explanation:
+              '구조분해 할당(destructuring)으로 객체에서 특정 속성을 변수로 추출합니다.',
+          },
+          {
+            id: 'js-basic-4',
+            question: '`Hello ${name}`에서 사용된 문법은?',
+            choices: [
+              '문자열 연결',
+              '정규표현식',
+              '템플릿 리터럴',
+              'JSX 표현식',
+            ],
+            answer: 2,
+            explanation:
+              '백틱(`)과 ${} 구문을 사용하는 템플릿 리터럴로, 문자열 내에 변수를 삽입할 수 있습니다.',
+          },
+        ],
+      },
+      {
+        id: 'dom',
+        title: 'DOM 조작',
+        description: 'DOM 선택, 이벤트 처리, 동적 요소 생성을 학습합니다.',
+        problems: [
+          {
+            id: 'js-dom-1',
+            question: 'document.querySelector()의 특징은?',
+            choices: [
+              '모든 일치 요소를 반환',
+              '첫 번째 일치 요소만 반환',
+              'ID로만 검색 가능',
+              '클래스로만 검색 가능',
+            ],
+            answer: 1,
+            explanation:
+              'querySelector는 CSS 선택자에 맞는 첫 번째 요소만 반환합니다. 모두 반환하려면 querySelectorAll을 사용합니다.',
+          },
+          {
+            id: 'js-dom-2',
+            question: 'addEventListener의 세 번째 인자 역할은?',
+            choices: [
+              '콜백 함수',
+              '이벤트 타입',
+              '캡처/버블링 설정',
+              '이벤트 딜레이',
+            ],
+            answer: 2,
+            explanation:
+              '세 번째 인자는 이벤트 캡처링(true) 또는 버블링(false, 기본값) 단계를 설정합니다.',
+          },
+          {
+            id: 'js-dom-3',
+            question: 'event.preventDefault()의 역할은?',
+            choices: [
+              '이벤트를 삭제',
+              '기본 동작을 막음',
+              '이벤트 버블링을 중단',
+              '모든 이벤트를 취소',
+            ],
+            answer: 1,
+            explanation:
+              'preventDefault()는 폼 제출, 링크 이동 등 브라우저의 기본 동작을 방지합니다.',
+          },
+        ],
+      },
+      {
+        id: 'react-component',
+        title: 'React 컴포넌트',
+        description: 'JSX, props, 컴포넌트 구조, 조건부 렌더링을 학습합니다.',
+        problems: [
+          {
+            id: 'react-comp-1',
+            question: 'React 컴포넌트 이름의 규칙으로 올바른 것은?',
+            choices: [
+              '소문자로 시작',
+              '대문자로 시작 (PascalCase)',
+              'camelCase',
+              '특별한 규칙 없음',
+            ],
+            answer: 1,
+            explanation:
+              'React 컴포넌트는 반드시 대문자로 시작해야 합니다. 소문자는 HTML 태그로 인식됩니다.',
+          },
+          {
+            id: 'react-comp-2',
+            question: 'props에 대한 설명으로 올바르지 않은 것은?',
+            choices: [
+              '부모에서 자식으로 전달',
+              '읽기 전용(read-only)',
+              '자식에서 부모로 전달 가능',
+              '어떤 타입이든 전달 가능',
+            ],
+            answer: 2,
+            explanation:
+              'props는 부모 → 자식 방향으로만 전달됩니다(단방향 데이터 흐름). 자식에서 부모로 직접 전달할 수 없습니다.',
+          },
+          {
+            id: 'react-comp-3',
+            question: 'JSX에서 JavaScript 표현식을 삽입할 때 사용하는 기호는?',
+            choices: ['( )', '{ }', '[ ]', '< >'],
+            answer: 1,
+            explanation:
+              'JSX에서 {} 중괄호 안에 JavaScript 표현식을 넣을 수 있습니다.',
+          },
+        ],
+      },
+      {
+        id: 'hooks',
+        title: 'Hooks & Context',
+        description: 'useState, useEffect, useContext, 커스텀 훅을 학습합니다.',
+        problems: [
+          {
+            id: 'react-hook-1',
+            question: 'useState의 반환값으로 올바른 것은?',
+            choices: [
+              '값만 반환',
+              '[현재값, setter 함수]',
+              '{state, dispatch}',
+              '이전값과 현재값',
+            ],
+            answer: 1,
+            explanation:
+              'useState는 [상태값, 상태를 업데이트하는 함수] 배열을 반환합니다.',
+          },
+          {
+            id: 'react-hook-2',
+            question: 'useEffect의 의존성 배열이 빈 배열 []일 때 실행 시점은?',
+            choices: [
+              '매 렌더링마다',
+              '컴포넌트 마운트 시 1회만',
+              '절대 실행 안 됨',
+              '상태 변경 시마다',
+            ],
+            answer: 1,
+            explanation:
+              '의존성 배열이 []이면 컴포넌트가 처음 마운트될 때만 실행됩니다.',
+          },
+          {
+            id: 'react-hook-3',
+            question: 'useContext를 사용하는 주된 이유는?',
+            choices: [
+              'API 호출',
+              'prop drilling 방지',
+              '라우팅 처리',
+              '애니메이션 구현',
+            ],
+            answer: 1,
+            explanation:
+              'useContext는 컴포넌트 트리에서 props를 중간 컴포넌트를 거치지 않고 직접 전달할 수 있게 합니다.',
+          },
+          {
+            id: 'react-hook-4',
+            question: '다음 중 Hooks 사용 규칙으로 올바르지 않은 것은?',
+            choices: [
+              '최상위에서만 호출',
+              '함수형 컴포넌트에서만 사용',
+              '조건문 안에서 호출 가능',
+              '커스텀 훅에서 사용 가능',
+            ],
+            answer: 2,
+            explanation:
+              'Hooks는 조건문, 반복문 안에서 호출하면 안 됩니다. 항상 컴포넌트 최상위에서 호출해야 합니다.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'db-sql',
+    phase: 3,
+    title: 'DB & SQL',
+    icon: 'Database',
+    color: 'from-green-500 to-emerald-600',
+    description: 'PostgreSQL, 데이터 모델링, SQL 쿼리, 인덱싱',
+    concepts: [
+      {
+        id: 'rdb-concept',
+        title: '관계형 DB 개념',
+        description: '테이블, 행, 열, 기본키, 외래키, 정규화를 학습합니다.',
+        problems: [
+          {
+            id: 'db-rdb-1',
+            question: '기본키(Primary Key)의 특징이 아닌 것은?',
+            choices: [
+              '유일해야 한다',
+              'NULL을 허용하지 않는다',
+              '테이블당 여러 개 가능',
+              '행을 고유하게 식별',
+            ],
+            answer: 2,
+            explanation:
+              '기본키는 테이블당 하나만 존재할 수 있습니다. (복합 기본키는 여러 열의 조합이지만 키 자체는 하나입니다.)',
+          },
+          {
+            id: 'db-rdb-2',
+            question: '정규화(Normalization)의 주된 목적은?',
+            choices: [
+              '쿼리 속도 향상',
+              '데이터 중복 최소화',
+              '테이블 수 줄이기',
+              '인덱스 자동 생성',
+            ],
+            answer: 1,
+            explanation:
+              '정규화는 데이터 중복을 줄이고 무결성을 높이기 위해 테이블을 분리하는 과정입니다.',
+          },
+          {
+            id: 'db-rdb-3',
+            question: '외래키(Foreign Key)의 역할은?',
+            choices: [
+              '데이터 암호화',
+              '다른 테이블의 기본키를 참조하여 관계 설정',
+              '자동 증가 번호 생성',
+              '인덱스 생성',
+            ],
+            answer: 1,
+            explanation:
+              '외래키는 다른 테이블의 기본키를 참조하여 테이블 간 관계를 정의합니다.',
+          },
+        ],
+      },
+      {
+        id: 'sql-crud',
+        title: 'SQL CRUD',
+        description: 'SELECT, INSERT, UPDATE, DELETE 기본 쿼리를 학습합니다.',
+        problems: [
+          {
+            id: 'db-crud-1',
+            question: '특정 조건의 데이터를 조회하는 SQL 키워드는?',
+            choices: ['HAVING', 'WHERE', 'GROUP BY', 'ORDER BY'],
+            answer: 1,
+            explanation:
+              'WHERE 절은 조건에 맞는 행을 필터링합니다. HAVING은 GROUP BY 후 그룹을 필터링할 때 사용합니다.',
+          },
+          {
+            id: 'db-crud-2',
+            question: 'UPDATE 문에서 WHERE 절을 생략하면?',
+            choices: [
+              '오류 발생',
+              '테이블의 모든 행이 수정됨',
+              '첫 번째 행만 수정됨',
+              '아무 일도 안 일어남',
+            ],
+            answer: 1,
+            explanation:
+              'WHERE 절 없이 UPDATE를 실행하면 테이블의 모든 행이 수정되므로 매우 주의해야 합니다.',
+          },
+          {
+            id: 'db-crud-3',
+            question:
+              'INSERT INTO users (name, email) VALUES (?, ?)에서 ?의 역할은?',
+            choices: [
+              'NULL 값 삽입',
+              '파라미터 바인딩(Prepared Statement)',
+              '와일드카드',
+              '기본값 사용',
+            ],
+            answer: 1,
+            explanation:
+              '?는 파라미터 바인딩을 위한 플레이스홀더로, SQL 인젝션을 방지합니다.',
+          },
+        ],
+      },
+      {
+        id: 'join-subquery',
+        title: 'JOIN과 서브쿼리',
+        description: 'INNER JOIN, LEFT JOIN, 서브쿼리, CTE를 학습합니다.',
+        problems: [
+          {
+            id: 'db-join-1',
+            question: 'LEFT JOIN의 특징은?',
+            choices: [
+              '양쪽 모두 일치하는 행만',
+              '왼쪽 테이블의 모든 행 + 일치하는 오른쪽 행',
+              '오른쪽 테이블의 모든 행',
+              '교차 결합',
+            ],
+            answer: 1,
+            explanation:
+              'LEFT JOIN은 왼쪽 테이블의 모든 행을 유지하고, 오른쪽에서 일치하지 않는 경우 NULL을 반환합니다.',
+          },
+          {
+            id: 'db-join-2',
+            question: '서브쿼리가 사용될 수 있는 위치가 아닌 것은?',
+            choices: [
+              'SELECT 절',
+              'WHERE 절',
+              'FROM 절',
+              'CREATE TABLE 문의 테이블명',
+            ],
+            answer: 3,
+            explanation:
+              '서브쿼리는 SELECT, WHERE, FROM, HAVING 절 등에서 사용 가능하지만, 테이블명 위치에는 사용할 수 없습니다.',
+          },
+          {
+            id: 'db-join-3',
+            question: 'INNER JOIN과 CROSS JOIN의 차이는?',
+            choices: [
+              '차이 없음',
+              'INNER JOIN은 조건 기반, CROSS JOIN은 모든 조합',
+              'CROSS JOIN이 더 빠름',
+              'INNER JOIN은 NULL 포함',
+            ],
+            answer: 1,
+            explanation:
+              'INNER JOIN은 ON 조건에 맞는 행만 결합하고, CROSS JOIN은 두 테이블의 모든 행 조합(카테시안 곱)을 반환합니다.',
+          },
+        ],
+      },
+      {
+        id: 'indexing',
+        title: '인덱싱과 최적화',
+        description: '인덱스 원리, EXPLAIN, 쿼리 최적화 전략을 학습합니다.',
+        problems: [
+          {
+            id: 'db-idx-1',
+            question: '인덱스를 생성하면 느려지는 작업은?',
+            choices: [
+              'SELECT',
+              'WHERE 조건 검색',
+              'INSERT/UPDATE/DELETE',
+              'ORDER BY',
+            ],
+            answer: 2,
+            explanation:
+              '인덱스는 읽기 성능을 높이지만, 데이터 변경 시 인덱스도 갱신해야 하므로 쓰기 성능이 저하됩니다.',
+          },
+          {
+            id: 'db-idx-2',
+            question: 'EXPLAIN 명령어의 역할은?',
+            choices: [
+              '쿼리 실행',
+              '쿼리 실행 계획 확인',
+              '인덱스 자동 생성',
+              '테이블 구조 변경',
+            ],
+            answer: 1,
+            explanation:
+              'EXPLAIN은 쿼리가 실제로 어떻게 실행될지 실행 계획을 보여줍니다.',
+          },
+          {
+            id: 'db-idx-3',
+            question: '복합 인덱스 (a, b, c)에서 WHERE b = 1만 사용하면?',
+            choices: [
+              '인덱스가 효율적으로 사용됨',
+              '인덱스가 사용되지 않음',
+              '부분적으로만 사용됨',
+              '오류 발생',
+            ],
+            answer: 1,
+            explanation:
+              '복합 인덱스는 왼쪽부터 순서대로 사용됩니다. 첫 번째 열(a)을 건너뛰면 인덱스를 효율적으로 사용할 수 없습니다.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'algorithm',
+    phase: 4,
+    title: '알고리즘 & 자료구조',
+    icon: 'GitBranch',
+    color: 'from-purple-500 to-violet-600',
+    description: '배열, 스택, 큐, 트리, 그래프, 정렬, 탐색 알고리즘',
+    concepts: [
+      {
+        id: 'array-string',
+        title: '배열과 문자열',
+        description: '배열 탐색, 투 포인터, 슬라이딩 윈도우를 학습합니다.',
+        problems: [
+          {
+            id: 'algo-arr-1',
+            question:
+              '정렬된 배열에서 특정 값을 찾는 가장 효율적인 방법의 시간 복잡도는?',
+            choices: ['O(n)', 'O(log n)', 'O(n log n)', 'O(1)'],
+            answer: 1,
+            explanation:
+              '정렬된 배열에서는 이진 탐색(Binary Search)을 사용하면 O(log n)에 찾을 수 있습니다.',
+          },
+          {
+            id: 'algo-arr-2',
+            question: '투 포인터(Two Pointer) 기법의 주요 장점은?',
+            choices: [
+              '코드가 짧아짐',
+              'O(n)으로 쌍을 찾을 수 있음',
+              '정렬이 불필요',
+              '메모리를 더 사용',
+            ],
+            answer: 1,
+            explanation:
+              '투 포인터는 정렬된 배열에서 조건을 만족하는 쌍을 O(n) 시간에 찾을 수 있습니다.',
+          },
+          {
+            id: 'algo-arr-3',
+            question: '슬라이딩 윈도우 기법이 적합한 문제 유형은?',
+            choices: [
+              '최단 경로 찾기',
+              '연속된 부분 배열의 최대합',
+              '트리 순회',
+              '그래프 탐색',
+            ],
+            answer: 1,
+            explanation:
+              '슬라이딩 윈도우는 연속된 부분 배열/문자열에서 조건을 만족하는 구간을 효율적으로 찾을 때 사용합니다.',
+          },
+        ],
+      },
+      {
+        id: 'stack-queue',
+        title: '스택과 큐',
+        description: 'LIFO, FIFO 원리, 구현, 활용 문제를 학습합니다.',
+        problems: [
+          {
+            id: 'algo-sq-1',
+            question: '스택(Stack)의 동작 원리는?',
+            choices: [
+              'FIFO (First In First Out)',
+              'LIFO (Last In First Out)',
+              'Random Access',
+              'Priority Based',
+            ],
+            answer: 1,
+            explanation:
+              '스택은 LIFO 구조로, 가장 나중에 들어온 요소가 가장 먼저 나갑니다.',
+          },
+          {
+            id: 'algo-sq-2',
+            question: '큐(Queue)가 주로 사용되는 알고리즘은?',
+            choices: [
+              'DFS (깊이 우선 탐색)',
+              'BFS (너비 우선 탐색)',
+              '이진 탐색',
+              '퀵 정렬',
+            ],
+            answer: 1,
+            explanation:
+              'BFS는 큐를 사용하여 현재 노드의 인접 노드를 순서대로 방문합니다.',
+          },
+          {
+            id: 'algo-sq-3',
+            question: '스택 2개로 구현할 수 있는 자료구조는?',
+            choices: ['트리', '큐', '힙', '그래프'],
+            answer: 1,
+            explanation:
+              '하나의 스택에 push하고, 다른 스택으로 옮기면서 pop하면 FIFO 동작을 구현할 수 있습니다.',
+          },
+        ],
+      },
+      {
+        id: 'tree-graph',
+        title: '트리와 그래프',
+        description: '이진 트리, BST, 그래프 표현, DFS/BFS를 학습합니다.',
+        problems: [
+          {
+            id: 'algo-tg-1',
+            question: '이진 탐색 트리(BST)의 특징은?',
+            choices: [
+              '모든 노드가 최대 3개의 자식',
+              '왼쪽 < 부모 < 오른쪽',
+              '항상 완전 이진 트리',
+              '높이가 항상 log n',
+            ],
+            answer: 1,
+            explanation:
+              'BST에서 왼쪽 서브트리의 모든 값은 부모보다 작고, 오른쪽은 부모보다 큽니다.',
+          },
+          {
+            id: 'algo-tg-2',
+            question: '그래프를 표현하는 두 가지 주요 방법은?',
+            choices: [
+              '배열과 링크드 리스트',
+              '인접 행렬과 인접 리스트',
+              '스택과 큐',
+              '해시맵과 트리맵',
+            ],
+            answer: 1,
+            explanation:
+              '인접 행렬은 2D 배열로, 인접 리스트는 각 노드의 이웃 목록으로 그래프를 표현합니다.',
+          },
+          {
+            id: 'algo-tg-3',
+            question: '트리의 전위 순회(Preorder) 방문 순서는?',
+            choices: [
+              '왼쪽 → 부모 → 오른쪽',
+              '부모 → 왼쪽 → 오른쪽',
+              '왼쪽 → 오른쪽 → 부모',
+              '오른쪽 → 부모 → 왼쪽',
+            ],
+            answer: 1,
+            explanation:
+              '전위 순회는 부모 노드를 먼저 방문한 후, 왼쪽 서브트리, 오른쪽 서브트리 순으로 방문합니다.',
+          },
+        ],
+      },
+      {
+        id: 'sorting',
+        title: '정렬 알고리즘',
+        description:
+          '버블, 선택, 삽입, 퀵, 병합 정렬의 원리와 복잡도를 학습합니다.',
+        problems: [
+          {
+            id: 'algo-sort-1',
+            question: '퀵 정렬의 평균 시간 복잡도는?',
+            choices: ['O(n)', 'O(n log n)', 'O(n²)', 'O(log n)'],
+            answer: 1,
+            explanation:
+              '퀵 정렬은 평균적으로 O(n log n)이지만, 최악의 경우(이미 정렬된 배열) O(n²)입니다.',
+          },
+          {
+            id: 'algo-sort-2',
+            question: '안정 정렬(Stable Sort)의 의미는?',
+            choices: [
+              '항상 같은 시간이 걸림',
+              '같은 값의 원래 순서가 유지됨',
+              '추가 메모리가 필요 없음',
+              '역순 정렬 가능',
+            ],
+            answer: 1,
+            explanation:
+              '안정 정렬은 같은 키를 가진 요소들의 상대적 순서가 정렬 후에도 유지되는 정렬입니다.',
+          },
+          {
+            id: 'algo-sort-3',
+            question: '다음 중 안정 정렬이 아닌 것은?',
+            choices: ['병합 정렬', '삽입 정렬', '퀵 정렬', '버블 정렬'],
+            answer: 2,
+            explanation:
+              '퀵 정렬은 피벗을 기준으로 요소를 교환하는 과정에서 같은 값의 순서가 바뀔 수 있어 불안정 정렬입니다.',
+          },
+        ],
+      },
+      {
+        id: 'dp',
+        title: '동적 프로그래밍',
+        description: '메모이제이션, 타뷸레이션, 대표 DP 문제를 학습합니다.',
+        problems: [
+          {
+            id: 'algo-dp-1',
+            question: '동적 프로그래밍(DP)을 적용할 수 있는 조건 2가지는?',
+            choices: [
+              '정렬 + 탐색',
+              '최적 부분 구조 + 중복 부분 문제',
+              '분할 + 정복',
+              '탐욕 + 역추적',
+            ],
+            answer: 1,
+            explanation:
+              'DP는 최적 부분 구조(큰 문제의 해가 작은 문제의 해로 구성)와 중복 부분 문제(같은 하위 문제 반복)를 가질 때 적용합니다.',
+          },
+          {
+            id: 'algo-dp-2',
+            question:
+              '메모이제이션(Memoization)과 타뷸레이션(Tabulation)의 차이는?',
+            choices: [
+              '같은 방식이다',
+              'Top-down vs Bottom-up',
+              '재귀 vs 반복 + 배열',
+              '메모이제이션이 Top-down, 타뷸레이션이 Bottom-up',
+            ],
+            answer: 3,
+            explanation:
+              '메모이제이션은 재귀 + 캐시로 Top-down 방식이고, 타뷸레이션은 반복문 + 테이블로 Bottom-up 방식입니다.',
+          },
+          {
+            id: 'algo-dp-3',
+            question: '피보나치 수열을 DP로 풀 때 시간 복잡도는?',
+            choices: ['O(2^n)', 'O(n)', 'O(n²)', 'O(n log n)'],
+            answer: 1,
+            explanation:
+              'DP를 사용하면 각 하위 문제를 한 번만 계산하므로 O(n)입니다. 단순 재귀는 O(2^n)입니다.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'project',
+    phase: 5,
+    title: '프로젝트 & 협업',
+    icon: 'Users',
+    color: 'from-teal-500 to-cyan-600',
+    description: 'Git 협업, 프로젝트 설계, API 개발, 배포',
+    concepts: [
+      {
+        id: 'git-collab',
+        title: 'Git & GitHub 협업',
+        description: '브랜치 전략, PR, 코드 리뷰, 충돌 해결을 학습합니다.',
+        problems: [
+          {
+            id: 'proj-git-1',
+            question: 'Git에서 브랜치를 병합하기 전 권장되는 작업 흐름은?',
+            choices: [
+              '바로 main에 push',
+              'Pull Request 생성 후 코드 리뷰',
+              'force push',
+              '브랜치 삭제 후 재생성',
+            ],
+            answer: 1,
+            explanation:
+              'PR을 통해 코드 리뷰를 받고 병합하는 것이 협업에서 권장되는 방식입니다.',
+          },
+          {
+            id: 'proj-git-2',
+            question: 'merge conflict가 발생하는 상황은?',
+            choices: [
+              '같은 파일의 같은 부분을 다르게 수정',
+              '서로 다른 파일 수정',
+              '새 파일 추가',
+              '브랜치 생성',
+            ],
+            answer: 0,
+            explanation:
+              '두 브랜치에서 같은 파일의 같은 위치를 서로 다르게 수정하면 Git이 자동 병합할 수 없어 충돌이 발생합니다.',
+          },
+          {
+            id: 'proj-git-3',
+            question: '.gitignore 파일의 역할은?',
+            choices: [
+              '파일 삭제',
+              'Git 추적에서 제외할 파일 지정',
+              '자동 커밋',
+              '브랜치 보호',
+            ],
+            answer: 1,
+            explanation:
+              '.gitignore에 명시된 파일/폴더 패턴은 Git이 추적하지 않습니다 (예: node_modules, .env).',
+          },
+        ],
+      },
+      {
+        id: 'api-dev',
+        title: 'API 개발',
+        description:
+          'RESTful API 설계, 상태 코드, 인증, 에러 처리를 학습합니다.',
+        problems: [
+          {
+            id: 'proj-api-1',
+            question:
+              'RESTful API에서 리소스를 생성할 때 사용하는 HTTP 메서드는?',
+            choices: ['GET', 'POST', 'PUT', 'DELETE'],
+            answer: 1,
+            explanation:
+              'POST는 새 리소스를 생성할 때 사용합니다. GET은 조회, PUT은 수정, DELETE는 삭제입니다.',
+          },
+          {
+            id: 'proj-api-2',
+            question: 'HTTP 상태 코드 401과 403의 차이는?',
+            choices: [
+              '같은 의미',
+              '401: 인증 안됨, 403: 권한 없음',
+              '401: 서버 오류, 403: 클라이언트 오류',
+              '401: 찾을 수 없음, 403: 금지됨',
+            ],
+            answer: 1,
+            explanation:
+              '401 Unauthorized는 인증이 필요함을, 403 Forbidden은 인증은 됐지만 해당 리소스에 대한 권한이 없음을 의미합니다.',
+          },
+          {
+            id: 'proj-api-3',
+            question: 'JWT(JSON Web Token)의 구성 요소 3가지는?',
+            choices: [
+              'ID, Password, Token',
+              'Header, Payload, Signature',
+              'Key, Value, Timestamp',
+              'User, Role, Permission',
+            ],
+            answer: 1,
+            explanation:
+              'JWT는 Header(알고리즘/타입), Payload(클레임 데이터), Signature(검증용 서명)으로 구성됩니다.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'ml-dl',
+    phase: 6,
+    title: 'ML/DL 입문',
+    icon: 'Brain',
+    color: 'from-pink-500 to-rose-600',
+    description: '머신러닝 기초, 사이킷런, 딥러닝 입문',
+    concepts: [
+      {
+        id: 'ml-basics',
+        title: 'ML 기초 이론',
+        description: '지도학습, 비지도학습, 과적합, 교차 검증을 학습합니다.',
+        problems: [
+          {
+            id: 'ml-basic-1',
+            question: '지도학습(Supervised Learning)의 특징은?',
+            choices: [
+              '레이블 없이 학습',
+              '정답(레이블)이 있는 데이터로 학습',
+              '보상을 통해 학습',
+              '규칙을 직접 입력',
+            ],
+            answer: 1,
+            explanation:
+              '지도학습은 입력과 정답 쌍으로 이루어진 데이터를 사용하여 모델을 학습시킵니다.',
+          },
+          {
+            id: 'ml-basic-2',
+            question: '과적합(Overfitting)의 의미는?',
+            choices: [
+              '학습 데이터가 부족함',
+              '훈련 데이터에만 잘 맞고 새 데이터에 일반화 실패',
+              '모델이 너무 단순함',
+              '학습 속도가 너무 빠름',
+            ],
+            answer: 1,
+            explanation:
+              '과적합은 모델이 훈련 데이터의 노이즈까지 학습하여 새로운 데이터에서 성능이 떨어지는 현상입니다.',
+          },
+          {
+            id: 'ml-basic-3',
+            question: 'K-fold 교차 검증의 장점은?',
+            choices: [
+              '학습 속도가 빨라짐',
+              '모든 데이터를 학습과 검증에 활용 가능',
+              '하이퍼파라미터 자동 조정',
+              '데이터 전처리가 불필요',
+            ],
+            answer: 1,
+            explanation:
+              'K-fold는 데이터를 K개로 나눠 돌아가며 검증하므로 모든 데이터가 학습과 검증에 사용됩니다.',
+          },
+        ],
+      },
+      {
+        id: 'sklearn',
+        title: '사이킷런 실습',
+        description: '데이터 전처리, 모델 학습, 평가 지표를 학습합니다.',
+        problems: [
+          {
+            id: 'ml-sk-1',
+            question: 'train_test_split의 주된 목적은?',
+            choices: [
+              '데이터 정렬',
+              '학습용과 테스트용 데이터 분리',
+              '특성 추출',
+              '모델 저장',
+            ],
+            answer: 1,
+            explanation:
+              '학습에 사용하지 않은 테스트 데이터로 모델의 일반화 성능을 평가하기 위해 데이터를 분리합니다.',
+          },
+          {
+            id: 'ml-sk-2',
+            question: '분류 모델의 평가 지표가 아닌 것은?',
+            choices: ['Accuracy', 'Precision', 'Recall', 'RMSE'],
+            answer: 3,
+            explanation:
+              'RMSE(Root Mean Square Error)는 회귀 모델의 평가 지표입니다. 분류에는 Accuracy, Precision, Recall, F1 등을 사용합니다.',
+          },
+          {
+            id: 'ml-sk-3',
+            question: '특성 스케일링(Feature Scaling)이 필요한 이유는?',
+            choices: [
+              '데이터를 삭제하기 위해',
+              '값의 범위가 다른 특성 간 공정한 비교를 위해',
+              '레이블을 생성하기 위해',
+              '차원을 늘리기 위해',
+            ],
+            answer: 1,
+            explanation:
+              '특성 간 스케일 차이가 크면 일부 특성이 모델에 과도한 영향을 미칠 수 있어 정규화/표준화가 필요합니다.',
+          },
+        ],
+      },
+    ],
   },
 ];
 
 // --- 사이드바 메뉴 ---
 export const studentMenuItems = [
-  { key: 'mypage', label: '마이페이지', icon: 'User', path: '/student', group: '내 정보' },
-  { key: 'dashboard', label: '커리큘럼 로드맵', icon: 'Map', path: '/student/dashboard', group: '내 정보' },
-  { key: 'attendance', label: '출석', icon: 'Calendar', path: '/student/attendance', group: '내 정보' },
-  { key: 'problems', label: '일일문제', icon: 'FileText', path: '/student/problems', group: '학습' },
-  { key: 'voice-feedback', label: '음성 피드백', icon: 'Mic', path: '/student/voice-feedback', group: '학습' },
-  { key: 'questions', label: '익명 질문', icon: 'HelpCircle', path: '/student/questions', group: '학습' },
-  { key: 'mock-interview', label: 'AI 모의면접', icon: 'MessageSquare', path: '/student/mock-interview', group: '취업' },
-  { key: 'jobs', label: '채용 매칭', icon: 'Briefcase', path: '/student/jobs', group: '취업' },
-  { key: 'equipment', label: '장비 대여', icon: 'Monitor', path: '/student/equipment', group: '기타' },
+  {
+    key: 'mypage',
+    label: '마이페이지',
+    icon: 'User',
+    path: '/student',
+    group: '내 정보',
+  },
+  {
+    key: 'dashboard',
+    label: '커리큘럼 로드맵',
+    icon: 'Map',
+    path: '/student/dashboard',
+    group: '내 정보',
+  },
+  {
+    key: 'attendance',
+    label: '출석',
+    icon: 'Calendar',
+    path: '/student/attendance',
+    group: '내 정보',
+  },
+  {
+    key: 'problems',
+    label: '개념 학습',
+    icon: 'BookOpen',
+    path: '/student/problems',
+    group: '학습',
+  },
+  {
+    key: 'voice-feedback',
+    label: 'AI 말하기 학습',
+    icon: 'Mic',
+    path: '/student/voice-feedback',
+    group: '학습',
+  },
+  {
+    key: 'questions',
+    label: '질문',
+    icon: 'HelpCircle',
+    path: '/student/questions',
+    group: '학습',
+  },
+  {
+    key: 'assignments',
+    label: '과제',
+    icon: 'ClipboardList',
+    path: '/student/assignments',
+    group: '학습',
+  },
+  {
+    key: 'assessments',
+    label: '능력단위평가',
+    icon: 'Award',
+    path: '/student/assessments',
+    group: '학습',
+  },
+  {
+    key: 'mock-interview',
+    label: 'AI 모의면접',
+    icon: 'MessageSquare',
+    path: '/student/mock-interview',
+    group: '취업',
+  },
+  {
+    key: 'jobs',
+    label: '채용 매칭',
+    icon: 'Briefcase',
+    path: '/student/jobs',
+    group: '취업',
+  },
+  {
+    key: 'equipment',
+    label: '장비 대여',
+    icon: 'Monitor',
+    path: '/student/equipment',
+    group: '시설물 이용',
+  },
+  {
+    key: 'room-reservation',
+    label: '자습실/회의실 예약',
+    icon: 'DoorOpen',
+    path: '/student/room-reservation',
+    group: '시설물 이용',
+  },
+  {
+    key: 'counseling-booking',
+    label: '면담 신청',
+    icon: 'CalendarClock',
+    path: '/student/counseling-booking',
+    group: '지원/상담',
+  },
+];
+
+// ── 과제 Mock 데이터 ──────────────────────────────────────
+export const mockAssignments = [
+  {
+    id: 1,
+    title: 'Python 클래스 설계 과제',
+    subject: 'Python 기초',
+    phase: 1,
+    description:
+      '은행 계좌 시스템을 클래스로 설계하세요. 입금, 출금, 잔액 조회 기능을 구현하고 예외 처리를 포함해야 합니다.',
+    dueDate: '2025-10-28',
+    openDate: '2025-10-20',
+    maxScore: 100,
+    status: 'graded', // pending | submitted | graded | resubmit_required
+    submittedAt: '2025-10-26 14:32',
+    score: 88,
+    feedback:
+      '클래스 설계는 잘 되어 있으나 예외 처리 부분에서 ValueError를 더 구체적으로 처리하면 좋겠습니다. 전반적으로 깔끔한 코드입니다.',
+    attachments: [{ name: 'bank_account.py', size: '4.2 KB', url: '#' }],
+    submittedFiles: [{ name: 'bank_account_final.py', size: '5.1 KB', url: '#' }],
+    rubric: [
+      { item: '클래스 구조', score: 30, maxScore: 30 },
+      { item: '입금/출금 로직', score: 25, maxScore: 30 },
+      { item: '예외 처리', score: 18, maxScore: 25 },
+      { item: '코드 가독성', score: 15, maxScore: 15 },
+    ],
+  },
+  {
+    id: 2,
+    title: 'React 컴포넌트 설계 과제',
+    subject: 'JavaScript & React',
+    phase: 2,
+    description:
+      'Todo 앱을 React로 구현하세요. 추가/삭제/완료 기능과 useState, useEffect 훅을 반드시 사용해야 합니다.',
+    dueDate: '2025-12-10',
+    openDate: '2025-12-01',
+    maxScore: 100,
+    status: 'graded',
+    submittedAt: '2025-12-09 10:15',
+    score: 92,
+    feedback:
+      'useState와 useEffect를 적절하게 활용하였으며 컴포넌트 분리도 잘 되어 있습니다. LocalStorage 연동까지 구현한 점이 인상적입니다.',
+    attachments: [],
+    submittedFiles: [{ name: 'todo-app.zip', size: '128 KB', url: '#' }],
+    rubric: [
+      { item: '컴포넌트 구조', score: 28, maxScore: 30 },
+      { item: '훅 활용', score: 28, maxScore: 30 },
+      { item: '기능 완성도', score: 24, maxScore: 25 },
+      { item: '코드 품질', score: 12, maxScore: 15 },
+    ],
+  },
+  {
+    id: 3,
+    title: 'SQL JOIN 실습 과제',
+    subject: 'DB & SQL',
+    phase: 3,
+    description:
+      '제공된 ERD를 기반으로 5개의 복합 쿼리를 작성하세요. INNER JOIN, LEFT JOIN, 서브쿼리를 모두 포함해야 합니다.',
+    dueDate: '2026-01-20',
+    openDate: '2026-01-13',
+    maxScore: 100,
+    status: 'resubmit_required',
+    submittedAt: '2026-01-18 22:00',
+    score: null,
+    feedback:
+      '3번 문제의 서브쿼리가 올바르지 않습니다. 상관 서브쿼리와 일반 서브쿼리의 차이를 다시 학습하고 재제출해주세요.',
+    attachments: [{ name: 'erd_diagram.pdf', size: '234 KB', url: '#' }],
+    submittedFiles: [{ name: 'sql_queries.sql', size: '2.8 KB', url: '#' }],
+    rubric: null,
+  },
+  {
+    id: 4,
+    title: '정렬 알고리즘 구현 과제',
+    subject: '알고리즘 & 자료구조',
+    phase: 4,
+    description:
+      '버블정렬, 퀵정렬, 병합정렬을 각각 Python으로 구현하고 시간복잡도 분석 보고서를 함께 제출하세요.',
+    dueDate: '2026-02-25',
+    openDate: '2026-02-17',
+    maxScore: 100,
+    status: 'submitted',
+    submittedAt: '2026-02-24 16:45',
+    score: null,
+    feedback: null,
+    attachments: [],
+    submittedFiles: [{ name: 'sorting_algorithms.zip', size: '45 KB', url: '#' }],
+    rubric: null,
+  },
+  {
+    id: 5,
+    title: '동적 프로그래밍 문제 풀이',
+    subject: '알고리즘 & 자료구조',
+    phase: 4,
+    description:
+      '배낭 문제(0/1 Knapsack), 최장 공통 부분 수열(LCS) 문제를 DP로 풀고 풀이 과정을 주석으로 상세히 설명하세요.',
+    dueDate: '2026-04-15',
+    openDate: '2026-04-08',
+    maxScore: 100,
+    status: 'pending',
+    submittedAt: null,
+    score: null,
+    feedback: null,
+    attachments: [],
+    submittedFiles: [],
+    rubric: null,
+  },
+];
+
+// ── 능력단위평가 Mock 데이터 ──────────────────────────────
+export const mockAssessments = [
+  {
+    id: 1,
+    phaseId: 1,
+    phaseTitle: 'Python 기초',
+    title: 'Python 기초 능력단위평가',
+    subject: '미니 쇼핑몰 재고 관리 시스템 구현',
+    description:
+      '상품(Product), 회원(Member), 주문(Order) 클래스를 설계하고, 이를 활용한 재고 관리 CLI 프로그램을 구현하세요. 데이터는 파일 I/O를 통해 저장·불러와야 하며, 잘못된 입력에 대한 예외 처리를 반드시 포함해야 합니다.',
+    requirements: [
+      '상속을 활용한 클래스 계층 구조 설계 (예: PremiumMember extends Member)',
+      '상품 추가/수정/삭제 및 재고 수량 관리 기능 구현',
+      '주문 처리 시 재고 부족 예외(StockException) 직접 정의 및 처리',
+      'CSV 또는 JSON 파일로 데이터 영속화 (프로그램 재시작 후 데이터 유지)',
+      '전체 기능을 테스트하는 main 함수 작성 및 실행 결과 스크린샷 포함',
+    ],
+    period: { start: '2025-10-27', end: '2025-10-31' },
+    status: 'graded',
+    score: 92,
+    maxScore: 100,
+    passed: true,
+    submittedAt: '2025-10-29 11:20',
+    feedback:
+      '전반적으로 Python 기초 개념을 잘 이해하고 있습니다. OOP 파트에서 다형성 개념 적용이 특히 우수합니다.',
+    submittedFiles: [{ name: 'python_assessment.zip', size: '89 KB', url: '#' }],
+    rubric: [
+      { item: '변수와 자료형 이해', maxScore: 20, score: 19 },
+      { item: '조건문/반복문 활용', maxScore: 20, score: 18 },
+      { item: '함수 설계 능력', maxScore: 20, score: 20 },
+      { item: '클래스와 OOP 적용', maxScore: 25, score: 23 },
+      { item: '파일 입출력 구현', maxScore: 15, score: 12 },
+    ],
+    coverageTopics: ['변수와 자료형', '조건문과 반복문', '함수와 모듈', '클래스와 OOP', '파일 입출력'],
+  },
+  {
+    id: 2,
+    phaseId: 2,
+    phaseTitle: 'JavaScript & React',
+    title: 'JavaScript & React 능력단위평가',
+    subject: '개인 포트폴리오 웹사이트 제작',
+    description:
+      'React 18을 사용하여 반응형 개인 포트폴리오 웹사이트를 제작하세요. 단순한 정적 페이지가 아닌, 외부 API 연동과 다양한 인터랙션이 포함된 완성도 높은 결과물을 제출해야 합니다.',
+    requirements: [
+      '최소 5개 이상의 컴포넌트로 분리 (Header, About, Skills, Projects, Contact 등)',
+      'useState·useEffect를 활용한 상태 관리 (로딩 상태, 에러 처리 포함)',
+      'GitHub API 또는 공개 REST API 1개 이상 연동 (useEffect로 데이터 fetch)',
+      'React Router로 페이지 전환 구현 (최소 3개 라우트)',
+      'Tailwind CSS 또는 CSS Modules로 모바일·데스크톱 반응형 레이아웃 적용',
+    ],
+    period: { start: '2025-12-11', end: '2025-12-15' },
+    status: 'graded',
+    score: 85,
+    maxScore: 100,
+    passed: true,
+    submittedAt: '2025-12-12 09:55',
+    feedback:
+      'React 컴포넌트 설계와 Hooks 활용이 우수합니다. Context API 부분을 좀 더 연습하면 좋을 것 같습니다.',
+    submittedFiles: [{ name: 'js_react_assessment.zip', size: '210 KB', url: '#' }],
+    rubric: [
+      { item: 'JS 기초 문법', maxScore: 20, score: 18 },
+      { item: 'DOM 조작', maxScore: 15, score: 14 },
+      { item: 'React 컴포넌트 설계', maxScore: 25, score: 22 },
+      { item: 'Hooks & Context', maxScore: 25, score: 20 },
+      { item: '프로젝트 완성도', maxScore: 15, score: 11 },
+    ],
+    coverageTopics: ['JS 기초 문법', 'DOM 조작', 'React 컴포넌트', 'Hooks & Context', '프로젝트 실습'],
+  },
+  {
+    id: 3,
+    phaseId: 3,
+    phaseTitle: 'DB & SQL',
+    title: 'DB & SQL 능력단위평가',
+    subject: '도서관 관리 시스템 DB 설계 및 구현',
+    description:
+      '도서관 시스템을 위한 데이터베이스를 처음부터 설계하고 구현하세요. ERD 설계부터 복잡한 분석 쿼리 작성, 성능 최적화까지 전 과정을 포함한 보고서와 SQL 파일을 제출해야 합니다.',
+    requirements: [
+      'ERD 설계: 도서/회원/대출/예약/연체 관계를 3NF 정규화 기준으로 모델링',
+      'DDL 작성: 테이블 생성, 제약조건(PK·FK·CHECK·UNIQUE), 인덱스 설정',
+      '복합 쿼리 5개 이상: INNER/LEFT JOIN, 서브쿼리, GROUP BY·HAVING, 윈도우 함수 포함',
+      '인덱스 최적화: EXPLAIN ANALYZE로 쿼리 실행 계획 분석 후 개선 전·후 비교',
+      'Supabase에 실제 배포 후 RLS 정책 1개 이상 설정 및 동작 확인 스크린샷 첨부',
+    ],
+    period: { start: '2026-01-27', end: '2026-01-31' },
+    status: 'graded',
+    score: 78,
+    maxScore: 100,
+    passed: true,
+    submittedAt: '2026-01-30 14:10',
+    feedback:
+      '기본 CRUD와 JOIN은 잘 이해하고 있으나 인덱싱 최적화 개념에 대한 이해가 부족합니다. 추가 학습을 권장합니다.',
+    submittedFiles: [{ name: 'db_assessment.zip', size: '56 KB', url: '#' }],
+    rubric: [
+      { item: '관계형 DB 개념', maxScore: 15, score: 14 },
+      { item: 'SQL CRUD', maxScore: 25, score: 23 },
+      { item: 'JOIN과 서브쿼리', maxScore: 25, score: 21 },
+      { item: '인덱싱과 최적화', maxScore: 20, score: 12 },
+      { item: 'Supabase 실습', maxScore: 15, score: 8 },
+    ],
+    coverageTopics: ['관계형 DB 개념', 'SQL CRUD', 'JOIN과 서브쿼리', '인덱싱과 최적화', 'Supabase 실습'],
+  },
+  {
+    id: 4,
+    phaseId: 4,
+    phaseTitle: '알고리즘 & 자료구조',
+    title: '알고리즘 & 자료구조 능력단위평가',
+    subject: '실전 코딩테스트 5문제 풀이 + 분석 보고서',
+    description:
+      '배열, 스택/큐, 트리/그래프, 정렬, 동적 프로그래밍 유형에서 각 1문제씩 총 5문제를 풀고, 각 풀이에 대한 시간·공간복잡도 분석과 대안적 접근법을 포함한 보고서를 제출하세요. 단순 정답 제출이 아닌 사고 과정을 평가합니다.',
+    requirements: [
+      '문제별 풀이 코드 (Python) + 주석으로 핵심 로직 설명',
+      '각 문제의 시간복잡도(Big-O)와 공간복잡도 분석 및 근거 서술',
+      '최소 2문제 이상: 브루트포스 → 최적화 과정을 단계별로 설명',
+      '트리/그래프 문제: BFS와 DFS 두 가지 방법으로 모두 풀이 후 비교',
+      'DP 문제: 점화식 유도 과정과 메모이제이션·타뷸레이션 방식 비교 설명',
+    ],
+    period: { start: '2026-02-24', end: '2026-02-28' },
+    status: 'open',
+    score: null,
+    maxScore: 100,
+    passed: null,
+    submittedAt: null,
+    feedback: null,
+    submittedFiles: [],
+    rubric: [
+      { item: '배열과 문자열 처리', maxScore: 20, score: null },
+      { item: '스택/큐 구현', maxScore: 20, score: null },
+      { item: '트리/그래프 탐색', maxScore: 20, score: null },
+      { item: '정렬 알고리즘', maxScore: 25, score: null },
+      { item: '동적 프로그래밍', maxScore: 15, score: null },
+    ],
+    coverageTopics: ['배열과 문자열', '스택과 큐', '트리와 그래프', '정렬 알고리즘', '동적 프로그래밍'],
+  },
+  {
+    id: 5,
+    phaseId: 5,
+    phaseTitle: '프로젝트 & 협업',
+    title: '프로젝트 & 협업 능력단위평가',
+    subject: '팀 프로젝트 개인 기여 보고서 + 코드 제출',
+    description:
+      '팀 프로젝트에서 본인이 담당한 기능의 코드와 협업 과정을 정리한 기여 보고서를 제출하세요. 코드 품질과 함께 팀 내 의사소통, 문제 해결 과정, 기술적 의사결정의 근거를 평가합니다.',
+    requirements: [
+      '담당 기능 코드 (PR 링크 또는 ZIP): 최소 3개 이상의 의미 있는 커밋 포함',
+      'Git 협업 이력: 브랜치 전략(Git Flow 등) 설명 + 본인 커밋 히스토리 스크린샷',
+      '기술 의사결정 문서: 사용 기술/라이브러리 선택 이유와 대안 비교 (최소 2가지)',
+      '담당 API 명세서: 엔드포인트·요청/응답 형식·에러 코드 포함 (Swagger 또는 마크다운)',
+      '트러블슈팅 1건 이상: 발생 문제 → 원인 분석 → 해결 과정 상세 서술',
+    ],
+    period: { start: '2026-03-25', end: '2026-03-31' },
+    status: 'locked',
+    score: null,
+    maxScore: 100,
+    passed: null,
+    submittedAt: null,
+    feedback: null,
+    submittedFiles: [],
+    rubric: [
+      { item: 'Git 협업 전략', maxScore: 20, score: null },
+      { item: '프로젝트 설계', maxScore: 25, score: null },
+      { item: 'API 개발', maxScore: 25, score: null },
+      { item: '프론트엔드 개발', maxScore: 20, score: null },
+      { item: '배포와 문서화', maxScore: 10, score: null },
+    ],
+    coverageTopics: ['Git & GitHub 협업', '프로젝트 설계', 'API 개발', '프론트엔드 개발', '배포와 발표'],
+  },
+  {
+    id: 6,
+    phaseId: 6,
+    phaseTitle: 'ML/DL & 취업준비',
+    title: 'ML/DL & 취업준비 능력단위평가',
+    subject: '실 데이터셋 ML 프로젝트 + 포트폴리오 PDF',
+    description:
+      'Kaggle 또는 공개 데이터셋을 활용하여 머신러닝 프로젝트를 처음부터 끝까지 수행하고, 이를 포트폴리오 PDF로 정리하여 제출하세요. 단순 모델 학습이 아닌, 비즈니스 문제 정의부터 결과 해석까지 전 과정을 다뤄야 합니다.',
+    requirements: [
+      'EDA(탐색적 데이터 분석): 결측치·이상치 처리, 분포 시각화, 상관관계 분석',
+      '피처 엔지니어링: 최소 3가지 이상의 피처 변환/생성 과정과 이유 설명',
+      '모델 비교: 2개 이상의 알고리즘 학습 후 성능 지표(Accuracy·F1·AUC 등) 비교',
+      '하이퍼파라미터 튜닝: GridSearchCV 또는 RandomSearchCV 적용 및 결과 분석',
+      '포트폴리오 PDF: 프로젝트 개요·문제 정의·분석 과정·결과·회고를 A4 10장 이내로 정리',
+    ],
+    period: { start: '2026-04-25', end: '2026-04-30' },
+    status: 'locked',
+    score: null,
+    maxScore: 100,
+    passed: null,
+    submittedAt: null,
+    feedback: null,
+    submittedFiles: [],
+    rubric: [
+      { item: 'ML 기초 이론', maxScore: 25, score: null },
+      { item: '사이킷런 실습', maxScore: 25, score: null },
+      { item: '딥러닝 입문', maxScore: 25, score: null },
+      { item: '포트폴리오 완성도', maxScore: 25, score: null },
+    ],
+    coverageTopics: ['ML 기초 이론', '사이킷런 실습', '딥러닝 입문', '포트폴리오 정리', '모의면접'],
+  },
 ];
 
 export const teacherMenuItems = [
-  { key: 'dashboard', label: '대시보드', icon: 'LayoutDashboard', path: '/teacher', group: '홈' },
-  { key: 'problems', label: '문제 관리', icon: 'FileEdit', path: '/teacher/problems', group: '수업 관리' },
-  { key: 'questions', label: '질문 요약', icon: 'HelpCircle', path: '/teacher/questions', group: '학생 지원' },
-  { key: 'counseling', label: '상담 기록', icon: 'Headphones', path: '/teacher/counseling', group: '학생 지원' },
+  {
+    key: 'dashboard',
+    label: '수강생 현황',
+    icon: 'LayoutDashboard',
+    path: '/teacher',
+    group: '홈',
+  },
+  {
+    key: 'problems',
+    label: '문제 관리',
+    icon: 'FileEdit',
+    path: '/teacher/problems',
+    group: '수업 관리',
+  },
+  {
+    key: 'questions',
+    label: '질문 요약',
+    icon: 'HelpCircle',
+    path: '/teacher/questions',
+    group: '학생 지원',
+  },
+  {
+    key: 'counseling',
+    label: '상담 기록',
+    icon: 'Headphones',
+    path: '/teacher/counseling',
+    group: '학생 지원',
+  },
 ];
 
 export const adminMenuItems = [
-  { key: 'dashboard', label: '대시보드', icon: 'LayoutDashboard', path: '/admin', group: '홈' },
-  { key: 'students', label: '학생 관리', icon: 'Users', path: '/admin/students', group: '인원 관리' },
-  { key: 'equipment', label: '장비 관리', icon: 'Monitor', path: '/admin/equipment', group: '운영 관리' },
+  {
+    key: 'dashboard',
+    label: '대시보드',
+    icon: 'LayoutDashboard',
+    path: '/admin',
+    group: '홈',
+  },
+  {
+    key: 'students',
+    label: '학생 관리',
+    icon: 'Users',
+    path: '/admin/students',
+    group: '인원 관리',
+  },
+  {
+    key: 'equipment',
+    label: '장비 관리',
+    icon: 'Monitor',
+    path: '/admin/equipment',
+    group: '운영 관리',
+  },
+];
+
+// ─── 면담 예약 ───────────────────────────────────────────────────────────────
+
+export const mockCounselors = [
+  {
+    id: 'uuid-teacher-001',
+    name: '박서연',
+    role: 'teacher',
+    roleLabel: '담당 강사',
+    email: 'teacher@edupilot.kr',
+  },
+  {
+    id: 'uuid-admin-001',
+    name: '이정우',
+    role: 'admin',
+    roleLabel: '담당 멘토',
+    email: 'admin@edupilot.kr',
+  },
+];
+
+// counselor_id → { 'YYYY-MM-DD' → ['HH:MM', ...] }
+export const mockCounselingSlots = {
+  'uuid-teacher-001': {
+    '2026-04-09': ['09:00', '09:30', '10:00', '14:00', '14:30'],
+    '2026-04-10': ['09:00', '09:30', '14:00', '15:00'],
+    '2026-04-13': ['10:00', '10:30', '11:00', '15:00', '15:30'],
+    '2026-04-14': ['09:30', '11:00', '14:00', '16:00'],
+    '2026-04-15': ['09:00', '09:30', '10:00', '16:00', '16:30'],
+    '2026-04-16': ['10:30', '11:00', '14:00'],
+    '2026-04-17': ['09:00', '13:00', '13:30'],
+    '2026-04-21': ['09:00', '09:30', '14:00', '15:00'],
+    '2026-04-22': ['10:00', '11:00', '15:30'],
+    '2026-04-23': ['09:30', '14:00', '16:00'],
+    '2026-04-24': ['09:00', '10:00', '14:30'],
+    '2026-04-28': ['09:00', '09:30', '13:00'],
+    '2026-04-29': ['10:00', '14:00', '16:00'],
+    '2026-04-30': ['09:00', '11:00', '15:00'],
+  },
+  'uuid-admin-001': {
+    '2026-04-09': ['10:00', '14:00', '15:00'],
+    '2026-04-10': ['09:30', '11:00', '14:30'],
+    '2026-04-14': ['09:00', '10:00', '15:00'],
+    '2026-04-15': ['11:00', '14:00'],
+    '2026-04-16': ['09:00', '14:00', '16:30'],
+    '2026-04-21': ['10:00', '15:00'],
+    '2026-04-22': ['09:00', '11:00', '14:00'],
+    '2026-04-23': ['09:30', '15:30'],
+    '2026-04-28': ['10:00', '14:30', '16:00'],
+    '2026-04-29': ['09:00', '11:00'],
+  },
+};
+
+export const mockMyCounselingBookings = [
+  {
+    id: 1,
+    counselor_id: 'uuid-teacher-001',
+    counselor_name: '박서연',
+    counselor_role: 'teacher',
+    counselor_role_label: '담당 강사',
+    date: '2026-04-03',
+    time: '10:00',
+    duration: 30,
+    reason: '수업 내용 중 모르는 부분 질문',
+    status: 'completed',
+  },
+  {
+    id: 2,
+    counselor_id: 'uuid-teacher-001',
+    counselor_name: '박서연',
+    counselor_role: 'teacher',
+    counselor_role_label: '담당 강사',
+    date: '2026-04-15',
+    time: '09:30',
+    duration: 30,
+    reason: '취업 준비 방향 상담',
+    status: 'confirmed',
+  },
+  {
+    id: 3,
+    counselor_id: 'uuid-admin-001',
+    counselor_name: '이정우',
+    counselor_role: 'admin',
+    counselor_role_label: '담당 멘토',
+    date: '2026-04-22',
+    time: '09:00',
+    duration: 30,
+    reason: '훈련 수당 관련 문의',
+    status: 'confirmed',
+  },
+];
+
+// ─── 자습실/회의실 ───────────────────────────────────────────────────────────
+
+export const mockRooms = [
+  {
+    id: 'room-1',
+    name: '자습실 A',
+    type: 'study',
+    capacity: 4,
+    floor: 3,
+    amenities: ['WiFi', '콘센트', '에어컨'],
+    status: 'open',
+  },
+  {
+    id: 'room-2',
+    name: '자습실 B',
+    type: 'study',
+    capacity: 2,
+    floor: 3,
+    amenities: ['WiFi', '콘센트'],
+    status: 'open',
+  },
+  {
+    id: 'room-3',
+    name: '자습실 C',
+    type: 'study',
+    capacity: 6,
+    floor: 4,
+    amenities: ['WiFi', '콘센트', '화이트보드', '에어컨'],
+    status: 'open',
+  },
+  {
+    id: 'room-4',
+    name: '회의실 A',
+    type: 'meeting',
+    capacity: 6,
+    floor: 4,
+    amenities: ['WiFi', '대형모니터', '화이트보드', '에어컨'],
+    status: 'open',
+  },
+  {
+    id: 'room-5',
+    name: '회의실 B',
+    type: 'meeting',
+    capacity: 8,
+    floor: 4,
+    amenities: ['WiFi', '프로젝터', '화이트보드', '에어컨'],
+    status: 'open',
+  },
+  {
+    id: 'room-6',
+    name: '회의실 C',
+    type: 'meeting',
+    capacity: 10,
+    floor: 5,
+    amenities: ['WiFi', '프로젝터', '대형모니터', '화이트보드', '에어컨'],
+    status: 'closed',
+  },
+];
+
+// 오늘(2026-04-08) 기준 예약된 슬롯 (available이 기본값, 예약된 것만 기록)
+export const mockBookedSlots = [
+  {
+    room_id: 'room-1',
+    date: '2026-04-08',
+    start_time: '10:00',
+    end_time: '11:00',
+    reserved_by: '이지은',
+  },
+  {
+    room_id: 'room-1',
+    date: '2026-04-08',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '이지은',
+  },
+  {
+    room_id: 'room-1',
+    date: '2026-04-08',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '박서준',
+  },
+  {
+    room_id: 'room-2',
+    date: '2026-04-08',
+    start_time: '09:00',
+    end_time: '10:00',
+    reserved_by: '최유나',
+  },
+  {
+    room_id: 'room-2',
+    date: '2026-04-08',
+    start_time: '15:00',
+    end_time: '16:00',
+    reserved_by: 'uuid-student-001',
+    is_mine: true,
+    purpose: '개인 공부',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-08',
+    start_time: '13:00',
+    end_time: '14:00',
+    reserved_by: '김태양',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-08',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '김태양',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-08',
+    start_time: '16:00',
+    end_time: '17:00',
+    reserved_by: '오예린',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-08',
+    start_time: '10:00',
+    end_time: '11:00',
+    reserved_by: '팀 A',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-08',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '팀 A',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-08',
+    start_time: '15:00',
+    end_time: '16:00',
+    reserved_by: '팀 B',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-08',
+    start_time: '09:00',
+    end_time: '10:00',
+    reserved_by: '팀 C',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-08',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '팀 D',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-08',
+    start_time: '15:00',
+    end_time: '16:00',
+    reserved_by: '팀 D',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-08',
+    start_time: '16:00',
+    end_time: '17:00',
+    reserved_by: '팀 D',
+  },
+  // 2026-04-09 (목)
+  {
+    room_id: 'room-1',
+    date: '2026-04-09',
+    start_time: '09:00',
+    end_time: '10:00',
+    reserved_by: '강하은',
+  },
+  {
+    room_id: 'room-1',
+    date: '2026-04-09',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '강하은',
+  },
+  {
+    room_id: 'room-1',
+    date: '2026-04-09',
+    start_time: '15:00',
+    end_time: '16:00',
+    reserved_by: '강하은',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-09',
+    start_time: '10:00',
+    end_time: '11:00',
+    reserved_by: '윤지혜',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-09',
+    start_time: '16:00',
+    end_time: '17:00',
+    reserved_by: '임도현',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-09',
+    start_time: '13:00',
+    end_time: '14:00',
+    reserved_by: '팀 E',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-09',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '팀 E',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-09',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '팀 F',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-09',
+    start_time: '12:00',
+    end_time: '13:00',
+    reserved_by: '팀 F',
+  },
+  // 2026-04-10 (금)
+  {
+    room_id: 'room-1',
+    date: '2026-04-10',
+    start_time: '13:00',
+    end_time: '14:00',
+    reserved_by: '박수현',
+  },
+  {
+    room_id: 'room-2',
+    date: '2026-04-10',
+    start_time: '10:00',
+    end_time: '11:00',
+    reserved_by: '최준혁',
+  },
+  {
+    room_id: 'room-2',
+    date: '2026-04-10',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '최준혁',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-10',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '팀 G',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-10',
+    start_time: '15:00',
+    end_time: '16:00',
+    reserved_by: '팀 G',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-10',
+    start_time: '16:00',
+    end_time: '17:00',
+    reserved_by: '팀 G',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-10',
+    start_time: '09:00',
+    end_time: '10:00',
+    reserved_by: '팀 H',
+  },
+  // 2026-04-11 (토) — 주말, 이용 적음
+  {
+    room_id: 'room-3',
+    date: '2026-04-11',
+    start_time: '10:00',
+    end_time: '11:00',
+    reserved_by: '송민준',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-11',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '송민준',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-11',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '팀 I',
+  },
+  // 2026-04-12 (일) — 주말, 최소 이용
+  {
+    room_id: 'room-2',
+    date: '2026-04-12',
+    start_time: '13:00',
+    end_time: '14:00',
+    reserved_by: '정유진',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-12',
+    start_time: '15:00',
+    end_time: '16:00',
+    reserved_by: '한지훈',
+  },
+  // 2026-04-13 (월)
+  {
+    room_id: 'room-1',
+    date: '2026-04-13',
+    start_time: '10:00',
+    end_time: '11:00',
+    reserved_by: '서현우',
+  },
+  {
+    room_id: 'room-1',
+    date: '2026-04-13',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '서현우',
+  },
+  {
+    room_id: 'room-2',
+    date: '2026-04-13',
+    start_time: '16:00',
+    end_time: '17:00',
+    reserved_by: '김나연',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-13',
+    start_time: '09:00',
+    end_time: '10:00',
+    reserved_by: '팀 J',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-13',
+    start_time: '10:00',
+    end_time: '11:00',
+    reserved_by: '팀 J',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-13',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '팀 K',
+  },
+  {
+    room_id: 'room-5',
+    date: '2026-04-13',
+    start_time: '15:00',
+    end_time: '16:00',
+    reserved_by: '팀 K',
+  },
+  // 2026-04-14 (화)
+  {
+    room_id: 'room-1',
+    date: '2026-04-14',
+    start_time: '14:00',
+    end_time: '15:00',
+    reserved_by: '이준서',
+  },
+  {
+    room_id: 'room-2',
+    date: '2026-04-14',
+    start_time: '09:00',
+    end_time: '10:00',
+    reserved_by: '박채영',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-14',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '오민석',
+  },
+  {
+    room_id: 'room-3',
+    date: '2026-04-14',
+    start_time: '17:00',
+    end_time: '18:00',
+    reserved_by: '오민석',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-14',
+    start_time: '11:00',
+    end_time: '12:00',
+    reserved_by: '팀 L',
+  },
+  {
+    room_id: 'room-4',
+    date: '2026-04-14',
+    start_time: '12:00',
+    end_time: '13:00',
+    reserved_by: '팀 L',
+  },
+];
+
+export const mockMyReservations = [
+  {
+    id: 'res-1',
+    room_id: 'room-2',
+    room_name: '자습실 B',
+    room_type: 'study',
+    date: '2026-04-08',
+    start_time: '15:00',
+    end_time: '16:00',
+    purpose: '개인 공부',
+    status: 'confirmed',
+  },
+  {
+    id: 'res-2',
+    room_id: 'room-4',
+    room_name: '회의실 A',
+    room_type: 'meeting',
+    date: '2026-04-09',
+    start_time: '14:00',
+    end_time: '16:00',
+    purpose: '팀 프로젝트 회의',
+    status: 'confirmed',
+  },
+  {
+    id: 'res-3',
+    room_id: 'room-1',
+    room_name: '자습실 A',
+    room_type: 'study',
+    date: '2026-04-07',
+    start_time: '10:00',
+    end_time: '12:00',
+    purpose: '시험 준비',
+    status: 'completed',
+  },
 ];

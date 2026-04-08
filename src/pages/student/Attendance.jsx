@@ -6,16 +6,21 @@ import Table from '@/components/common/Table'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import SignatureCanvas from '@/components/forms/SignatureCanvas'
-import { CheckCircle, AlertTriangle, XCircle, LogOut } from 'lucide-react'
+import { CheckCircle, AlertTriangle, XCircle, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const CHECKOUT_HOUR = 17
 const CHECKOUT_MINUTE = 50
 
 export default function Attendance() {
   const [name, setName] = useState('')
+  const [nameConfirmed, setNameConfirmed] = useState(false)
   const [signatureSubmitted, setSignatureSubmitted] = useState(false)
   const [checkoutDone, setCheckoutDone] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+
+  // 달력 월 탐색 상태
+  const [viewYear, setViewYear] = useState(mockAttendanceMonthly.year)
+  const [viewMonth, setViewMonth] = useState(mockAttendanceMonthly.month)
 
   const now = new Date()
   const isAfterCheckoutTime =
@@ -31,17 +36,51 @@ export default function Attendance() {
     setShowConfirm(false)
   }
 
-  const year = mockAttendanceMonthly.year
-  const month = mockAttendanceMonthly.month
+  const goPrevMonth = () => {
+    if (viewMonth === 1) {
+      setViewYear((y) => y - 1)
+      setViewMonth(12)
+    } else {
+      setViewMonth((m) => m - 1)
+    }
+  }
 
+  const goNextMonth = () => {
+    if (viewMonth === 12) {
+      setViewYear((y) => y + 1)
+      setViewMonth(1)
+    } else {
+      setViewMonth((m) => m + 1)
+    }
+  }
+
+  // 현재 보는 달의 출석 데이터 필터링
+  const filteredAttendance = useMemo(() => {
+    return mockAttendance.filter((a) => {
+      const [y, m] = a.date.split('-').map(Number)
+      return y === viewYear && m === viewMonth
+    })
+  }, [viewYear, viewMonth])
+
+  // 달별 통계 계산
+  const monthStats = useMemo(() => {
+    const present = filteredAttendance.filter((a) => a.status === 'present').length
+    const late = filteredAttendance.filter((a) => a.status === 'late').length
+    const absent = filteredAttendance.filter((a) => a.status === 'absent').length
+    const total = present + late + absent
+    const rate = total > 0 ? Math.round((present / total) * 1000) / 10 : 0
+    return { present, late, absent, rate }
+  }, [filteredAttendance])
+
+  // 달력 셀 데이터
   const calendarData = useMemo(() => {
-    const firstDay = new Date(year, month - 1, 1)
-    const lastDay = new Date(year, month, 0)
+    const firstDay = new Date(viewYear, viewMonth - 1, 1)
+    const lastDay = new Date(viewYear, viewMonth, 0)
     const startDayOfWeek = firstDay.getDay()
     const daysInMonth = lastDay.getDate()
 
     const attendanceMap = {}
-    mockAttendance.forEach((a) => {
+    filteredAttendance.forEach((a) => {
       attendanceMap[a.date] = a.status
     })
 
@@ -50,12 +89,12 @@ export default function Attendance() {
       cells.push({ day: null, status: null })
     }
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      const dateStr = `${viewYear}-${String(viewMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`
       cells.push({ day: d, status: attendanceMap[dateStr] || null })
     }
 
     return cells
-  }, [year, month])
+  }, [viewYear, viewMonth, filteredAttendance])
 
   const dayLabels = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -74,11 +113,11 @@ export default function Attendance() {
   }
 
   const columns = [
-    { key: 'date', label: '날짜', width: '35%%' },
+    { key: 'date', label: '날짜', width: '35%' },
     {
       key: 'status',
       label: '상태',
-      width: '30%%',
+      width: '30%',
       render: (val) => {
         const { label, variant } = getStatusBadge(val)
         return <Badge variant={variant}>{label}</Badge>
@@ -87,12 +126,12 @@ export default function Attendance() {
     {
       key: 'time',
       label: '시간',
-      width: '35%%',
+      width: '35%',
       render: (val) => val || '-',
     },
   ]
 
-  const tableData = mockAttendance
+  const tableData = filteredAttendance
     .filter((a) => a.status)
     .map((a, idx) => ({ ...a, id: idx }))
 
@@ -100,81 +139,108 @@ export default function Attendance() {
     <div className="space-y-6">
       <h1 className="text-h2 font-bold text-gray-900">출석</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* Left: Signature */}
-        <div className="space-y-4">
-          <Card>
-            <h2 className="text-h3 font-semibold text-gray-900 mb-3">출석 서명</h2>
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-h3 font-semibold text-gray-900">출석 서명</h2>
+            {checkoutDone && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-full">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-caption font-medium text-green-700">출석 완료</span>
+              </div>
+            )}
+          </div>
 
-            {/* 이름 입력 */}
-            <div className="mb-4">
-              <label className="block text-body-sm font-medium text-gray-700 mb-1">
-                이름 <span className="text-red-500">*</span>
-              </label>
+          {/* 이름 입력 + 확인 버튼 */}
+          <div className="mb-3">
+            <label className="block text-body-sm font-medium text-gray-700 mb-1">
+              이름 <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && name.trim() && !nameConfirmed) {
+                    setNameConfirmed(true)
+                  }
+                }}
                 placeholder="이름을 입력하세요"
-                disabled={signatureSubmitted}
-                className={`w-full px-3 py-2 rounded-lg border text-body-sm transition-colors outline-none
-                  ${signatureSubmitted
-                    ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                disabled={nameConfirmed}
+                className={`flex-1 px-3 py-2 rounded-lg border text-body-sm transition-colors outline-none
+                  ${nameConfirmed
+                    ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
                     : 'border-gray-300 bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100'
                   }`}
               />
+              <button
+                onClick={() => setNameConfirmed(true)}
+                disabled={!name.trim() || nameConfirmed}
+                className={`px-4 py-2 rounded-lg text-body-sm font-medium transition-colors whitespace-nowrap
+                  ${!name.trim() || nameConfirmed
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-student-500 hover:bg-student-600 text-white cursor-pointer'
+                  }`}
+              >
+                {nameConfirmed ? '확인됨' : '확인'}
+              </button>
             </div>
+          </div>
 
-            <p className="text-body-sm text-gray-500 mb-4">
-              아래 캔버스에 서명하여 출석을 기록하세요.
-            </p>
-            <SignatureCanvas
-              onSave={handleSignatureSave}
-              nameValid={name.trim().length > 0}
-              submitted={signatureSubmitted}
-              onCheckout={() => setShowConfirm(true)}
-              checkoutDisabled={!isAfterCheckoutTime}
-              checkoutDone={checkoutDone}
-            />
+          <SignatureCanvas
+            onSave={handleSignatureSave}
+            disabled={!nameConfirmed}
+            submitted={signatureSubmitted}
+            onCheckout={() => setShowConfirm(true)}
+            checkoutDisabled={!isAfterCheckoutTime}
+            checkoutDone={checkoutDone}
+          />
 
-            {/* 출석 완료 상태 표시 */}
-            {checkoutDone && (
-              <div className="mt-4 flex items-center gap-2 p-3 bg-green-50 rounded-xl">
-                <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
-                <div>
-                  <p className="text-body-sm font-semibold text-green-700">출석 완료</p>
-                  <p className="text-caption text-green-600">{name} · 퇴실 처리되었습니다</p>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2 text-body-sm text-gray-600">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span>09:00 이전 서명 시 출석 처리</span>
-              </div>
-              <div className="flex items-center gap-2 text-body-sm text-gray-600">
-                <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                <span>09:00 ~ 09:30 서명 시 지각 처리</span>
-              </div>
-              <div className="flex items-center gap-2 text-body-sm text-gray-600">
-                <XCircle className="w-4 h-4 text-red-500" />
-                <span>09:30 이후 미서명 시 결석 처리</span>
-              </div>
-              <div className="flex items-center gap-2 text-body-sm text-gray-600">
-                <LogOut className="w-4 h-4 text-student-500" />
-                <span>17:50 이후 퇴실 서명 시 출석 완료</span>
-              </div>
+          {/* 안내 규칙 - 2열 그리드 */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-body-sm text-gray-600">
+              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+              <span>09:00 이전 → 출석</span>
             </div>
-          </Card>
-        </div>
+            <div className="flex items-center gap-2 text-body-sm text-gray-600">
+              <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
+              <span>09:00~09:30 → 지각</span>
+            </div>
+            <div className="flex items-center gap-2 text-body-sm text-gray-600">
+              <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+              <span>09:30 이후 → 결석</span>
+            </div>
+            <div className="flex items-center gap-2 text-body-sm text-gray-600">
+              <LogOut className="w-4 h-4 text-student-500 shrink-0" />
+              <span>17:50 이후 → 퇴실</span>
+            </div>
+          </div>
+        </Card>
 
         {/* Right: Calendar & Stats */}
         <div className="space-y-4">
           <Card>
-            <h2 className="text-h3 font-semibold text-gray-900 mb-3">
-              {year}년 {month}월
-            </h2>
+            {/* 달력 헤더 + 월 탐색 */}
+            <div className="flex items-center justify-between mb-3">
+              <button
+                onClick={goPrevMonth}
+                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <h2 className="text-h3 font-semibold text-gray-900">
+                {viewYear}년 {viewMonth}월
+              </h2>
+              <button
+                onClick={goNextMonth}
+                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+
             <div className="grid grid-cols-7 gap-1 mb-1">
               {dayLabels.map((d) => (
                 <div
@@ -218,22 +284,24 @@ export default function Attendance() {
           </Card>
 
           <Card>
-            <h2 className="text-h3 font-semibold text-gray-900 mb-3">이번 달 통계</h2>
+            <h2 className="text-h3 font-semibold text-gray-900 mb-3">
+              {viewMonth}월 통계
+            </h2>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col items-center p-3 bg-green-50 rounded-xl">
-                <span className="text-h3 font-bold text-green-600">{mockAttendanceMonthly.present}</span>
+                <span className="text-h3 font-bold text-green-600">{monthStats.present}</span>
                 <span className="text-caption text-gray-500">출석</span>
               </div>
               <div className="flex flex-col items-center p-3 bg-yellow-50 rounded-xl">
-                <span className="text-h3 font-bold text-yellow-600">{mockAttendanceMonthly.late}</span>
+                <span className="text-h3 font-bold text-yellow-600">{monthStats.late}</span>
                 <span className="text-caption text-gray-500">지각</span>
               </div>
               <div className="flex flex-col items-center p-3 bg-red-50 rounded-xl">
-                <span className="text-h3 font-bold text-red-600">{mockAttendanceMonthly.absent}</span>
+                <span className="text-h3 font-bold text-red-600">{monthStats.absent}</span>
                 <span className="text-caption text-gray-500">결석</span>
               </div>
               <div className="flex flex-col items-center p-3 bg-primary-50 rounded-xl">
-                <span className="text-h3 font-bold text-primary-600">{mockAttendanceMonthly.rate}%%</span>
+                <span className="text-h3 font-bold text-primary-600">{monthStats.rate}%</span>
                 <span className="text-caption text-gray-500">출석률</span>
               </div>
             </div>
@@ -243,8 +311,15 @@ export default function Attendance() {
 
       {/* 출석 이력 */}
       <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-3">출석 이력</h2>
-        <Table columns={columns} data={tableData} />
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-h3 font-semibold text-gray-900">
+            {viewYear}년 {viewMonth}월 출석 이력
+          </h2>
+          <span className="text-caption text-gray-400">총 {tableData.length}건</span>
+        </div>
+        <div className="overflow-y-auto max-h-64">
+          <Table columns={columns} data={tableData} />
+        </div>
       </Card>
 
       {/* 퇴실 확인 모달 */}

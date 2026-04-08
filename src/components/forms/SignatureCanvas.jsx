@@ -6,7 +6,6 @@ export default function SignatureCanvas({
   onSave,
   disabled = false,
   className = '',
-  nameValid = true,
   submitted = false,
   onCheckout,
   checkoutDisabled = true,
@@ -28,7 +27,7 @@ export default function SignatureCanvas({
   }, [])
 
   const startDrawing = useCallback((e) => {
-    if (disabled || submitted || !nameValid) return
+    if (disabled || submitted) return
     e.preventDefault()
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
@@ -39,7 +38,7 @@ export default function SignatureCanvas({
   }, [disabled, submitted, getPos])
 
   const draw = useCallback((e) => {
-    if (!isDrawing || disabled || submitted || !nameValid) return
+    if (!isDrawing || disabled || submitted) return
     e.preventDefault()
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
@@ -105,12 +104,7 @@ export default function SignatureCanvas({
         />
         {disabled && !submitted && (
           <div className="absolute inset-0 bg-gray-50/80 flex items-center justify-center">
-            <p className="text-body-sm text-gray-400">출석 가능 시간이 아닙니다</p>
-          </div>
-        )}
-        {!disabled && !submitted && !nameValid && (
-          <div className="absolute inset-0 bg-gray-50/70 flex items-center justify-center pointer-events-none">
-            <p className="text-body-sm text-gray-400">이름을 먼저 입력해주세요</p>
+            <p className="text-body-sm text-gray-400">이름을 입력 후 확인 버튼을 눌러주세요</p>
           </div>
         )}
         {submitted && (
@@ -130,7 +124,7 @@ export default function SignatureCanvas({
               size="sm"
               icon={Check}
               onClick={handleSave}
-              disabled={disabled || !hasSignature || !nameValid}
+              disabled={disabled || !hasSignature}
             >
               서명 제출
             </Button>
