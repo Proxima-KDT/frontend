@@ -4,7 +4,7 @@ import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
 
 // Auth 페이지
-const LandingPage = lazy(() => import('@/pages/auth/LandingPage'));
+const MainPage = lazy(() => import('@/pages/auth/MainPage'));
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const SignupPage = lazy(() => import('@/pages/auth/SignupPage'));
 const NotFoundPage = lazy(() => import('@/pages/auth/NotFoundPage'));
@@ -60,7 +60,7 @@ export default function AppRouter() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<MainPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
