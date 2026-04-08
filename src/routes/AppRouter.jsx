@@ -34,8 +34,11 @@ const TeacherDashboard = lazy(() => import('@/pages/teacher/Dashboard'));
 const StudentDetail = lazy(() => import('@/pages/teacher/StudentDetail'));
 const TeacherQuestions = lazy(() => import('@/pages/teacher/Questions'));
 const Counseling = lazy(() => import('@/pages/teacher/Counseling'));
-const ProblemManagement = lazy(
-  () => import('@/pages/teacher/ProblemManagement'),
+const AssignmentManagement = lazy(
+  () => import('@/pages/teacher/AssignmentManagement'),
+);
+const AssessmentManagement = lazy(
+  () => import('@/pages/teacher/AssessmentManagement'),
 );
 
 // Admin 페이지
@@ -228,10 +231,18 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/teacher/problems"
+          path="/teacher/assignments"
           element={
             <ProtectedRoute role="teacher">
-              <ProblemManagement />
+              <AssignmentManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/assessments"
+          element={
+            <ProtectedRoute role="teacher">
+              <AssessmentManagement />
             </ProtectedRoute>
           }
         />

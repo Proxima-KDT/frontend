@@ -97,9 +97,11 @@ function HistoryCard({ record }) {
 export default function VoiceFeedback() {
   const [activeTab, setActiveTab] = useState('practice')
   const [isRecording, setIsRecording] = useState(false)
+  const [showReview, setShowReview] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [transcript, setTranscript] = useState('')
+  const [editedTranscript, setEditedTranscript] = useState('')
   const [sttSupported, setSttSupported] = useState(true)
   const timerRef = useRef(null)
   const recognitionRef = useRef(null)
@@ -138,6 +140,10 @@ export default function VoiceFeedback() {
     recognition.onend = () => {
       if (recognitionRef.current?._active) {
         recognition.start()
+      } else {
+        // 녹음 의도적 종료 후 — 마지막 onresult 처리가 끝난 시점에 발화 확정
+        setEditedTranscript(finalTranscriptRef.current)
+        setShowReview(true)
       }
     }
 
@@ -161,12 +167,14 @@ export default function VoiceFeedback() {
         recognitionRef.current.stop()
       }
       setIsRecording(false)
-      setShowResults(true)
+      // setEditedTranscript와 setShowReview는 recognition.onend에서 처리 (마지막 onresult 이후)
     } else {
       finalTranscriptRef.current = ''
       setTranscript('')
+      setEditedTranscript('')
       setSeconds(0)
       setShowResults(false)
+      setShowReview(false)
       if (recognitionRef.current) {
         recognitionRef.current._active = true
         recognitionRef.current.start()
@@ -178,9 +186,17 @@ export default function VoiceFeedback() {
   const resetRecording = () => {
     finalTranscriptRef.current = ''
     setTranscript('')
+    setEditedTranscript('')
     setIsRecording(false)
     setShowResults(false)
+    setShowReview(false)
     setSeconds(0)
+  }
+
+  const handleSubmitAnalysis = () => {
+    setShowReview(false)
+    setShowResults(true)
+    // TODO: 백엔드 연동 시 editedTranscript를 payload로 API 호출
   }
 
   const formatTime = (s) => {
@@ -269,10 +285,10 @@ export default function VoiceFeedback() {
 
                 <p className="text-h2 font-mono font-bold text-gray-900 mb-1">{formatTime(seconds)}</p>
                 <p className="text-body-sm text-gray-500 mb-3">
-                  {isRecording ? '녹음 중... 버튼을 눌러 종료하세요' : showResults ? '녹음 완료' : '버튼을 눌러 녹음을 시작하세요'}
+                  {isRecording ? '녹음 중... 버튼을 눌러 종료하세요' : showReview ? '발화 내용을 확인해주세요' : showResults ? '녹음 완료' : '버튼을 눌러 녹음을 시작하세요'}
                 </p>
 
-                {showResults && (
+                {(showResults || showReview) && (
                   <Button variant="ghost" size="sm" icon={RotateCcw} onClick={resetRecording} className="mb-3">
                     다시 녹음하기
                   </Button>
@@ -286,12 +302,37 @@ export default function VoiceFeedback() {
                   </div>
                 )}
 
-                {/* 인식된 발화 결과 */}
+                {/* 검토 단계: 편집 가능 textarea */}
+                {showReview && (
+                  <div className="w-full space-y-3">
+                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                      <p className="text-caption font-medium text-amber-600 mb-2">
+                        인식된 발화 — 내용을 확인하고 수정할 수 있습니다
+                      </p>
+                      <textarea
+                        value={editedTranscript}
+                        onChange={(e) => setEditedTranscript(e.target.value)}
+                        className="w-full text-body-sm text-gray-700 bg-white border border-amber-200 rounded-lg p-2.5 resize-none leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        rows={4}
+                        placeholder="인식된 텍스트가 없습니다."
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={handleSubmitAnalysis}
+                    >
+                      분석 요청
+                    </Button>
+                  </div>
+                )}
+
+                {/* 결과 단계: 읽기 전용 */}
                 {showResults && (
                   <div className="w-full p-3 bg-blue-50 rounded-xl border border-blue-100">
                     <p className="text-caption font-medium text-blue-500 mb-1">인식된 발화</p>
                     <p className="text-body-sm text-gray-700 max-h-32 overflow-y-auto leading-relaxed">
-                      {transcript || '인식된 텍스트가 없습니다.'}
+                      {editedTranscript || '인식된 텍스트가 없습니다.'}
                     </p>
                   </div>
                 )}
@@ -300,7 +341,15 @@ export default function VoiceFeedback() {
 
             {/* 오른쪽: 결과 */}
             <div className="w-full md:w-[60%] space-y-4">
-              {showResults ? (
+              {showReview ? (
+                <Card className="flex flex-col items-center justify-center py-16 text-center h-full">
+                  <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                    <Sparkles className="w-8 h-8 text-amber-500" />
+                  </div>
+                  <h3 className="text-h3 font-semibold text-gray-600 mb-2">발화 내용을 확인해주세요</h3>
+                  <p className="text-body-sm text-gray-400">왼쪽에서 내용 확인 후 분석 요청을 눌러주세요</p>
+                </Card>
+              ) : showResults ? (
                 <>
                   <div className="grid grid-cols-2 gap-4 items-start">
                     <Card padding="p-4" className="flex flex-col items-center">
