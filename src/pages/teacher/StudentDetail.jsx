@@ -1,6 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ArrowLeft, Mail, Calendar as CalendarIcon, Clock, FileText, FolderOpen } from 'lucide-react'
+import { teacherApi } from '@/api/teacher'
+import { useToast } from '@/context/ToastContext'
+import Card from '@/components/common/Card'
+import Badge from '@/components/common/Badge'
+import Button from '@/components/common/Button'
+import Textarea from '@/components/common/Textarea'
+import ProgressBar from '@/components/common/ProgressBar'
+import SkillRadarChart from '@/components/charts/SkillRadarChart'
+import Skeleton from '@/components/common/Skeleton'
 
 const SKILL_COLORS = [
   'bg-blue-500',
@@ -9,37 +18,64 @@ const SKILL_COLORS = [
   'bg-orange-500',
   'bg-pink-500',
 ]
-import { mockStudents, mockAttendance } from '@/data/mockData'
-import Card from '@/components/common/Card'
-import Badge from '@/components/common/Badge'
-import Button from '@/components/common/Button'
-import Textarea from '@/components/common/Textarea'
-import ProgressBar from '@/components/common/ProgressBar'
-import SkillRadarChart from '@/components/charts/SkillRadarChart'
 
 export default function StudentDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const student = mockStudents.find((s) => s.id === id) || mockStudents[0]
-  const [notes, setNotes] = useState('학생과 1:1 면담 후 학습 계획 수립 필요. 알고리즘 부분 보충 학습 권장.')
+  const { showToast } = useToast()
+  const [student, setStudent] = useState(null)
+  const [weekAttendance, setWeekAttendance] = useState([])
+  const [notes, setNotes] = useState('')
+  const [notesSaving, setNotesSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  const skillData = Object.entries(student.skills).map(([subject, score]) => ({
+  useEffect(() => {
+    Promise.all([
+      teacherApi.getStudent(id),
+      teacherApi.getStudentWeeklyAttendance(id),
+    ])
+      .then(([s, att]) => {
+        setStudent(s)
+        setNotes(s.notes || '')
+        setWeekAttendance(att || [])
+      })
+      .finally(() => setLoading(false))
+  }, [id])
+
+  const handleSaveNotes = useCallback(async () => {
+    setNotesSaving(true)
+    try {
+      await teacherApi.updateNotes(id, notes)
+      showToast({ message: '?�트가 ?�?�되?�습?�다.', type: 'success' })
+    } catch {
+      showToast({ message: '?�?�에 ?�패?�습?�다.', type: 'error' })
+    } finally {
+      setNotesSaving(false)
+    }
+  }, [id, notes, showToast])
+
+  if (loading) return <Skeleton className="h-96 rounded-2xl" />
+  if (!student) return <p className="text-gray-500">?�생 ?�보�?불러?????�습?�다.</p>
+
+  const skillData = Object.entries(student.skills || {}).map(([subject, score]) => ({
     subject,
     score,
     fullMark: 100,
   }))
 
-  // 레이더 차트용: 긴 라벨 축약
   const radarData = skillData.map(item => ({
     ...item,
-    subject: item.subject === '프로젝트·과제·시험' ? '프로젝트..' : item.subject,
+    subject: item.subject === '?�로?�트.과제.?�험' ? '?�로?�트..' : item.subject,
   }))
 
   const statusColors = {
     present: 'bg-success-500',
     late: 'bg-warning-500',
     absent: 'bg-error-500',
+    early_leave: 'bg-warning-300',
   }
+
+  const DAY_NAMES = ['??, '??, '??, '??, '�?, '�?, '??]
 
   return (
     <div>
@@ -48,13 +84,11 @@ export default function StudentDetail() {
         className="flex items-center gap-1 text-body-sm text-gray-500 hover:text-gray-700 mb-4 cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
-        수강생 현황으로 돌아가기
-      </button>
+        ?�강???�황?�로 ?�아가�?      </button>
 
-      {/* 학생 정보 헤더 */}
+      {/* ?�생 ?�보 ?�더 */}
       <Card className="mb-6">
         <div className="flex items-center gap-4">
-          {/* 직사각형 프로필 사진 */}
           <div className="shrink-0 w-24 h-28 rounded-2xl overflow-hidden border-2 border-white shadow-md">
             {student.avatar_url ? (
               <img src={student.avatar_url} alt={student.name} className="w-full h-full object-cover" />
@@ -67,26 +101,26 @@ export default function StudentDetail() {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-h2 font-bold text-gray-900">{student.name}</h1>
-              {student.is_at_risk && <Badge variant="error">위험</Badge>}
+              {student.is_at_risk && <Badge variant="error">?�험</Badge>}
             </div>
             <div className="flex flex-wrap gap-4 text-body-sm text-gray-500">
               <span className="flex items-center gap-1">
                 <Mail className="w-4 h-4" /> {student.email}
               </span>
               <span className="flex items-center gap-1">
-                <CalendarIcon className="w-4 h-4" /> 등록일: {student.enrolled_at}
+                <CalendarIcon className="w-4 h-4" /> ?�록?? {student.enrolled_at}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" /> 최근 활동: {student.last_active}
+                <Clock className="w-4 h-4" /> 최근 ?�동: {student.last_active}
               </span>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* 역량 분석 - 전체 너비 */}
+      {/* ??�� 분석 */}
       <Card className="mb-6">
-        <h2 className="text-h3 font-semibold text-gray-900 mb-6">역량 분석</h2>
+        <h2 className="text-h3 font-semibold text-gray-900 mb-6">??�� 분석</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex justify-center items-center">
             <SkillRadarChart data={radarData} color="#3B82F6" />
@@ -106,26 +140,28 @@ export default function StudentDetail() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 상담 노트 */}
+        {/* ?�담 ?�트 */}
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-h3 font-semibold text-gray-900">상담 노트</h2>
-            <span className="text-caption text-gray-400">자동 저장됨</span>
+            <h2 className="text-h3 font-semibold text-gray-900">?�담 ?�트</h2>
+            <Button variant="ghost" size="sm" onClick={handleSaveNotes} disabled={notesSaving}>
+              {notesSaving ? '?�??�?..' : '?�??}
+            </Button>
           </div>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={6}
-            placeholder="학생에 대한 메모를 작성하세요..."
+            placeholder="?�생???�??메모�??�성?�세??.."
           />
         </Card>
 
-        {/* 이번 주 출석 */}
+        {/* ?�번 �?출석 */}
         <Card className="flex flex-col">
-          <h2 className="text-h3 font-semibold text-gray-900 mb-6">이번 주 출석</h2>
+          <h2 className="text-h3 font-semibold text-gray-900 mb-6">?�번 �?출석</h2>
           <div className="grid grid-cols-7 gap-3 flex-1">
-            {['일', '월', '화', '수', '목', '금', '토'].map((d, idx) => {
-              const day = mockAttendance[idx]
+            {DAY_NAMES.map((d, idx) => {
+              const day = weekAttendance.find((a) => new Date(a.date).getDay() === idx)
               return (
                 <div key={d} className="flex flex-col items-center">
                   <span className="text-body-sm text-gray-500 font-medium mb-3">{d}</span>
@@ -134,7 +170,7 @@ export default function StudentDetail() {
                   </span>
                   <div
                     className={`w-4 h-4 rounded-full ${
-                      day?.status ? statusColors[day.status] : 'bg-gray-300'
+                      day?.status ? (statusColors[day.status] || 'bg-gray-300') : 'bg-gray-300'
                     }`}
                   />
                 </div>
@@ -146,8 +182,7 @@ export default function StudentDetail() {
               <div className="w-3 h-3 rounded-full bg-success-500" /> 출석
             </span>
             <span className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-warning-500" /> 지각
-            </span>
+              <div className="w-3 h-3 rounded-full bg-warning-500" /> 지�?            </span>
             <span className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-error-500" /> 결석
             </span>
@@ -155,9 +190,9 @@ export default function StudentDetail() {
         </Card>
       </div>
 
-      {/* 이력서 / 포트폴리오 */}
+      {/* ?�력??/ ?�트?�리??*/}
       <Card className="mt-6">
-        <h2 className="text-h3 font-semibold text-gray-900 mb-4">이력서 / 포트폴리오</h2>
+        <h2 className="text-h3 font-semibold text-gray-900 mb-4">?�력??/ ?�트?�리??/h2>
         {student.files && student.files.length > 0 ? (
           <div className="space-y-3">
             {student.files.map((file, i) => (
@@ -174,7 +209,7 @@ export default function StudentDetail() {
                   </div>
                   <div>
                     <p className="text-body-sm font-medium text-gray-900">{file.name}</p>
-                    <p className="text-caption text-gray-400">{file.uploaded_at} 업로드</p>
+                    <p className="text-caption text-gray-400">{file.uploaded_at} ?�로??/p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -191,16 +226,18 @@ export default function StudentDetail() {
                     download
                     className="text-body-sm text-gray-500 hover:text-gray-700 font-medium"
                   >
-                    다운로드
+                    ?�운로드
                   </a>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-body-sm text-gray-400">등록된 파일이 없습니다.</p>
+          <p className="text-body-sm text-gray-400">?�록???�일???�습?�다.</p>
         )}
       </Card>
     </div>
   )
 }
+
+export default function StudentDetail() {

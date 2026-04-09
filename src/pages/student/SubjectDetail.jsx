@@ -1,26 +1,34 @@
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, Circle, BookOpen, Shuffle, ChevronRight } from 'lucide-react'
-import { mockSubjects } from '@/data/mockData'
+import { subjectsApi } from '@/api/subjects'
 import Card from '@/components/common/Card'
 import Badge from '@/components/common/Badge'
 import ProgressBar from '@/components/common/ProgressBar'
-
-function getConceptProgress(concept, subjectPhase) {
-  const total = concept.problems.length
-  // 임시 진행률 시뮬레이션
-  if (subjectPhase <= 3) return { solved: total, total, percent: 100 }
-  if (subjectPhase === 4) {
-    const solved = Math.floor(total * 0.6)
-    return { solved, total, percent: Math.round((solved / total) * 100) }
-  }
-  return { solved: 0, total, percent: 0 }
-}
+import Skeleton from '@/components/common/Skeleton'
 
 export default function SubjectDetail() {
   const { subjectId } = useParams()
   const navigate = useNavigate()
+  const [subject, setSubject] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const subject = mockSubjects.find((s) => s.id === subjectId)
+  useEffect(() => {
+    subjectsApi.getDetail(subjectId)
+      .then((data) => setSubject(data))
+      .catch(() => setSubject(null))
+      .finally(() => setLoading(false))
+  }, [subjectId])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton width="120px" height="20px" rounded="rounded-lg" />
+        <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
+        <Skeleton width="100%" height="200px" rounded="rounded-2xl" />
+      </div>
+    )
+  }
 
   if (!subject) {
     return (
@@ -30,7 +38,7 @@ export default function SubjectDetail() {
     )
   }
 
-  const totalProblems = subject.concepts.reduce((sum, c) => sum + c.problems.length, 0)
+  const totalProblems = subject.concepts?.reduce((sum, c) => sum + (c.total_problems ?? c.problems?.length ?? 0), 0) ?? 0
 
   return (
     <div className="space-y-6">
@@ -57,9 +65,9 @@ export default function SubjectDetail() {
 
       {/* 개념 카드 목록 */}
       <div className="space-y-3">
-        {subject.concepts.map((concept) => {
-          const progress = getConceptProgress(concept, subject.phase)
-          const isCompleted = progress.percent === 100
+        {(subject.concepts ?? []).map((concept) => {
+          const progress = concept.progress ?? { solved: 0, total: concept.total_problems ?? concept.problems?.length ?? 0, percent: 0 }
+          const isCompleted = progress.percent >= 100
           const isStarted = progress.percent > 0
 
           return (

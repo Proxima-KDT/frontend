@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { mockInterviewHistory } from '@/data/mockData'
+import { interviewApi } from '@/api/interview'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Badge from '@/components/common/Badge'
@@ -19,83 +19,11 @@ import {
   CheckCircle,
 } from 'lucide-react'
 
-// ─── 드롭다운 선택지 ───────────────────────────────────────────────
-const COMPANIES = [
-  { value: 'naver', label: '네이버' },
-  { value: 'kakao', label: '카카오' },
-  { value: 'line', label: '라인' },
-  { value: 'coupang', label: '쿠팡' },
-  { value: 'samsung_sds', label: '삼성SDS' },
-  { value: 'lg_cns', label: 'LG CNS' },
-  { value: 'sk_telecom', label: 'SK텔레콤' },
-  { value: 'toss', label: '토스' },
-  { value: 'kakaobank', label: '카카오뱅크' },
-  { value: 'startup', label: '스타트업 (일반)' },
-]
-
-const POSITIONS = [
-  { value: 'frontend', label: '프론트엔드 개발자' },
-  { value: 'backend', label: '백엔드 개발자' },
-  { value: 'fullstack', label: '풀스택 개발자' },
-  { value: 'data_engineer', label: '데이터 엔지니어' },
-  { value: 'devops', label: 'DevOps/클라우드 엔지니어' },
-  { value: 'mobile', label: '모바일 개발자' },
-]
-
-const INTERVIEW_TYPES = [
-  { value: 'technical', label: '기술 면접' },
-  { value: 'personality', label: '인성 면접' },
-  { value: 'mixed', label: '복합 면접 (기술+인성)' },
-]
-
-const TOTAL_QUESTIONS = 7
-
-// ─── 목 질문 (백엔드 연동 전) ─────────────────────────────────────
-const MOCK_QUESTIONS = {
-  technical: [
-    '안녕하세요! AI 모의면접을 시작하겠습니다. 간단하게 자기소개를 해주세요.',
-    '본인이 가장 자신 있는 기술 스택과 그 이유를 설명해주세요.',
-    'REST API와 GraphQL의 차이점을 설명해주세요.',
-    '데이터베이스에서 인덱스가 무엇이고, 언제 사용하면 좋은지 설명해주세요.',
-    '동기(Synchronous)와 비동기(Asynchronous) 처리의 차이점을 설명해주세요.',
-    '본인이 경험한 가장 어려웠던 기술적 문제와 해결 방법을 말씀해주세요.',
-    '마지막으로 저희 회사에 지원하신 이유와 포부를 말씀해주세요.',
-  ],
-  personality: [
-    '안녕하세요! AI 모의면접을 시작하겠습니다. 간단하게 자기소개와 지원 동기를 말씀해주세요.',
-    '팀 프로젝트에서 갈등이 생겼을 때 어떻게 해결하셨나요? 구체적인 경험을 말씀해주세요.',
-    '본인의 장점과 단점은 무엇인가요?',
-    '5년 후 커리어 목표가 무엇인가요?',
-    '스트레스를 받을 때 어떻게 관리하시나요?',
-    '리더 또는 팀원으로서 가장 인상 깊었던 경험을 말씀해주세요.',
-    '마지막으로 하고 싶은 말씀이 있으신가요?',
-  ],
-  mixed: [
-    '안녕하세요! AI 모의면접을 시작하겠습니다. 간단하게 자기소개를 해주세요.',
-    '본인이 가장 자신 있는 기술 스택과 그 이유를 설명해주세요.',
-    '팀 프로젝트에서 기술적 의견 충돌이 있었을 때 어떻게 해결하셨나요?',
-    'REST API 설계 시 중요하게 고려하는 원칙은 무엇인가요?',
-    '본인의 장점이 이 포지션에서 어떻게 발휘될 수 있다고 생각하시나요?',
-    '최근 관심 있는 기술 트렌드와 그것을 어떻게 학습하고 있는지 말씀해주세요.',
-    '마지막으로 저희 회사에 입사하고 싶은 이유를 말씀해주세요.',
-  ],
-}
-
-const MOCK_REPORT = {
-  total_score: 78,
-  categories: [
-    { name: '기술 지식', score: 80 },
-    { name: '문제 해결', score: 75 },
-    { name: '커뮤니케이션', score: 82 },
-    { name: '논리적 사고', score: 76 },
-  ],
-  summary:
-    '전반적으로 기술 개념에 대한 이해도가 높고 답변이 명확합니다. 구체적인 경험 사례를 더 풍부하게 제시하면 더욱 좋은 평가를 받을 수 있습니다. 커뮤니케이션 능력이 뛰어나며 면접관과의 상호작용도 자연스럽습니다.',
-  improvements: [
-    '답변 시 구체적인 숫자와 성과 지표를 포함해보세요',
-    '기술적 설명에 실제 코드나 구현 경험을 연결지어 말씀해보세요',
-    '답변 구조를 STAR(상황-과제-행동-결과) 방식으로 정리해보세요',
-  ],
+// ─── 기본 선택지 (옵션 로드 전 표시용) ───────────────────────────
+const DEFAULT_OPTIONS = {
+  companies: [],
+  positions: [],
+  interview_types: [],
 }
 
 // ─── TTS 헬퍼 ─────────────────────────────────────────────────────
@@ -114,34 +42,12 @@ function stopSpeaking() {
   if (window.speechSynthesis) window.speechSynthesis.cancel()
 }
 
-// ─── 이전 면접 기록 카드 ───────────────────────────────────────────
-function HistoryCard({ record }) {
-  const typeLabel = { text: '텍스트', voice: '음성' }
-  return (
-    <Card hoverable>
-      <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-body font-semibold text-gray-900 truncate">{record.company}</span>
-            <Badge variant={record.mode === 'voice' ? 'info' : 'default'}>
-              {typeLabel[record.mode] ?? record.mode}
-            </Badge>
-          </div>
-          <p className="text-body-sm text-gray-500">{record.position}</p>
-          <p className="text-caption text-gray-400 mt-1">{record.date}</p>
-        </div>
-        <div className="flex items-center gap-1 ml-4">
-          <span className="text-h3 font-bold text-student-500">{record.score}</span>
-          <span className="text-caption text-gray-400">점</span>
-        </div>
-      </div>
-    </Card>
-  )
-}
-
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────
 export default function MockInterview() {
   const [view, setView] = useState('setup')
+
+  // Options from API
+  const [options, setOptions] = useState(DEFAULT_OPTIONS)
 
   // Setup state
   const [company, setCompany] = useState('')
@@ -149,9 +55,10 @@ export default function MockInterview() {
   const [interviewType, setInterviewType] = useState('')
 
   // Interview state
-  const [messages, setMessages] = useState([]) // [{role:'ai'|'user', content}]
+  const [messages, setMessages] = useState([])
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [questionNumber, setQuestionNumber] = useState(1)
+  const [totalQuestions, setTotalQuestions] = useState(7)
   const [sessionId, setSessionId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -169,6 +76,13 @@ export default function MockInterview() {
   const recognitionRef = useRef(null)
   const finalTranscriptRef = useRef('')
   const messagesEndRef = useRef(null)
+
+  // 드롭다운 옵션 로드
+  useEffect(() => {
+    interviewApi.getOptions()
+      .then((data) => setOptions(data))
+      .catch(() => setOptions(DEFAULT_OPTIONS))
+  }, [])
 
   // Web Speech API 초기화
   useEffect(() => {
@@ -239,22 +153,20 @@ export default function MockInterview() {
   const handleStartInterview = async () => {
     setIsLoading(true)
     try {
-      // TODO: 백엔드 연동 후 실제 API 호출로 교체
-      // const res = await startInterviewApi({ company, position, interview_type: interviewType })
-      // const { session_id, first_question } = res
+      const res = await interviewApi.start({ company, position, interview_type: interviewType })
+      const { session_id, first_question, total_questions } = res
 
-      const questions = MOCK_QUESTIONS[interviewType] || MOCK_QUESTIONS.technical
-      const firstQuestion = questions[0]
-      const mockSessionId = `mock-${Date.now()}`
-
-      setSessionId(mockSessionId)
-      setCurrentQuestion(firstQuestion)
+      setSessionId(session_id)
+      setCurrentQuestion(first_question)
       setQuestionNumber(1)
-      setMessages([{ role: 'ai', content: firstQuestion }])
+      setTotalQuestions(total_questions ?? 7)
+      setMessages([{ role: 'ai', content: first_question }])
       setTranscript('')
       setAnswerConfirmed(false)
       finalTranscriptRef.current = ''
       setView('interview')
+    } catch {
+      // 시작 실패 — 에러는 Axios interceptor에서 처리됨
     } finally {
       setIsLoading(false)
     }
@@ -270,35 +182,35 @@ export default function MockInterview() {
     setMessages(updatedMessages)
 
     try {
-      // TODO: 백엔드 연동 후 실제 API 호출로 교체
-      // const res = await submitAnswerApi({ session_id: sessionId, answer: userAnswer })
-      // const { next_question, question_number, is_finished } = res
-
-      const questions = MOCK_QUESTIONS[interviewType] || MOCK_QUESTIONS.technical
-      const nextNum = questionNumber + 1
-      const isFinished = questionNumber >= TOTAL_QUESTIONS
+      const res = await interviewApi.answer({ session_id: sessionId, answer: userAnswer })
+      const { next_question, question_number, is_finished } = res
 
       finalTranscriptRef.current = ''
       setTranscript('')
       setAnswerConfirmed(false)
 
-      if (isFinished) {
+      if (is_finished) {
         const finalMessages = [...updatedMessages, { role: 'ai', content: '면접이 종료되었습니다. 수고하셨습니다!' }]
         setMessages(finalMessages)
         setCurrentQuestion('')
 
-        // 잠시 후 리포트로 이동
-        setTimeout(() => {
-          setReport(MOCK_REPORT)
+        setTimeout(async () => {
+          try {
+            const reportData = await interviewApi.end({ session_id: sessionId })
+            setReport(reportData)
+          } catch {
+            setReport({ total_score: 0, categories: [], summary: '리포트를 불러오지 못했습니다.', improvements: [] })
+          }
           setView('report')
         }, 2000)
       } else {
-        const nextQuestion = questions[nextNum - 1]
-        const newMessages = [...updatedMessages, { role: 'ai', content: nextQuestion }]
+        const newMessages = [...updatedMessages, { role: 'ai', content: next_question }]
         setMessages(newMessages)
-        setCurrentQuestion(nextQuestion)
-        setQuestionNumber(nextNum)
+        setCurrentQuestion(next_question)
+        setQuestionNumber(question_number)
       }
+    } catch {
+      // 제출 실패
     } finally {
       setIsLoading(false)
     }
@@ -312,7 +224,12 @@ export default function MockInterview() {
       recognitionRef.current.stop()
     }
     setIsRecording(false)
-    setReport(MOCK_REPORT)
+    try {
+      const reportData = await interviewApi.end({ session_id: sessionId })
+      setReport(reportData)
+    } catch {
+      setReport({ total_score: 0, categories: [], summary: '리포트를 불러오지 못했습니다.', improvements: [] })
+    }
     setView('report')
   }
 
@@ -333,9 +250,9 @@ export default function MockInterview() {
     setView('setup')
   }
 
-  const companyLabel = COMPANIES.find((c) => c.value === company)?.label ?? company
-  const positionLabel = POSITIONS.find((p) => p.value === position)?.label ?? position
-  const typeLabel = INTERVIEW_TYPES.find((t) => t.value === interviewType)?.label ?? ''
+  const companyLabel = options.companies?.find((c) => c.value === company)?.label ?? company
+  const positionLabel = options.positions?.find((p) => p.value === position)?.label ?? position
+  const typeLabel = options.interview_types?.find((t) => t.value === interviewType)?.label ?? ''
 
   // ─── Setup View ──────────────────────────────────────────────────
   if (view === 'setup') {
@@ -364,21 +281,21 @@ export default function MockInterview() {
           <div className="space-y-4">
             <Select
               label="지원 회사"
-              options={COMPANIES}
+              options={options.companies ?? []}
               value={company}
               onChange={(e) => setCompany(e.target.value)}
               placeholder="회사를 선택하세요"
             />
             <Select
               label="지원 포지션"
-              options={POSITIONS}
+              options={options.positions ?? []}
               value={position}
               onChange={(e) => setPosition(e.target.value)}
               placeholder="포지션을 선택하세요"
             />
             <Select
               label="면접 유형"
-              options={INTERVIEW_TYPES}
+              options={options.interview_types ?? []}
               value={interviewType}
               onChange={(e) => setInterviewType(e.target.value)}
               placeholder="면접 유형을 선택하세요"
@@ -406,23 +323,13 @@ export default function MockInterview() {
           </div>
         </Card>
 
-        {mockInterviewHistory.length > 0 && (
-          <div>
-            <h2 className="text-h3 font-semibold text-gray-900 mb-3">이전 면접 기록</h2>
-            <div className="space-y-3">
-              {mockInterviewHistory.map((item) => (
-                <HistoryCard key={item.id} record={item} />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     )
   }
 
   // ─── Interview View ───────────────────────────────────────────────
   if (view === 'interview') {
-    const isLastQuestion = questionNumber >= TOTAL_QUESTIONS
+    const isLastQuestion = questionNumber >= totalQuestions
     const canSubmit = transcript.trim().length > 0 && !isRecording && !isLoading
 
     return (
@@ -438,7 +345,7 @@ export default function MockInterview() {
           </button>
           <div className="flex items-center gap-2">
             <Badge variant="student">
-              {questionNumber}/{TOTAL_QUESTIONS}
+              {questionNumber}/{totalQuestions}
             </Badge>
             <span className="text-body-sm text-gray-500 hidden sm:block">
               {companyLabel} · {positionLabel}
@@ -613,7 +520,6 @@ export default function MockInterview() {
       <Card className="flex flex-col items-center py-8">
         <h2 className="text-h3 font-semibold text-gray-900 mb-4">종합 점수</h2>
         <ScoreGauge score={report.total_score} label="총점" size={160} />
-        <p className="text-body-sm text-gray-500 mt-3">백엔드 연동 후 실제 AI 평가 반영</p>
       </Card>
 
       {/* 영역별 점수 */}

@@ -1,28 +1,47 @@
-import { useState, useMemo } from 'react'
-import { mockJobs } from '@/data/mockData'
+import { useState, useEffect, useMemo } from 'react'
+import { jobsApi } from '@/api/jobs'
 import Card from '@/components/common/Card'
 import Badge from '@/components/common/Badge'
 import Button from '@/components/common/Button'
 import MatchScoreBar from '@/components/charts/MatchScoreBar'
+import Skeleton from '@/components/common/Skeleton'
 import { Search, MapPin, Clock, Briefcase } from 'lucide-react'
 
 export default function JobMatching() {
+  const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    jobsApi.getList()
+      .then(setJobs)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const filteredJobs = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
-    const jobs = [...mockJobs].sort((a, b) => b.match_score - a.match_score)
+    const sorted = [...jobs].sort((a, b) => b.match_score - a.match_score)
 
-    if (!query) return jobs
+    if (!query) return sorted
 
-    return jobs.filter(
+    return sorted.filter(
       (job) =>
         job.company.toLowerCase().includes(query) ||
         job.position.toLowerCase().includes(query) ||
-        job.tech_stack.some((tech) => tech.toLowerCase().includes(query)) ||
-        job.location.toLowerCase().includes(query)
+        (job.tech_stack ?? []).some((tech) => tech.toLowerCase().includes(query)) ||
+        (job.location ?? '').toLowerCase().includes(query)
     )
-  }, [searchQuery])
+  }, [searchQuery, jobs])
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton width="160px" height="32px" rounded="rounded-lg" />
+        {[1,2,3].map((i) => <Skeleton key={i} width="100%" height="120px" rounded="rounded-2xl" />)}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

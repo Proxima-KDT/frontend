@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
-import { mockAttendance, mockAttendanceMonthly } from '@/data/mockData'
+import { useState, useMemo, useEffect } from 'react'
+import { attendanceApi } from '@/api/attendance'
+import { supabase } from '@/lib/supabase'
+import { useToast } from '@/context/ToastContext'
 import Card from '@/components/common/Card'
 import Badge from '@/components/common/Badge'
 import Table from '@/components/common/Table'
@@ -17,23 +19,106 @@ export default function Attendance() {
   const [signatureSubmitted, setSignatureSubmitted] = useState(false)
   const [checkoutDone, setCheckoutDone] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [earlyLeaveDone, setEarlyLeaveDone] = useState(false)
+  const [showEarlyLeaveConfirm, setShowEarlyLeaveConfirm] = useState(false)
+  const [localAttendance, setLocalAttendance] = useState([])
+  const { showToast } = useToast()
 
   // 달력 월 탐색 상태
-  const [viewYear, setViewYear] = useState(mockAttendanceMonthly.year)
-  const [viewMonth, setViewMonth] = useState(mockAttendanceMonthly.month)
+  const now2 = new Date()
+  const [viewYear, setViewYear] = useState(now2.getFullYear())
+  const [viewMonth, setViewMonth] = useState(now2.getMonth() + 1)
 
   const now = new Date()
   const isAfterCheckoutTime =
     now.getHours() * 60 + now.getMinutes() >= CHECKOUT_HOUR * 60 + CHECKOUT_MINUTE
 
-  const handleSignatureSave = (dataUrl) => {
-    setSignatureSubmitted(true)
-    console.log('서명 저장:', dataUrl)
+  // 오늘 출석 상태 조회 → 이미 체크인/퇴실한 경우 UI 반영
+  useEffect(() => {
+    attendanceApi.getToday()
+      .then((data) => {
+        if (data?.status) {
+          setNameConfirmed(true)
+          setSignatureSubmitted(true)
+          if (data.status === 'early_leave') setEarlyLeaveDone(true)
+          // 퇴실 완료 상태는 별도 필드 없으면 check_out_time으로 판단
+          if (data.check_out_time) setCheckoutDone(true)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  // 월별 출석 데이터 fetch
+  useEffect(() => {
+    attendanceApi.getMonthly(viewYear, viewMonth)
+      .then((data) => setLocalAttendance(data.records ?? []))
+      .catch(() => {})
+  }, [viewYear, viewMonth])
+
+  const getTodayStr = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   }
 
-  const handleConfirmCheckout = () => {
-    setCheckoutDone(true)
+  const getTimeStr = () =>
+    new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+  const handleSignatureSave = async (dataUrl) => {
+    try {
+      // dataUrl → Blob → Supabase Storage 업로드
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const fileName = `signatures/${Date.now()}.png`
+      const { error: uploadError } = await supabase.storage
+        .from('attendance')
+        .upload(fileName, blob, { contentType: 'image/png' })
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase.storage.from('attendance').getPublicUrl(fileName)
+      await attendanceApi.checkIn(urlData.publicUrl)
+      setSignatureSubmitted(true)
+      showToast({ type: 'success', message: '출석 체크인이 완료되었습니다.' })
+    } catch {
+      // Storage 버킷이 없어도 체크인은 시도 (URL 없이)
+      try {
+        await attendanceApi.checkIn(null)
+        setSignatureSubmitted(true)
+        showToast({ type: 'success', message: '출석 체크인이 완료되었습니다.' })
+      } catch {
+        showToast({ type: 'error', message: '체크인에 실패했습니다.' })
+      }
+    }
+  }
+
+  const handleConfirmCheckout = async () => {
+    try {
+      await attendanceApi.checkOut()
+      setCheckoutDone(true)
+      showToast({ type: 'success', message: '퇴실 처리가 완료되었습니다.' })
+    } catch {
+      showToast({ type: 'error', message: '퇴실 처리에 실패했습니다.' })
+    }
     setShowConfirm(false)
+  }
+
+  const handleConfirmEarlyLeave = async (reason = '개인 사정') => {
+    try {
+      await attendanceApi.earlyLeave(reason)
+      const todayStr = getTodayStr()
+      const timeStr = getTimeStr()
+      setLocalAttendance((prev) => {
+        const idx = prev.findIndex((a) => a.date === todayStr)
+        if (idx >= 0) {
+          return prev.map((a) => a.date === todayStr ? { ...a, status: 'early_leave' } : a)
+        }
+        return [...prev, { date: todayStr, status: 'early_leave', time: timeStr }]
+      })
+      setEarlyLeaveDone(true)
+      showToast({ type: 'success', message: '조퇴 처리가 완료되었습니다.' })
+    } catch {
+      showToast({ type: 'error', message: '조퇴 처리에 실패했습니다.' })
+    }
+    setShowEarlyLeaveConfirm(false)
   }
 
   const goPrevMonth = () => {
@@ -56,20 +141,21 @@ export default function Attendance() {
 
   // 현재 보는 달의 출석 데이터 필터링
   const filteredAttendance = useMemo(() => {
-    return mockAttendance.filter((a) => {
+    return localAttendance.filter((a) => {
       const [y, m] = a.date.split('-').map(Number)
       return y === viewYear && m === viewMonth
     })
-  }, [viewYear, viewMonth])
+  }, [viewYear, viewMonth, localAttendance])
 
   // 달별 통계 계산
   const monthStats = useMemo(() => {
     const present = filteredAttendance.filter((a) => a.status === 'present').length
     const late = filteredAttendance.filter((a) => a.status === 'late').length
     const absent = filteredAttendance.filter((a) => a.status === 'absent').length
-    const total = present + late + absent
+    const earlyLeave = filteredAttendance.filter((a) => a.status === 'early_leave').length
+    const total = present + late + absent + earlyLeave
     const rate = total > 0 ? Math.round((present / total) * 1000) / 10 : 0
-    return { present, late, absent, rate }
+    return { present, late, absent, earlyLeave, rate }
   }, [filteredAttendance])
 
   // 달력 셀 데이터
@@ -102,6 +188,7 @@ export default function Attendance() {
     if (status === 'present') return 'bg-green-500'
     if (status === 'late') return 'bg-yellow-500'
     if (status === 'absent') return 'bg-red-500'
+    if (status === 'early_leave') return 'bg-amber-500'
     return ''
   }
 
@@ -109,6 +196,7 @@ export default function Attendance() {
     if (status === 'present') return { label: '출석', variant: 'success' }
     if (status === 'late') return { label: '지각', variant: 'warning' }
     if (status === 'absent') return { label: '결석', variant: 'error' }
+    if (status === 'early_leave') return { label: '조퇴', variant: 'warning' }
     return { label: '-', variant: 'default' }
   }
 
@@ -144,10 +232,12 @@ export default function Attendance() {
         <Card>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-h3 font-semibold text-gray-900">출석 서명</h2>
-            {checkoutDone && (
+            {(checkoutDone || earlyLeaveDone) && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-full">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-caption font-medium text-green-700">출석 완료</span>
+                <span className="text-caption font-medium text-green-700">
+                  {earlyLeaveDone ? '조퇴 완료' : '출석 완료'}
+                </span>
               </div>
             )}
           </div>
@@ -196,6 +286,8 @@ export default function Attendance() {
             onCheckout={() => setShowConfirm(true)}
             checkoutDisabled={!isAfterCheckoutTime}
             checkoutDone={checkoutDone}
+            onEarlyLeave={() => setShowEarlyLeaveConfirm(true)}
+            earlyLeaveDone={earlyLeaveDone}
           />
 
           {/* 안내 규칙 - 2열 그리드 */}
@@ -270,7 +362,7 @@ export default function Attendance() {
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 flex-wrap">
               <div className="flex items-center gap-1.5 text-caption text-gray-500">
                 <span className="w-2 h-2 rounded-full bg-green-500" />출석
               </div>
@@ -279,6 +371,9 @@ export default function Attendance() {
               </div>
               <div className="flex items-center gap-1.5 text-caption text-gray-500">
                 <span className="w-2 h-2 rounded-full bg-red-500" />결석
+              </div>
+              <div className="flex items-center gap-1.5 text-caption text-gray-500">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />조퇴
               </div>
             </div>
           </Card>
@@ -300,7 +395,11 @@ export default function Attendance() {
                 <span className="text-h3 font-bold text-red-600">{monthStats.absent}</span>
                 <span className="text-caption text-gray-500">결석</span>
               </div>
-              <div className="flex flex-col items-center p-3 bg-primary-50 rounded-xl">
+              <div className="flex flex-col items-center p-3 bg-amber-50 rounded-xl">
+                <span className="text-h3 font-bold text-amber-600">{monthStats.earlyLeave}</span>
+                <span className="text-caption text-gray-500">조퇴</span>
+              </div>
+              <div className="col-span-2 flex flex-col items-center p-3 bg-primary-50 rounded-xl">
                 <span className="text-h3 font-bold text-primary-600">{monthStats.rate}%</span>
                 <span className="text-caption text-gray-500">출석률</span>
               </div>
@@ -345,6 +444,34 @@ export default function Attendance() {
               className="bg-red-500 hover:bg-red-600 text-white"
             >
               퇴실 확인
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 조퇴 확인 모달 */}
+      <Modal
+        isOpen={showEarlyLeaveConfirm}
+        onClose={() => setShowEarlyLeaveConfirm(false)}
+        title="조퇴 처리"
+        maxWidth="max-w-sm"
+      >
+        <div className="space-y-4">
+          <p className="text-body text-gray-700">
+            조퇴 처리를 하겠습니까?
+          </p>
+          <p className="text-body-sm text-gray-500">
+            {name} · {now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 조퇴
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button variant="ghost" onClick={() => setShowEarlyLeaveConfirm(false)}>
+              취소
+            </Button>
+            <Button
+              onClick={handleConfirmEarlyLeave}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              조퇴 확인
             </Button>
           </div>
         </div>

@@ -1,31 +1,53 @@
-import { useState } from 'react'
-import { Search } from 'lucide-react'
-import { mockStudents } from '@/data/mockData'
-import Card from '@/components/common/Card'
-import Badge from '@/components/common/Badge'
-import Table from '@/components/common/Table'
-import { useToast } from '@/context/ToastContext'
+import { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import { adminApi } from '@/api/admin';
+import Card from '@/components/common/Card';
+import Badge from '@/components/common/Badge';
+import Table from '@/components/common/Table';
+import { useToast } from '@/context/ToastContext';
 
-const roleVariant = { student: 'student', teacher: 'teacher', admin: 'admin' }
-const roleLabel = { student: '학생', teacher: '강사', admin: '관리자' }
+const roleVariant = { student: 'student', teacher: 'teacher', admin: 'admin' };
+const roleLabel = { student: '학생', teacher: '강사', admin: '관리자' };
 
 export default function StudentManagement() {
-  const { showToast } = useToast()
-  const [search, setSearch] = useState('')
+  const { showToast } = useToast();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
-  const allUsers = mockStudents.map((s) => ({
-    ...s,
-    role: 'student',
-    status: s.is_at_risk ? 'at_risk' : 'active',
-  }))
+  useEffect(() => {
+    adminApi
+      .getUsers()
+      .then((data) => setUsers(data))
+      .catch(() =>
+        showToast({
+          message: '사용자 목록을 불러오지 못했습니다.',
+          type: 'error',
+        }),
+      )
+      .finally(() => setLoading(false));
+  }, []);
 
-  const filtered = allUsers.filter((u) =>
-    u.name.includes(search) || u.email.includes(search)
-  )
+  const filtered = users.filter(
+    (u) => u.name?.includes(search) || u.email?.includes(search),
+  );
 
   const handleRoleChange = (user, newRole) => {
-    showToast({ type: 'success', message: `${user.name}의 역할이 ${roleLabel[newRole]}(으)로 변경되었습니다.` })
-  }
+    adminApi
+      .updateUserRole(user.id, newRole)
+      .then(() => {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u)),
+        );
+        showToast({
+          type: 'success',
+          message: `${user.name}의 역할이 ${roleLabel[newRole]}(으)로 변경되었습니다.`,
+        });
+      })
+      .catch(() =>
+        showToast({ message: '역할 변경에 실패했습니다.', type: 'error' }),
+      );
+  };
 
   const columns = [
     {
@@ -46,7 +68,9 @@ export default function StudentManagement() {
     {
       key: 'role',
       label: '역할',
-      render: (val) => <Badge variant={roleVariant[val]}>{roleLabel[val]}</Badge>,
+      render: (val) => (
+        <Badge variant={roleVariant[val]}>{roleLabel[val]}</Badge>
+      ),
     },
     {
       key: 'enrolled_at',
@@ -64,7 +88,13 @@ export default function StudentManagement() {
     {
       key: 'attendance_rate',
       label: '출석률',
-      render: (val) => <span className={val < 80 ? 'text-error-500 font-medium' : 'text-gray-700'}>{val}%</span>,
+      render: (val) => (
+        <span
+          className={val < 80 ? 'text-error-500 font-medium' : 'text-gray-700'}
+        >
+          {val}%
+        </span>
+      ),
     },
     {
       key: 'actions',
@@ -81,7 +111,7 @@ export default function StudentManagement() {
         </select>
       ),
     },
-  ]
+  ];
 
   return (
     <div>
@@ -107,5 +137,5 @@ export default function StudentManagement() {
         전체 {filtered.length}명
       </p>
     </div>
-  )
+  );
 }

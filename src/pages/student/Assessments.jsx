@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Award,
   Lock,
@@ -12,7 +12,8 @@ import {
   Paperclip,
   Download,
 } from 'lucide-react';
-import { mockAssessments } from '@/data/mockData';
+import { assessmentsApi } from '@/api/assessments';
+import Skeleton from '@/components/common/Skeleton';
 
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -237,9 +238,16 @@ function AssessmentCard({ assessment, colorClass }) {
   const isGraded = assessment.status === 'graded';
   const isSubmitted = assessment.status === 'submitted';
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (uploadedFiles.length === 0) return;
-    setSubmitted(true);
+    const formData = new FormData();
+    uploadedFiles.forEach((f) => formData.append('files', f));
+    try {
+      await assessmentsApi.submit(assessment.id, formData);
+      setSubmitted(true);
+    } catch {
+      // 업로드 실패 유지
+    }
   };
 
   return (
@@ -466,7 +474,17 @@ function AssessmentCard({ assessment, colorClass }) {
 
 // ── 메인 페이지 ───────────────────────────────────────────
 export default function Assessments() {
-  const graded = mockAssessments.filter((a) => a.status === 'graded');
+  const [assessments, setAssessments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    assessmentsApi.getList()
+      .then((data) => setAssessments(data))
+      .catch(() => setAssessments([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const graded = assessments.filter((a) => a.status === 'graded');
   const passed = graded.filter((a) => a.passed);
   const avgScore =
     graded.length > 0
@@ -493,7 +511,7 @@ export default function Assessments() {
         <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
           <p className="text-h2 font-bold text-green-600">{passed.length}</p>
           <p className="text-caption text-gray-500 mt-0.5">
-            통과 ({graded.length}/{mockAssessments.length})
+            통과 ({graded.length}/{assessments.length})
           </p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
@@ -504,7 +522,7 @@ export default function Assessments() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
           <p className="text-h2 font-bold text-blue-600">
-            {mockAssessments.filter((a) => a.status === 'open').length}
+            {assessments.filter((a) => a.status === 'open').length}
           </p>
           <p className="text-caption text-gray-500 mt-0.5">제출 대기</p>
         </div>
@@ -518,15 +536,27 @@ export default function Assessments() {
       </div>
 
       {/* 평가 목록 */}
-      <div className="space-y-3">
-        {mockAssessments.map((assessment, i) => (
-          <AssessmentCard
-            key={assessment.id}
-            assessment={assessment}
-            colorClass={PHASE_COLORS[i % PHASE_COLORS.length]}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="space-y-3">
+          <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
+          <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
+          <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
+        </div>
+      ) : assessments.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+          <p className="text-body text-gray-400">등록된 평가가 없습니다</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {assessments.map((assessment, i) => (
+            <AssessmentCard
+              key={assessment.id}
+              assessment={assessment}
+              colorClass={PHASE_COLORS[i % PHASE_COLORS.length]}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

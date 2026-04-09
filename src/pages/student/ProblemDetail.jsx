@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { mockProblems } from '@/data/mockData'
+import { problemsApi } from '@/api/problems'
 import Card from '@/components/common/Card'
 import Badge from '@/components/common/Badge'
 import Button from '@/components/common/Button'
 import Textarea from '@/components/common/Textarea'
 import CodeEditor from '@/components/forms/CodeEditor'
+import Skeleton from '@/components/common/Skeleton'
 
 const difficultyBadgeMap = {
   '하': 'difficulty-low',
@@ -16,15 +17,37 @@ const difficultyBadgeMap = {
 
 export default function ProblemDetail() {
   const { id } = useParams()
-  const problem = mockProblems.find((p) => p.id === Number(id))
+  const [problem, setProblem] = useState(null)
+  const [evaluation, setEvaluation] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
-  const [selectedChoice, setSelectedChoice] = useState(
-    problem?.submitted && problem?.correctAnswer !== undefined
-      ? problem.correctAnswer
-      : null
-  )
+  const [selectedChoice, setSelectedChoice] = useState(null)
   const [shortAnswer, setShortAnswer] = useState('')
   const [codeAnswer, setCodeAnswer] = useState('')
+
+  useEffect(() => {
+    problemsApi.getDetail(id)
+      .then((data) => {
+        setProblem(data)
+        if (data.submitted) {
+          return problemsApi.getEvaluation(id)
+            .then((evalData) => setEvaluation(evalData))
+            .catch(() => null)
+        }
+      })
+      .catch(() => setProblem(null))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton width="150px" height="20px" rounded="rounded-lg" />
+        <Skeleton width="100%" height="400px" rounded="rounded-2xl" />
+      </div>
+    )
+  }
 
   if (!problem) {
     return (
@@ -35,6 +58,26 @@ export default function ProblemDetail() {
   }
 
   const isSubmitted = problem.submitted
+
+  const handleSubmit = async () => {
+    let answer
+    if (problem.type === 'multiple_choice') answer = selectedChoice
+    else if (problem.type === 'short_answer') answer = shortAnswer
+    else answer = codeAnswer
+
+    if (answer === null || answer === '') return
+    setSubmitting(true)
+    try {
+      await problemsApi.submit(id, answer)
+      const evalData = await problemsApi.getEvaluation(id)
+      setEvaluation(evalData)
+      setProblem((prev) => ({ ...prev, submitted: true }))
+    } catch {
+      // 제출 실패
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const renderInput = () => {
     switch (problem.type) {
@@ -98,6 +141,8 @@ export default function ProblemDetail() {
     }
   }
 
+  const score = evaluation?.score ?? null
+
   return (
     <div className="space-y-6">
       <button
@@ -116,7 +161,7 @@ export default function ProblemDetail() {
               <Badge variant={difficultyBadgeMap[problem.difficulty]}>
                 {problem.difficulty}
               </Badge>
-              {problem.tags.map((tag) => (
+              {(problem.tags ?? []).map((tag) => (
                 <Badge key={tag} variant="info">
                   {tag}
                 </Badge>
@@ -142,6 +187,8 @@ export default function ProblemDetail() {
               <div className="mt-6">
                 <Button
                   fullWidth
+                  loading={submitting}
+                  onClick={handleSubmit}
                   className="bg-student-500 hover:bg-student-600 active:bg-student-700"
                 >
                   제출하기
@@ -193,20 +240,20 @@ export default function ProblemDetail() {
             </dl>
           </Card>
 
-          {isSubmitted && problem.score !== null && (
+          {isSubmitted && score !== null && (
             <Card>
               <h3 className="text-body font-semibold text-gray-900 mb-4">채점 결과</h3>
               <div className="flex items-center justify-center">
                 <div
                   className={`w-20 h-20 rounded-full flex items-center justify-center text-h2 font-bold text-white ${
-                    problem.score >= 90
+                    score >= 90
                       ? 'bg-green-500'
-                      : problem.score >= 70
+                      : score >= 70
                       ? 'bg-amber-500'
                       : 'bg-red-500'
                   }`}
                 >
-                  {problem.score}
+                  {score}
                 </div>
               </div>
               <p className="text-center text-caption text-gray-500 mt-2">점수</p>
@@ -216,7 +263,7 @@ export default function ProblemDetail() {
           <Card>
             <h3 className="text-body font-semibold text-gray-900 mb-3">태그</h3>
             <div className="flex flex-wrap gap-2">
-              {problem.tags.map((tag) => (
+              {(problem.tags ?? []).map((tag) => (
                 <Badge key={tag} variant="info">
                   {tag}
                 </Badge>

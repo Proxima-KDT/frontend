@@ -64,7 +64,18 @@ const mobileMenus = {
       icon: 'Monitor',
       path: '/admin/equipment',
     },
-    { key: 'students', label: '학생', icon: 'Users', path: '/admin/students' },
+    {
+      key: 'room-reservation',
+      label: '시설예약',
+      icon: 'CalendarRange',
+      path: '/admin/room-reservation',
+    },
+    {
+      key: 'counseling-schedule',
+      label: '상담',
+      icon: 'CalendarClock',
+      path: '/admin/counseling-schedule',
+    },
   ],
 };
 

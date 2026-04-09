@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ClipboardList,
   Upload,
@@ -13,7 +13,8 @@ import {
   X,
   Download,
 } from 'lucide-react';
-import { mockAssignments } from '@/data/mockData';
+import { assignmentsApi } from '@/api/assignments';
+import Skeleton from '@/components/common/Skeleton';
 
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -46,7 +47,8 @@ const STATUS_CONFIG = {
 const FILTERS = ['전체', '미제출', '제출완료', '채점완료', '재제출 요청'];
 
 function getDDay(dueDate) {
-  const today = new Date('2026-04-08'); // mock 기준 오늘
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const due = new Date(dueDate);
   const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
   return diff;
@@ -216,10 +218,16 @@ function AssignmentCard({ assignment }) {
   const canSubmit =
     assignment.status === 'pending' || assignment.status === 'resubmit_required';
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (uploadedFiles.length === 0) return;
-    // 실제 구현 시 API 호출
-    setSubmitted(true);
+    const formData = new FormData();
+    uploadedFiles.forEach((f) => formData.append('files', f));
+    try {
+      await assignmentsApi.submit(assignment.id, formData);
+      setSubmitted(true);
+    } catch {
+      // 업로드 실패 시 아무 동작 없이 유지 (Toast는 전역 에러 핸들러에서 처리)
+    }
   };
 
   return (
@@ -406,17 +414,26 @@ function AssignmentCard({ assignment }) {
 // ── 메인 페이지 ───────────────────────────────────────────
 export default function Assignments() {
   const [filter, setFilter] = useState('전체');
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockAssignments.filter((a) => {
+  useEffect(() => {
+    assignmentsApi.getList()
+      .then((data) => setAssignments(data))
+      .catch(() => setAssignments([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = assignments.filter((a) => {
     if (filter === '전체') return true;
-    return STATUS_CONFIG[a.status].label === filter;
+    return STATUS_CONFIG[a.status]?.label === filter;
   });
 
   const stats = {
-    total: mockAssignments.length,
-    graded: mockAssignments.filter((a) => a.status === 'graded').length,
-    submitted: mockAssignments.filter((a) => a.status === 'submitted').length,
-    pending: mockAssignments.filter(
+    total: assignments.length,
+    graded: assignments.filter((a) => a.status === 'graded').length,
+    submitted: assignments.filter((a) => a.status === 'submitted').length,
+    pending: assignments.filter(
       (a) => a.status === 'pending' || a.status === 'resubmit_required',
     ).length,
   };
@@ -470,7 +487,13 @@ export default function Assignments() {
       </div>
 
       {/* 과제 목록 */}
-      {filtered.length > 0 ? (
+      {loading ? (
+        <div className="space-y-3">
+          <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
+          <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
+          <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
+        </div>
+      ) : filtered.length > 0 ? (
         <div className="space-y-3">
           {filtered.map((assignment) => (
             <AssignmentCard key={assignment.id} assignment={assignment} />

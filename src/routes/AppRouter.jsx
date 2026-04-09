@@ -2,9 +2,10 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
+import { useAuth } from '@/context/AuthContext';
 
 // Auth 페이지
-const MainPage = lazy(() => import('@/pages/auth/MainPage'));
+const LandingPage = lazy(() => import('@/pages/auth/LandingPage'));
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const SignupPage = lazy(() => import('@/pages/auth/SignupPage'));
 const NotFoundPage = lazy(() => import('@/pages/auth/NotFoundPage'));
@@ -34,8 +35,15 @@ const TeacherDashboard = lazy(() => import('@/pages/teacher/Dashboard'));
 const StudentDetail = lazy(() => import('@/pages/teacher/StudentDetail'));
 const TeacherQuestions = lazy(() => import('@/pages/teacher/Questions'));
 const Counseling = lazy(() => import('@/pages/teacher/Counseling'));
-const ProblemManagement = lazy(
-  () => import('@/pages/teacher/ProblemManagement'),
+const CounselingSchedule = lazy(
+  () => import('@/pages/teacher/CounselingSchedule'),
+);
+const AttendanceCheck = lazy(() => import('@/pages/teacher/AttendanceCheck'));
+const AssignmentManagement = lazy(
+  () => import('@/pages/teacher/AssignmentManagement'),
+);
+const AssessmentManagement = lazy(
+  () => import('@/pages/teacher/AssessmentManagement'),
 );
 
 // Admin 페이지
@@ -43,7 +51,23 @@ const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'));
 const EquipmentManagement = lazy(
   () => import('@/pages/admin/EquipmentManagement'),
 );
-const StudentManagement = lazy(() => import('@/pages/admin/StudentManagement'));
+const AdminStudentDetail = lazy(() => import('@/pages/admin/StudentDetail'));
+const RoomReservationManagement = lazy(
+  () => import('@/pages/admin/RoomReservationManagement'),
+);
+const AdminCounselingSchedule = lazy(
+  () => import('@/pages/admin/CounselingSchedule'),
+);
+
+// 로그인 상태면 role 대시보드로, 아니면 랜딩페이지 표시
+function HomeRoute() {
+  const { isAuthenticated, role, loading } = useAuth()
+  if (loading) return null
+  if (!isAuthenticated) return <LandingPage />
+  if (role === 'teacher') return <Navigate to="/teacher" replace />
+  if (role === 'admin') return <Navigate to="/admin" replace />
+  return <Navigate to="/student" replace />
+}
 
 function PageLoader() {
   return (
@@ -60,7 +84,8 @@ export default function AppRouter() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={<HomeRoute />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
@@ -228,10 +253,34 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/teacher/problems"
+          path="/teacher/counseling-schedule"
           element={
             <ProtectedRoute role="teacher">
-              <ProblemManagement />
+              <CounselingSchedule />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/attendance-check"
+          element={
+            <ProtectedRoute role="teacher">
+              <AttendanceCheck />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/assignments"
+          element={
+            <ProtectedRoute role="teacher">
+              <AssignmentManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/assessments"
+          element={
+            <ProtectedRoute role="teacher">
+              <AssessmentManagement />
             </ProtectedRoute>
           }
         />
@@ -254,10 +303,26 @@ export default function AppRouter() {
           }
         />
         <Route
-          path="/admin/students"
+          path="/admin/students/:id"
           element={
             <ProtectedRoute role="admin">
-              <StudentManagement />
+              <AdminStudentDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/room-reservation"
+          element={
+            <ProtectedRoute role="admin">
+              <RoomReservationManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/counseling-schedule"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminCounselingSchedule />
             </ProtectedRoute>
           }
         />

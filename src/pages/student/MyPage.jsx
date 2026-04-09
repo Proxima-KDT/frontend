@@ -6,15 +6,23 @@ import {
   X,
   BookOpen,
 } from 'lucide-react';
-import {
-  mockSkillScores,
-  mockStudentProfile,
-  mockJobPositions,
-} from '@/data/mockData';
-import { mockStudentUser } from '@/data/mockData';
+import { profileApi } from '@/api/profile';
+import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
 import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
+import Skeleton from '@/components/common/Skeleton';
+
+const JOB_POSITIONS = [
+  { value: 'frontend_developer', label: '프론트엔드 개발자' },
+  { value: 'backend_developer', label: '백엔드 개발자' },
+  { value: 'fullstack_developer', label: '풀스택 개발자' },
+  { value: 'data_engineer', label: '데이터 엔지니어' },
+  { value: 'ai_ml_engineer', label: 'AI/ML 엔지니어' },
+  { value: 'cloud_engineer', label: '클라우드 엔지니어' },
+  { value: 'devops_engineer', label: 'DevOps 엔지니어' },
+  { value: 'qa_engineer', label: 'QA 엔지니어' },
+];
 
 // 점수에 따른 티어 정보 계산 (0-39: Beginner, 40-59: Intermediate, 60-79: Advanced, 80-100: Master)
 function getTierInfo(score) {
@@ -163,17 +171,27 @@ function JobMultiSelect({ options, selected, onChange }) {
 
 export default function MyPage() {
   const fileInputRef = useRef(null);
-  const [profileImage, setProfileImage] = useState(mockStudentUser.avatar_url);
-  const [selectedJobs, setSelectedJobs] = useState([
-    mockStudentProfile.targetJob,
-  ]);
+  const { showToast } = useToast();
+  const [profile, setProfile] = useState(null);
+  const [skillScores, setSkillScores] = useState([]);
+  const [selectedJobs, setSelectedJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([profileApi.getMe(), profileApi.getSkillScores()])
+      .then(([prof, scores]) => {
+        setProfile(prof);
+        setSkillScores(scores);
+        setSelectedJobs(prof.target_jobs ?? []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const overallScore = useMemo(() => {
-    const avg =
-      mockSkillScores.reduce((sum, s) => sum + s.score, 0) /
-      mockSkillScores.length;
-    return Math.round(avg);
-  }, []);
+    if (!skillScores.length) return 0;
+    return Math.round(skillScores.reduce((sum, s) => sum + s.score, 0) / skillScores.length);
+  }, [skillScores]);
 
   const tier = getTierInfo(overallScore);
 
@@ -181,11 +199,35 @@ export default function MyPage() {
     fileInputRef.current?.click();
   }
 
-  function handleImageChange(e) {
+  async function handleImageChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setProfileImage(url);
+    try {
+      const result = await profileApi.uploadAvatar(file);
+      setProfile((prev) => ({ ...prev, avatar_url: result.avatar_url }));
+      showToast({ type: 'success', message: '프로필 사진이 업데이트되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '이미지 업로드에 실패했습니다.' });
+    }
+  }
+
+  async function handleJobsChange(jobs) {
+    setSelectedJobs(jobs);
+    try {
+      await profileApi.updateTargetJobs(jobs);
+    } catch {
+      showToast({ type: 'error', message: '직무 저장에 실패했습니다.' });
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton width="160px" height="32px" rounded="rounded-lg" />
+        <Skeleton width="100%" height="200px" rounded="rounded-2xl" />
+        <Skeleton width="100%" height="300px" rounded="rounded-2xl" />
+      </div>
+    );
   }
 
   return (
@@ -203,16 +245,16 @@ export default function MyPage() {
               className="group relative w-36 h-full rounded-2xl overflow-hidden border-4 border-white shadow-lg focus:outline-none"
               aria-label="프로필 사진 변경"
             >
-              {profileImage ? (
+              {profile?.avatar_url ? (
                 <img
-                  src={profileImage}
+                  src={profile.avatar_url}
                   alt="프로필"
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-linear-to-br from-student-400 to-student-600 flex items-center justify-center">
                   <span className="text-white text-3xl font-bold">
-                    {mockStudentUser.name.charAt(0)}
+                    {profile?.name?.charAt(0) ?? '?'}
                   </span>
                 </div>
               )}
@@ -241,7 +283,7 @@ export default function MyPage() {
           <div className="flex-1 w-full min-w-0">
             <p className="text-caption text-gray-500 mb-1">수강생</p>
             <h2 className="text-h2 font-bold text-gray-900 mb-2">
-              {mockStudentUser.name}
+              {profile?.name}
             </h2>
             <div className="flex items-center gap-1.5 mb-3">
               <BookOpen className="w-3.5 h-3.5 text-gray-400 shrink-0" />
@@ -280,9 +322,9 @@ export default function MyPage() {
                 </span>
               </div>
               <JobMultiSelect
-                options={mockJobPositions}
+                options={JOB_POSITIONS}
                 selected={selectedJobs}
-                onChange={setSelectedJobs}
+                onChange={handleJobsChange}
               />
             </div>
           </div>
@@ -293,10 +335,10 @@ export default function MyPage() {
       <Card>
         <h2 className="text-h3 font-bold text-gray-900 mb-5">역량 분석</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SkillRadarChart data={mockSkillScores} color="#3B82F6" />
+          <SkillRadarChart data={skillScores} color="#3B82F6" />
 
           <div className="flex flex-col justify-center gap-4">
-            {mockSkillScores.map((skill, idx) => (
+            {skillScores.map((skill, idx) => (
               <ProgressBar
                 key={skill.subject}
                 value={skill.score}

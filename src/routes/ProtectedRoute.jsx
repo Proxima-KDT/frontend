@@ -3,7 +3,15 @@ import { useAuth } from '@/context/AuthContext'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 
 export default function ProtectedRoute({ role, children }) {
-  const { isAuthenticated, role: userRole } = useAuth()
+  const { isAuthenticated, role: userRole, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />

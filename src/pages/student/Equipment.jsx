@@ -1,14 +1,13 @@
-import { useState } from 'react'
-import { mockEquipment, mockStudentUser } from '@/data/mockData'
+import { useState, useEffect } from 'react'
+import { equipmentApi } from '@/api/equipment'
+import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import Card from '@/components/common/Card'
 import Badge from '@/components/common/Badge'
 import Button from '@/components/common/Button'
 import Tabs from '@/components/common/Tabs'
 import Modal from '@/components/common/Modal'
 import { Monitor, Laptop, Tablet, Keyboard } from 'lucide-react'
-
-const CURRENT_USER_ID = mockStudentUser.id
-const CURRENT_USER_NAME = mockStudentUser.name
 
 const categoryMeta = {
   '노트북':  { icon: Laptop,   bg: 'bg-blue-50',   iconColor: 'text-blue-500',   activeBorder: 'border-blue-200' },
@@ -18,10 +17,17 @@ const categoryMeta = {
 }
 
 export default function Equipment() {
-  const [equipment, setEquipment] = useState(mockEquipment)
+  const { user } = useAuth()
+  const { showToast } = useToast()
+  const [equipment, setEquipment] = useState([])
   const [activeCategory, setActiveCategory] = useState('all')
   const [modal, setModal] = useState({ type: null, item: null })
   const [reason, setReason] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
+
+  useEffect(() => {
+    equipmentApi.getList().then(setEquipment).catch(() => {})
+  }, [])
 
   const categoryTabs = [
     { key: 'all', label: '전체', count: equipment.length },
@@ -47,27 +53,45 @@ export default function Equipment() {
 
   const closeModal = () => setModal({ type: null, item: null })
 
-  const handleBorrow = () => {
-    const today = new Date().toISOString().split('T')[0]
-    setEquipment((prev) =>
-      prev.map((e) =>
-        e.id === modal.item.id
-          ? { ...e, status: 'borrowed', borrower: CURRENT_USER_NAME, borrower_id: CURRENT_USER_ID, borrowed_date: today }
-          : e
+  const handleBorrow = async () => {
+    setActionLoading(true)
+    try {
+      await equipmentApi.borrow(modal.item.id, reason)
+      const today = new Date().toISOString().split('T')[0]
+      setEquipment((prev) =>
+        prev.map((e) =>
+          e.id === modal.item.id
+            ? { ...e, status: 'borrowed', borrower: user?.name, borrower_id: user?.id, borrowed_date: today }
+            : e
+        )
       )
-    )
-    closeModal()
+      showToast({ type: 'success', message: '대여 신청이 완료되었습니다.' })
+    } catch {
+      showToast({ type: 'error', message: '대여 신청에 실패했습니다.' })
+    } finally {
+      setActionLoading(false)
+      closeModal()
+    }
   }
 
-  const handleReturn = () => {
-    setEquipment((prev) =>
-      prev.map((e) =>
-        e.id === modal.item.id
-          ? { ...e, status: 'available', borrower: null, borrower_id: null, borrowed_date: null }
-          : e
+  const handleReturn = async () => {
+    setActionLoading(true)
+    try {
+      await equipmentApi.return(modal.item.id)
+      setEquipment((prev) =>
+        prev.map((e) =>
+          e.id === modal.item.id
+            ? { ...e, status: 'available', borrower: null, borrower_id: null, borrowed_date: null }
+            : e
+        )
       )
-    )
-    closeModal()
+      showToast({ type: 'success', message: '반납이 완료되었습니다.' })
+    } catch {
+      showToast({ type: 'error', message: '반납 처리에 실패했습니다.' })
+    } finally {
+      setActionLoading(false)
+      closeModal()
+    }
   }
 
   const getStatusBadge = (status) => {
@@ -81,7 +105,7 @@ export default function Equipment() {
   }
 
   const renderActionButton = (item) => {
-    const isMine = item.borrower_id === CURRENT_USER_ID
+    const isMine = item.borrower_id === user?.id
     switch (item.status) {
       case 'available':
         return <Button size="sm" fullWidth onClick={() => openBorrowModal(item)}>대여 신청</Button>
