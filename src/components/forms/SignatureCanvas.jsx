@@ -10,6 +10,8 @@ export default function SignatureCanvas({
   onCheckout,
   checkoutDisabled = true,
   checkoutDone = false,
+  onEarlyLeave,
+  earlyLeaveDone = false,
 }) {
   const canvasRef = useRef(null)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -139,13 +141,13 @@ export default function SignatureCanvas({
                 size="sm"
                 icon={LogOut}
                 onClick={onCheckout}
-                disabled={checkoutDisabled}
+                disabled={checkoutDisabled || earlyLeaveDone}
                 className={
-                  checkoutDisabled
+                  checkoutDisabled || earlyLeaveDone
                     ? 'opacity-50 cursor-not-allowed'
                     : 'bg-red-500 hover:bg-red-600 text-white'
                 }
-                title={checkoutDisabled ? '17:50 이후 퇴실 가능합니다' : '퇴실 처리'}
+                title={checkoutDisabled ? '17:50 이후 퇴실 가능합니다' : earlyLeaveDone ? '이미 조퇴 처리되었습니다' : '퇴실 처리'}
               >
                 퇴실
               </Button>
@@ -154,11 +156,31 @@ export default function SignatureCanvas({
                 퇴실 완료
               </Button>
             )}
+            {!earlyLeaveDone ? (
+              <Button
+                size="sm"
+                icon={LogOut}
+                onClick={onEarlyLeave}
+                disabled={checkoutDone}
+                className={
+                  checkoutDone
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'bg-amber-500 hover:bg-amber-600 text-white'
+                }
+                title={checkoutDone ? '이미 퇴실 처리되었습니다' : '조퇴 처리'}
+              >
+                조퇴
+              </Button>
+            ) : (
+              <Button size="sm" icon={CheckCheck} disabled className="bg-gray-100 text-gray-400">
+                조퇴 완료
+              </Button>
+            )}
           </>
         )}
       </div>
 
-      {submitted && checkoutDisabled && !checkoutDone && (
+      {submitted && checkoutDisabled && !checkoutDone && !earlyLeaveDone && (
         <p className="text-caption text-gray-400 mt-2">
           17:50 이후 퇴실 버튼이 활성화됩니다
         </p>

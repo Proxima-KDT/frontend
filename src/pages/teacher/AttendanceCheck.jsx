@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCheck,
+  LogOut,
 } from 'lucide-react'
 import { mockClassroomSeats, mockAttendanceByDate } from '@/data/mockData'
 import Card from '@/components/common/Card'
@@ -65,6 +66,13 @@ const STATUS_CONFIG = {
     icon: XCircle,
     iconClass: 'text-error-500',
   },
+  early_leave: {
+    label: '조퇴',
+    badgeVariant: 'warning',
+    bg: 'bg-amber-50 border-amber-200 hover:bg-amber-100',
+    icon: LogOut,
+    iconClass: 'text-amber-500',
+  },
   null: {
     label: '미확인',
     badgeVariant: 'default',
@@ -99,6 +107,7 @@ export default function AttendanceCheck() {
     present: todayRecords.filter((r) => r.status === 'present').length,
     late: todayRecords.filter((r) => r.status === 'late').length,
     absent: todayRecords.filter((r) => r.status === 'absent').length,
+    early_leave: todayRecords.filter((r) => r.status === 'early_leave').length,
     unknown: todayRecords.filter((r) => r.status === null).length,
   }
 
@@ -147,6 +156,7 @@ export default function AttendanceCheck() {
     { key: 'present', label: '출석', count: stats.present },
     { key: 'late', label: '지각', count: stats.late },
     { key: 'absent', label: '결석', count: stats.absent },
+    { key: 'early_leave', label: '조퇴', count: stats.early_leave },
     { key: 'unknown', label: '미확인', count: stats.unknown },
   ]
 
@@ -154,6 +164,7 @@ export default function AttendanceCheck() {
     if (activeTab === 'present') return r.status === 'present'
     if (activeTab === 'late') return r.status === 'late'
     if (activeTab === 'absent') return r.status === 'absent'
+    if (activeTab === 'early_leave') return r.status === 'early_leave'
     if (activeTab === 'unknown') return r.status === null
     return true
   })
@@ -217,7 +228,7 @@ export default function AttendanceCheck() {
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-5 gap-3 mb-6">
         <Card padding="p-4">
           <p className="text-caption text-gray-500 mb-1">출석</p>
           <p className="text-h2 font-bold text-success-600">{stats.present}명</p>
@@ -229,6 +240,10 @@ export default function AttendanceCheck() {
         <Card padding="p-4">
           <p className="text-caption text-gray-500 mb-1">결석</p>
           <p className="text-h2 font-bold text-error-600">{stats.absent}명</p>
+        </Card>
+        <Card padding="p-4">
+          <p className="text-caption text-gray-500 mb-1">조퇴</p>
+          <p className="text-h2 font-bold text-amber-500">{stats.early_leave}명</p>
         </Card>
         <Card padding="p-4">
           <p className="text-caption text-gray-500 mb-1">미확인</p>
@@ -277,7 +292,7 @@ export default function AttendanceCheck() {
                     </div>
                     <p className="text-body-sm font-semibold text-gray-800">{seat.student_name}</p>
                     <p className={`text-caption ${cfg.iconClass}`}>
-                      {status === 'present' || status === 'late'
+                      {status === 'present' || status === 'late' || status === 'early_leave'
                         ? record?.check_in_time ?? cfg.label
                         : cfg.label}
                     </p>
@@ -357,21 +372,22 @@ export default function AttendanceCheck() {
             {/* 상태 선택 */}
             <div>
               <p className="text-caption font-medium text-gray-400 uppercase tracking-wider mb-3">출석 상태 수정</p>
-              <div className="grid grid-cols-3 gap-2">
-                {(['present', 'late', 'absent']).map((s) => {
+              <div className="grid grid-cols-2 gap-2">
+                {(['present', 'late', 'absent', 'early_leave']).map((s) => {
                   const cfg = STATUS_CONFIG[s]
                   const isSelected = pendingStatus === s
+                  const selectedStyle =
+                    s === 'present' ? 'bg-success-500 border-success-500 text-white'
+                    : s === 'late' ? 'bg-warning-500 border-warning-500 text-white'
+                    : s === 'absent' ? 'bg-error-500 border-error-500 text-white'
+                    : 'bg-amber-500 border-amber-500 text-white'
                   return (
                     <button
                       key={s}
                       onClick={() => setPendingStatus(s)}
                       className={`py-2.5 rounded-xl text-body-sm font-semibold border-2 transition-colors ${
                         isSelected
-                          ? s === 'present'
-                            ? 'bg-success-500 border-success-500 text-white'
-                            : s === 'late'
-                            ? 'bg-warning-500 border-warning-500 text-white'
-                            : 'bg-error-500 border-error-500 text-white'
+                          ? selectedStyle
                           : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                       }`}
                     >

@@ -4684,8 +4684,8 @@ export const mockAttendanceByDate = {
       student_id: 'uuid-student-006',
       student_name: '최유나',
       seat_id: 'B3',
-      status: null,
-      check_in_time: null,
+      status: 'early_leave',
+      check_in_time: '08:58',
     },
     {
       student_id: 'uuid-student-007',
