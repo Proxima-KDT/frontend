@@ -1,23 +1,34 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, XCircle, RotateCcw, Trophy } from 'lucide-react'
-import { subjectsApi } from '@/api/subjects'
-import Card from '@/components/common/Card'
-import Button from '@/components/common/Button'
-import Badge from '@/components/common/Badge'
-import ProgressBar from '@/components/common/ProgressBar'
-import Skeleton from '@/components/common/Skeleton'
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  Trophy,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
+import { subjectsApi } from '@/api/subjects';
+import { quizApi } from '@/api/quiz';
+import { useToast } from '@/context/ToastContext';
+import Card from '@/components/common/Card';
+import Button from '@/components/common/Button';
+import Badge from '@/components/common/Badge';
+import ProgressBar from '@/components/common/ProgressBar';
+import Skeleton from '@/components/common/Skeleton';
 
 export default function ConceptQuiz() {
-  const { subjectId, conceptId } = useParams()
-  const navigate = useNavigate()
+  const { subjectId, conceptId } = useParams();
+  const navigate = useNavigate();
 
-  const isComprehensive = conceptId === 'comprehensive'
+  const isComprehensive = conceptId === 'comprehensive';
+  const { showToast } = useToast();
 
-  const [subjectTitle, setSubjectTitle] = useState('')
-  const [conceptTitle, setConceptTitle] = useState('')
-  const [problems, setProblems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [subjectTitle, setSubjectTitle] = useState('');
+  const [conceptTitle, setConceptTitle] = useState('');
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,27 +36,27 @@ export default function ConceptQuiz() {
         const [subjectData, problemsData] = await Promise.all([
           subjectsApi.getDetail(subjectId),
           subjectsApi.getConceptProblems(subjectId, conceptId),
-        ])
-        setSubjectTitle(subjectData.title ?? '')
+        ]);
+        setSubjectTitle(subjectData.title ?? '');
         if (!isComprehensive) {
-          const concept = subjectData.concepts?.find((c) => c.id === conceptId)
-          setConceptTitle(concept?.title ?? '')
+          const concept = subjectData.concepts?.find((c) => c.id === conceptId);
+          setConceptTitle(concept?.title ?? '');
         }
-        setProblems(problemsData)
+        setProblems(problemsData);
       } catch {
-        setProblems([])
+        setProblems([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchData()
-  }, [subjectId, conceptId, isComprehensive])
+    };
+    fetchData();
+  }, [subjectId, conceptId, isComprehensive]);
 
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState(null)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [results, setResults] = useState([])
-  const [isFinished, setIsFinished] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [results, setResults] = useState([]);
+  const [isFinished, setIsFinished] = useState(false);
 
   if (loading) {
     return (
@@ -53,7 +64,7 @@ export default function ConceptQuiz() {
         <Skeleton width="150px" height="20px" rounded="rounded-lg" />
         <Skeleton width="100%" height="300px" rounded="rounded-2xl" />
       </div>
-    )
+    );
   }
 
   if (problems.length === 0) {
@@ -61,51 +72,78 @@ export default function ConceptQuiz() {
       <div className="flex flex-col items-center justify-center py-20">
         <p className="text-h3 text-gray-500">문제를 찾을 수 없습니다</p>
       </div>
-    )
+    );
   }
 
-  const currentProblem = problems[currentIndex]
-  const totalProblems = problems.length
-  const progressPercent = ((currentIndex + (isSubmitted ? 1 : 0)) / totalProblems) * 100
+  const currentProblem = problems[currentIndex];
+  const totalProblems = problems.length;
+  const progressPercent =
+    ((currentIndex + (isSubmitted ? 1 : 0)) / totalProblems) * 100;
 
   const handleSubmit = () => {
-    if (selectedAnswer === null) return
-    setIsSubmitted(true)
-    setResults((prev) => [
-      ...prev,
-      {
-        problemId: currentProblem.id,
-        selected: selectedAnswer,
-        correct: currentProblem.answer,
-        isCorrect: selectedAnswer === currentProblem.answer,
-      },
-    ])
-  }
+    if (selectedAnswer === null) return;
+    setIsSubmitted(true);
+    const newEntry = {
+      problemId: currentProblem.id,
+      selected: selectedAnswer,
+      correct: currentProblem.answer,
+      isCorrect: selectedAnswer === currentProblem.answer,
+    };
+    setResults((prev) => {
+      const idx = prev.findIndex((r) => r.problemId === currentProblem.id);
+      if (idx !== -1) {
+        const updated = [...prev];
+        updated[idx] = newEntry;
+        return updated;
+      }
+      return [...prev, newEntry];
+    });
+  };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex + 1 >= totalProblems) {
-      setIsFinished(true)
-      return
+      // 퀴즈 완료 — 전체 답안 DB 저장 (진도 추적)
+      const answers = results.map((r) => ({
+        problem_id: r.problemId,
+        selected_answer: r.selected,
+      }));
+      quizApi.submit(conceptId, answers).catch(() => {
+        showToast({
+          type: 'error',
+          message: '결과 저장에 실패했습니다. 네트워크를 확인해주세요.',
+        });
+      });
+      setIsFinished(true);
+      return;
     }
-    setCurrentIndex((prev) => prev + 1)
-    setSelectedAnswer(null)
-    setIsSubmitted(false)
-  }
+    const nextIndex = currentIndex + 1;
+    const nextResult = results.find(
+      (r) => r.problemId === problems[nextIndex].id,
+    );
+    setCurrentIndex(nextIndex);
+    if (nextResult) {
+      setSelectedAnswer(nextResult.selected);
+      setIsSubmitted(true);
+    } else {
+      setSelectedAnswer(null);
+      setIsSubmitted(false);
+    }
+  };
 
   const handleRetry = () => {
-    setCurrentIndex(0)
-    setSelectedAnswer(null)
-    setIsSubmitted(false)
-    setResults([])
-    setIsFinished(false)
-  }
+    setCurrentIndex(0);
+    setSelectedAnswer(null);
+    setIsSubmitted(false);
+    setResults([]);
+    setIsFinished(false);
+  };
 
-  const correctCount = results.filter((r) => r.isCorrect).length
-  const title = isComprehensive ? `${subjectTitle} 종합 문제` : conceptTitle
+  const correctCount = results.filter((r) => r.isCorrect).length;
+  const title = isComprehensive ? `${subjectTitle} 종합 문제` : conceptTitle;
 
   // 결과 화면
   if (isFinished) {
-    const scorePercent = Math.round((correctCount / totalProblems) * 100)
+    const scorePercent = Math.round((correctCount / totalProblems) * 100);
     return (
       <div className="space-y-6">
         <button
@@ -117,27 +155,55 @@ export default function ConceptQuiz() {
         </button>
 
         <Card className="text-center py-10">
-          <div className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-4 ${
-            scorePercent >= 80 ? 'bg-green-100' : scorePercent >= 60 ? 'bg-amber-100' : 'bg-red-100'
-          }`}>
-            <Trophy className={`w-10 h-10 ${
-              scorePercent >= 80 ? 'text-green-600' : scorePercent >= 60 ? 'text-amber-600' : 'text-red-600'
-            }`} />
+          <div
+            className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-4 ${
+              scorePercent >= 80
+                ? 'bg-green-100'
+                : scorePercent >= 60
+                  ? 'bg-amber-100'
+                  : 'bg-red-100'
+            }`}
+          >
+            <Trophy
+              className={`w-10 h-10 ${
+                scorePercent >= 80
+                  ? 'text-green-600'
+                  : scorePercent >= 60
+                    ? 'text-amber-600'
+                    : 'text-red-600'
+              }`}
+            />
           </div>
-          <h2 className="text-h2 font-bold text-gray-900 mb-2">{title} 완료!</h2>
+          <h2 className="text-h2 font-bold text-gray-900 mb-2">
+            {title} 완료!
+          </h2>
           <p className="text-body text-gray-500 mb-6">
-            {totalProblems}문제 중 <span className="font-bold text-gray-900">{correctCount}문제</span> 정답
+            {totalProblems}문제 중{' '}
+            <span className="font-bold text-gray-900">{correctCount}문제</span>{' '}
+            정답
           </p>
 
           <div className="max-w-xs mx-auto mb-8">
-            <div className={`text-4xl font-bold mb-2 ${
-              scorePercent >= 80 ? 'text-green-600' : scorePercent >= 60 ? 'text-amber-600' : 'text-red-600'
-            }`}>
+            <div
+              className={`text-4xl font-bold mb-2 ${
+                scorePercent >= 80
+                  ? 'text-green-600'
+                  : scorePercent >= 60
+                    ? 'text-amber-600'
+                    : 'text-red-600'
+              }`}
+            >
               {scorePercent}점
             </div>
             <ProgressBar
               value={scorePercent}
-              color={scorePercent >= 80 ? 'bg-green-500' : scorePercent >= 60 ? 'bg-amber-500' : 'bg-red-500'}
+              color={
+                scorePercent >= 80
+                  ? 'bg-green-500'
+                  : scorePercent >= 60
+                    ? 'bg-amber-500'
+                    : 'bg-red-500'
+              }
               showValue={false}
             />
           </div>
@@ -161,11 +227,7 @@ export default function ConceptQuiz() {
           </div>
 
           <div className="flex gap-3 justify-center">
-            <Button
-              variant="secondary"
-              onClick={handleRetry}
-              icon={RotateCcw}
-            >
+            <Button variant="secondary" onClick={handleRetry} icon={RotateCcw}>
               다시 풀기
             </Button>
             <Button
@@ -182,28 +244,32 @@ export default function ConceptQuiz() {
           <Card>
             <h3 className="text-h3 font-bold text-gray-900 mb-4">오답 해설</h3>
             <div className="space-y-4">
-              {results.filter((r) => !r.isCorrect).map((r, idx) => {
-                const prob = problems.find((p) => p.id === r.problemId)
-                return (
-                  <div key={r.problemId} className="p-4 bg-red-50 rounded-xl">
-                    <p className="text-body-sm font-semibold text-gray-900 mb-2">
-                      Q. {prob.question}
-                    </p>
-                    <p className="text-caption text-red-600 mb-1">
-                      내 답: {prob.choices[r.selected]}
-                    </p>
-                    <p className="text-caption text-green-600 mb-2">
-                      정답: {prob.choices[r.correct]}
-                    </p>
-                    <p className="text-caption text-gray-600">{prob.explanation}</p>
-                  </div>
-                )
-              })}
+              {results
+                .filter((r) => !r.isCorrect)
+                .map((r, idx) => {
+                  const prob = problems.find((p) => p.id === r.problemId);
+                  return (
+                    <div key={r.problemId} className="p-4 bg-red-50 rounded-xl">
+                      <p className="text-body-sm font-semibold text-gray-900 mb-2">
+                        Q. {prob.question}
+                      </p>
+                      <p className="text-caption text-red-600 mb-1">
+                        내 답: {prob.choices[r.selected]}
+                      </p>
+                      <p className="text-caption text-green-600 mb-2">
+                        정답: {prob.choices[r.correct]}
+                      </p>
+                      <p className="text-caption text-gray-600">
+                        {prob.explanation}
+                      </p>
+                    </div>
+                  );
+                })}
             </div>
           </Card>
         )}
       </div>
-    )
+    );
   }
 
   // 문제 풀기 화면
@@ -247,23 +313,26 @@ export default function ConceptQuiz() {
         {/* 보기 */}
         <div className="space-y-3">
           {currentProblem.choices.map((choice, idx) => {
-            let borderClass = 'border-gray-200 hover:border-gray-300'
-            let bgClass = ''
+            let borderClass = 'border-gray-200 hover:border-gray-300';
+            let bgClass = '';
 
             if (isSubmitted) {
               if (idx === currentProblem.answer) {
-                borderClass = 'border-green-500'
-                bgClass = 'bg-green-50'
-              } else if (idx === selectedAnswer && idx !== currentProblem.answer) {
-                borderClass = 'border-red-500'
-                bgClass = 'bg-red-50'
+                borderClass = 'border-green-500';
+                bgClass = 'bg-green-50';
+              } else if (
+                idx === selectedAnswer &&
+                idx !== currentProblem.answer
+              ) {
+                borderClass = 'border-red-500';
+                bgClass = 'bg-red-50';
               } else {
-                borderClass = 'border-gray-100'
-                bgClass = 'opacity-50'
+                borderClass = 'border-gray-100';
+                bgClass = 'opacity-50';
               }
             } else if (selectedAnswer === idx) {
-              borderClass = 'border-student-500'
-              bgClass = 'bg-student-50'
+              borderClass = 'border-student-500';
+              bgClass = 'bg-student-50';
             }
 
             return (
@@ -295,15 +364,19 @@ export default function ConceptQuiz() {
                 </div>
                 <span className="text-body-sm text-gray-700">{choice}</span>
               </label>
-            )
+            );
           })}
         </div>
 
         {/* 해설 (제출 후) */}
         {isSubmitted && (
           <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-            <h4 className="text-body-sm font-semibold text-blue-800 mb-1">해설</h4>
-            <p className="text-caption text-blue-700">{currentProblem.explanation}</p>
+            <h4 className="text-body-sm font-semibold text-blue-800 mb-1">
+              해설
+            </h4>
+            <p className="text-caption text-blue-700">
+              {currentProblem.explanation}
+            </p>
           </div>
         )}
 
@@ -313,11 +386,17 @@ export default function ConceptQuiz() {
             variant="ghost"
             disabled={currentIndex === 0}
             onClick={() => {
-              setCurrentIndex((prev) => prev - 1)
-              const prevResult = results[currentIndex - 1]
+              const prevIndex = currentIndex - 1;
+              const prevResult = results.find(
+                (r) => r.problemId === problems[prevIndex].id,
+              );
+              setCurrentIndex(prevIndex);
               if (prevResult) {
-                setSelectedAnswer(prevResult.selected)
-                setIsSubmitted(true)
+                setSelectedAnswer(prevResult.selected);
+                setIsSubmitted(true);
+              } else {
+                setSelectedAnswer(null);
+                setIsSubmitted(false);
               }
             }}
             icon={ChevronLeft}
@@ -348,14 +427,15 @@ export default function ConceptQuiz() {
       {/* 문제 번호 네비게이션 */}
       <div className="flex flex-wrap gap-2 justify-center">
         {problems.map((_, idx) => {
-          const result = results.find((r) => r.problemId === problems[idx].id)
-          let colorClass = 'bg-gray-100 text-gray-500'
+          const result = results.find((r) => r.problemId === problems[idx].id);
+          let colorClass = 'bg-gray-100 text-gray-500';
           if (result) {
             colorClass = result.isCorrect
               ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
+              : 'bg-red-100 text-red-700';
           } else if (idx === currentIndex) {
-            colorClass = 'bg-student-100 text-student-700 ring-2 ring-student-500'
+            colorClass =
+              'bg-student-100 text-student-700 ring-2 ring-student-500';
           }
 
           return (
@@ -366,9 +446,9 @@ export default function ConceptQuiz() {
             >
               {idx + 1}
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
