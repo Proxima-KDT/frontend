@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
+import { useAuth } from '@/context/AuthContext';
 
 // Auth 페이지
 const LandingPage = lazy(() => import('@/pages/auth/LandingPage'));
@@ -58,6 +59,16 @@ const AdminCounselingSchedule = lazy(
   () => import('@/pages/admin/CounselingSchedule'),
 );
 
+// 로그인 상태면 role 대시보드로, 아니면 랜딩페이지 표시
+function HomeRoute() {
+  const { isAuthenticated, role, loading } = useAuth()
+  if (loading) return null
+  if (!isAuthenticated) return <LandingPage />
+  if (role === 'teacher') return <Navigate to="/teacher" replace />
+  if (role === 'admin') return <Navigate to="/admin" replace />
+  return <Navigate to="/student" replace />
+}
+
 function PageLoader() {
   return (
     <div className="p-6 space-y-4">
@@ -73,7 +84,8 @@ export default function AppRouter() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<HomeRoute />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 

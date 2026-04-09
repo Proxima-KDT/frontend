@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { mockRooms, mockBookedSlots } from '@/data/mockData';
+import { useState, useMemo, useEffect } from 'react';
+import { adminApi } from '@/api/admin';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
@@ -182,35 +182,49 @@ export default function RoomReservationManagement() {
   };
 
   const handleCancelReservation = () => {
-    setBookedSlots((prev) =>
-      prev.filter(
-        (s) =>
-          !(
-            s.room_id === cancelTarget.room_id &&
-            s.date === cancelTarget.date &&
-            s.start_time === cancelTarget.start_time
+    adminApi
+      .deleteReservation(cancelTarget.id)
+      .then(() => {
+        setSlotsByDate((prev) => ({
+          ...prev,
+          [selectedDate]: (prev[selectedDate] || []).filter(
+            (s) => s.id !== cancelTarget.id,
           ),
-      ),
-    );
-    setCancelTarget(null);
-    showToast({ type: 'success', message: '예약이 취소되었습니다.' });
+        }));
+        setCancelTarget(null);
+        showToast({
+          type: 'success',
+          message:
+            '\uc608\uc57d\uc774 \ucde8\uc18c\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
+        });
+      })
+      .catch(() =>
+        showToast({
+          message: '\ucde8\uc18c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.',
+          type: 'error',
+        }),
+      );
   };
 
   // ── 방 관리 로직 ──────────────────────────────────────────────────────
   const handleToggleStatus = (roomId) => {
-    setRooms((prev) =>
-      prev.map((r) =>
-        r.id === roomId
-          ? { ...r, status: r.status === 'closed' ? 'open' : 'closed' }
-          : r,
-      ),
-    );
     const room = rooms.find((r) => r.id === roomId);
-    const next = room?.status === 'closed' ? '운영 재개' : '운영 중단';
-    showToast({
-      type: 'info',
-      message: `${room?.name}이(가) ${next}되었습니다.`,
-    });
+    const nextStatus = room?.status === 'closed' ? 'open' : 'closed';
+    adminApi
+      .updateRoomStatus(roomId, nextStatus)
+      .then(() => {
+        setRooms((prev) =>
+          prev.map((r) => (r.id === roomId ? { ...r, status: nextStatus } : r)),
+        );
+        const next = nextStatus === 'open' ? '운영 재개' : '운영 중단';
+        showToast({
+          type: 'info',
+          message: `${room?.name}이(가) ${next}되었습니다.`,
+        });
+      })
+      .catch(() =>
+        showToast({ message: '상태 변경에 실패했습니다.', type: 'error' }),
+      );
   };
 
   const openAddModal = () => {
@@ -243,18 +257,29 @@ export default function RoomReservationManagement() {
       return;
     }
     if (editTarget) {
-      setRooms((prev) =>
-        prev.map((r) => (r.id === editTarget.id ? { ...r, ...roomForm } : r)),
-      );
-      showToast({ type: 'success', message: '방 정보가 수정되었습니다.' });
+      adminApi
+        .updateRoom(editTarget.id, roomForm)
+        .then(() => {
+          setRooms((prev) =>
+            prev.map((r) =>
+              r.id === editTarget.id ? { ...r, ...roomForm } : r,
+            ),
+          );
+          showToast({ type: 'success', message: '방 정보가 수정되었습니다.' });
+        })
+        .catch(() =>
+          showToast({ message: '수정에 실패했습니다.', type: 'error' }),
+        );
     } else {
-      const newRoom = {
-        id: `room-${Date.now()}`,
-        ...roomForm,
-        status: 'open',
-      };
-      setRooms((prev) => [...prev, newRoom]);
-      showToast({ type: 'success', message: '새 방이 추가되었습니다.' });
+      adminApi
+        .createRoom(roomForm)
+        .then((newRoom) => {
+          setRooms((prev) => [...prev, newRoom]);
+          showToast({ type: 'success', message: '새 방이 추가되었습니다.' });
+        })
+        .catch(() =>
+          showToast({ message: '방 추가에 실패했습니다.', type: 'error' }),
+        );
     }
     setShowAddModal(false);
   };

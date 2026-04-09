@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { Mic, MicOff, RotateCcw, AlertCircle, ChevronDown, ChevronUp, Clock, Calendar, Sparkles } from 'lucide-react'
-import { mockKeywords, mockVoiceFeedbackResult, mockVoiceHistory } from '@/data/mockData'
+import { voiceApi } from '@/api/voice'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Badge from '@/components/common/Badge'
 import Tabs from '@/components/common/Tabs'
 import ScoreGauge from '@/components/charts/ScoreGauge'
+import Skeleton from '@/components/common/Skeleton'
 
 const keywordStatusConfig = {
   correct: { color: 'bg-green-100 text-green-700 border-green-300', label: '정확' },
@@ -24,7 +25,6 @@ function HistoryCard({ record }) {
 
   return (
     <Card padding="p-5">
-      {/* 상단: 날짜 + 주제 + 점수 */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 text-body-sm text-gray-400 mb-1.5">
@@ -42,21 +42,19 @@ function HistoryCard({ record }) {
         </div>
       </div>
 
-      {/* 키워드 통계 */}
       <div className="flex gap-2 mb-3">
         <span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-body-sm font-medium">정확 {record.correct}</span>
         <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-body-sm font-medium">부정확 {record.inaccurate}</span>
         <span className="px-3 py-1 bg-red-50 text-red-600 rounded-full text-body-sm font-medium">누락 {record.missing}</span>
       </div>
 
-      {/* 키워드 배지 */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {record.keywords.map((kw, i) => {
+        {(record.keywords ?? []).map((kw, i) => {
           const config = keywordStatusConfig[kw.status]
           return (
             <span
               key={i}
-              className={`inline-flex items-center px-3 py-1 rounded-full text-body-sm font-medium border ${config.color}`}
+              className={`inline-flex items-center px-3 py-1 rounded-full text-body-sm font-medium border ${config?.color ?? ''}`}
             >
               {kw.word}
             </span>
@@ -64,7 +62,6 @@ function HistoryCard({ record }) {
         })}
       </div>
 
-      {/* AI 피드백 요약 */}
       <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
         <div className="flex items-center gap-1.5 mb-1.5">
           <Sparkles className="w-4 h-4 text-blue-500" />
@@ -75,7 +72,6 @@ function HistoryCard({ record }) {
         </p>
       </div>
 
-      {/* 펼치기/접기 */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center gap-1 text-body-sm text-primary-500 hover:text-primary-600 mt-3 transition-colors"
@@ -102,14 +98,19 @@ export default function VoiceFeedback() {
   const [seconds, setSeconds] = useState(0)
   const [transcript, setTranscript] = useState('')
   const [editedTranscript, setEditedTranscript] = useState('')
+  const [topicInput, setTopicInput] = useState('')
+  const [analysisResult, setAnalysisResult] = useState(null)
+  const [analyzing, setAnalyzing] = useState(false)
   const [sttSupported, setSttSupported] = useState(true)
+  const [history, setHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const timerRef = useRef(null)
   const recognitionRef = useRef(null)
   const finalTranscriptRef = useRef('')
 
   const tabs = [
     { key: 'practice', label: '학습하기' },
-    { key: 'history', label: '학습 기록', count: mockVoiceHistory.length },
+    { key: 'history', label: '학습 기록' },
   ]
 
   // Web Speech API 초기화
@@ -141,7 +142,6 @@ export default function VoiceFeedback() {
       if (recognitionRef.current?._active) {
         recognition.start()
       } else {
-        // 녹음 의도적 종료 후 — 마지막 onresult 처리가 끝난 시점에 발화 확정
         setEditedTranscript(finalTranscriptRef.current)
         setShowReview(true)
       }
@@ -160,6 +160,17 @@ export default function VoiceFeedback() {
     return () => clearInterval(timerRef.current)
   }, [isRecording])
 
+  // 히스토리 탭 전환 시 로드
+  useEffect(() => {
+    if (activeTab === 'history') {
+      setHistoryLoading(true)
+      voiceApi.getHistory()
+        .then((data) => setHistory(data))
+        .catch(() => setHistory([]))
+        .finally(() => setHistoryLoading(false))
+    }
+  }, [activeTab])
+
   const toggleRecording = () => {
     if (isRecording) {
       if (recognitionRef.current) {
@@ -167,7 +178,6 @@ export default function VoiceFeedback() {
         recognitionRef.current.stop()
       }
       setIsRecording(false)
-      // setEditedTranscript와 setShowReview는 recognition.onend에서 처리 (마지막 onresult 이후)
     } else {
       finalTranscriptRef.current = ''
       setTranscript('')
@@ -175,6 +185,7 @@ export default function VoiceFeedback() {
       setSeconds(0)
       setShowResults(false)
       setShowReview(false)
+      setAnalysisResult(null)
       if (recognitionRef.current) {
         recognitionRef.current._active = true
         recognitionRef.current.start()
@@ -190,13 +201,25 @@ export default function VoiceFeedback() {
     setIsRecording(false)
     setShowResults(false)
     setShowReview(false)
+    setAnalysisResult(null)
     setSeconds(0)
   }
 
-  const handleSubmitAnalysis = () => {
+  const handleSubmitAnalysis = async () => {
     setShowReview(false)
-    setShowResults(true)
-    // TODO: 백엔드 연동 시 editedTranscript를 payload로 API 호출
+    setAnalyzing(true)
+    try {
+      const result = await voiceApi.analyze({
+        transcript: editedTranscript,
+        topic: topicInput || '자유 주제',
+      })
+      setAnalysisResult(result)
+      setShowResults(true)
+    } catch {
+      setShowResults(true)
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   const formatTime = (s) => {
@@ -204,6 +227,8 @@ export default function VoiceFeedback() {
     const sec = (s % 60).toString().padStart(2, '0')
     return `${min}:${sec}`
   }
+
+  const keywords = analysisResult?.keywords ?? []
 
   return (
     <div className="space-y-4">
@@ -218,7 +243,6 @@ export default function VoiceFeedback() {
 
       {activeTab === 'practice' && (
         <>
-          {/* 브라우저 미지원 경고 */}
           {!sttSupported && (
             <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
@@ -228,34 +252,44 @@ export default function VoiceFeedback() {
             </div>
           )}
 
-          {/* 오늘의 주제 + 핵심 키워드 통합 카드 */}
+          {/* 주제 입력 + 키워드 */}
           <Card padding="p-4">
             <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <p className="text-caption font-medium text-gray-500 mb-0.5">오늘의 학습 주제</p>
-                <h2 className="text-h3 font-bold text-gray-900">{mockVoiceFeedbackResult.topic}</h2>
+              <div className="flex-1 min-w-0">
+                <p className="text-caption font-medium text-gray-500 mb-0.5">학습 주제</p>
+                {showResults && analysisResult?.topic ? (
+                  <h2 className="text-h3 font-bold text-gray-900">{analysisResult.topic}</h2>
+                ) : (
+                  <input
+                    type="text"
+                    value={topicInput}
+                    onChange={(e) => setTopicInput(e.target.value)}
+                    placeholder="학습할 주제를 입력하세요 (예: REST API 설명)"
+                    disabled={isRecording || showReview || showResults}
+                    className="w-full text-body-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-student-300 disabled:bg-gray-50"
+                  />
+                )}
               </div>
-              {showResults && (
-                <span className="text-caption text-gray-400 shrink-0">백엔드 연동 후 실제 분석 반영</span>
-              )}
             </div>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {mockKeywords.map((kw) => {
-                const config = showResults ? keywordStatusConfig[kw.status] : null
-                return (
-                  <span
-                    key={kw.id}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-caption font-medium border transition-colors duration-300
-                      ${config ? config.color : 'bg-gray-100 text-gray-500 border-gray-200'}`}
-                  >
-                    {kw.word}
-                    {showResults && config && (
-                      <span className="opacity-75">({config.label})</span>
-                    )}
-                  </span>
-                )
-              })}
-            </div>
+            {keywords.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {keywords.map((kw, i) => {
+                  const config = showResults ? keywordStatusConfig[kw.status] : null
+                  return (
+                    <span
+                      key={i}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-caption font-medium border transition-colors duration-300
+                        ${config ? config.color : 'bg-gray-100 text-gray-500 border-gray-200'}`}
+                    >
+                      {kw.word}
+                      {showResults && config && (
+                        <span className="opacity-75">({config.label})</span>
+                      )}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
           </Card>
 
           <div className="flex flex-col md:flex-row gap-4">
@@ -294,7 +328,6 @@ export default function VoiceFeedback() {
                   </Button>
                 )}
 
-                {/* 실시간 인식 텍스트 */}
                 {isRecording && transcript && (
                   <div className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200">
                     <p className="text-caption font-medium text-gray-400 mb-1">인식 중...</p>
@@ -302,7 +335,6 @@ export default function VoiceFeedback() {
                   </div>
                 )}
 
-                {/* 검토 단계: 편집 가능 textarea */}
                 {showReview && (
                   <div className="w-full space-y-3">
                     <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
@@ -320,6 +352,7 @@ export default function VoiceFeedback() {
                     <Button
                       size="sm"
                       className="w-full"
+                      loading={analyzing}
                       onClick={handleSubmitAnalysis}
                     >
                       분석 요청
@@ -327,7 +360,6 @@ export default function VoiceFeedback() {
                   </div>
                 )}
 
-                {/* 결과 단계: 읽기 전용 */}
                 {showResults && (
                   <div className="w-full p-3 bg-blue-50 rounded-xl border border-blue-100">
                     <p className="text-caption font-medium text-blue-500 mb-1">인식된 발화</p>
@@ -349,42 +381,36 @@ export default function VoiceFeedback() {
                   <h3 className="text-h3 font-semibold text-gray-600 mb-2">발화 내용을 확인해주세요</h3>
                   <p className="text-body-sm text-gray-400">왼쪽에서 내용 확인 후 분석 요청을 눌러주세요</p>
                 </Card>
-              ) : showResults ? (
+              ) : showResults && analysisResult ? (
                 <>
                   <div className="grid grid-cols-2 gap-4 items-start">
                     <Card padding="p-4" className="flex flex-col items-center">
                       <h3 className="text-body font-semibold text-gray-900 mb-1">종합 점수</h3>
-                      <p className="text-caption text-gray-400 mb-2">백엔드 연동 후 표시</p>
-                      <ScoreGauge score={mockVoiceFeedbackResult.score} label="점" color="#3B82F6" size={120} />
+                      <ScoreGauge score={analysisResult.score ?? 0} label="점" color="#3B82F6" size={120} />
                     </Card>
 
                     <Card padding="p-4">
-                      <h3 className="text-body font-semibold text-gray-900 mb-1">키워드 분석</h3>
-                      <p className="text-caption text-gray-400 mb-3">백엔드 연동 후 표시</p>
+                      <h3 className="text-body font-semibold text-gray-900 mb-3">키워드 분석</h3>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="text-center p-3 bg-green-50 rounded-xl">
-                          <p className="text-h2 font-bold text-green-600">{mockVoiceFeedbackResult.correct}</p>
+                          <p className="text-h2 font-bold text-green-600">{analysisResult.correct ?? 0}</p>
                           <p className="text-caption text-green-600 mt-0.5">정확</p>
                         </div>
                         <div className="text-center p-3 bg-amber-50 rounded-xl">
-                          <p className="text-h2 font-bold text-amber-600">{mockVoiceFeedbackResult.inaccurate}</p>
+                          <p className="text-h2 font-bold text-amber-600">{analysisResult.inaccurate ?? 0}</p>
                           <p className="text-caption text-amber-600 mt-0.5">부정확</p>
                         </div>
                         <div className="text-center p-3 bg-red-50 rounded-xl">
-                          <p className="text-h2 font-bold text-red-600">{mockVoiceFeedbackResult.missing}</p>
+                          <p className="text-h2 font-bold text-red-600">{analysisResult.missing ?? 0}</p>
                           <p className="text-caption text-red-600 mt-0.5">누락</p>
                         </div>
                       </div>
-                      <p className="text-caption text-gray-400 mt-3 text-center">
-                        키워드 상태는 상단 배지에서 확인하세요
-                      </p>
                     </Card>
                   </div>
 
                   <Card padding="p-4">
                     <h3 className="text-body font-semibold text-gray-900 mb-1">AI 피드백</h3>
-                    <p className="text-caption text-gray-400 mb-2">백엔드 연동 후 실제 피드백이 표시됩니다</p>
-                    <p className="text-body-sm text-gray-700 leading-relaxed">{mockVoiceFeedbackResult.feedback}</p>
+                    <p className="text-body-sm text-gray-700 leading-relaxed">{analysisResult.feedback}</p>
                   </Card>
                 </>
               ) : (
@@ -403,7 +429,12 @@ export default function VoiceFeedback() {
 
       {activeTab === 'history' && (
         <div className="space-y-3">
-          {mockVoiceHistory.length === 0 ? (
+          {historyLoading ? (
+            <>
+              <Skeleton width="100%" height="120px" rounded="rounded-2xl" />
+              <Skeleton width="100%" height="120px" rounded="rounded-2xl" />
+            </>
+          ) : history.length === 0 ? (
             <Card className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                 <Mic className="w-8 h-8 text-gray-400" />
@@ -415,10 +446,12 @@ export default function VoiceFeedback() {
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <p className="text-body-sm text-gray-500">총 {mockVoiceHistory.length}개의 학습 기록</p>
-                <p className="text-caption text-gray-400">평균 점수: {Math.round(mockVoiceHistory.reduce((s, r) => s + r.score, 0) / mockVoiceHistory.length)}점</p>
+                <p className="text-body-sm text-gray-500">총 {history.length}개의 학습 기록</p>
+                <p className="text-caption text-gray-400">
+                  평균 점수: {Math.round(history.reduce((s, r) => s + r.score, 0) / history.length)}점
+                </p>
               </div>
-              {mockVoiceHistory.map((record) => (
+              {history.map((record) => (
                 <HistoryCard key={record.id} record={record} />
               ))}
             </>

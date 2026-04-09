@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ClipboardList,
   Plus,
@@ -14,7 +14,7 @@ import {
   RotateCcw,
   Trash2,
 } from 'lucide-react';
-import { mockTeacherAssignments, mockStudents } from '@/data/mockData';
+import { teacherApi } from '@/api/teacher';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import Modal from '@/components/common/Modal';
@@ -95,9 +95,33 @@ function StatusBadge({ status }) {
   );
 }
 
+function normalizeAssignments(data) {
+  return data.map((a) => ({
+    id: a.id,
+    title: a.title,
+    subject: a.subject,
+    phase: a.phase,
+    description: a.description,
+    openDate: a.open_date,
+    dueDate: a.due_date,
+    rubric: a.rubric || [],
+    studentSubmissions: (a.student_submissions || []).map((s) => ({
+      studentId: s.student_id,
+      studentName: s.student_name,
+      status: s.status || 'pending',
+      submittedAt: s.submitted_at || null,
+      files: s.files || [],
+      score: s.score ?? null,
+      feedback: s.feedback || null,
+      rubricScores: s.rubric_scores || null,
+    })),
+  }));
+}
+
 export default function AssignmentManagement() {
   const { showToast } = useToast();
-  const [assignments, setAssignments] = useState(mockTeacherAssignments);
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState(null); // { assignment, student }
   const [aiLoading, setAiLoading] = useState(false);
@@ -108,6 +132,19 @@ export default function AssignmentManagement() {
   });
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAssignment, setNewAssignment] = useState({ ...EMPTY_FORM });
+
+  useEffect(() => {
+    teacherApi
+      .getAssignments()
+      .then((data) => setAssignments(normalizeAssignments(data)))
+      .catch(() =>
+        showToast({
+          message: '과제 정보를 불러오지 못했습니다.',
+          type: 'error',
+        }),
+      )
+      .finally(() => setLoading(false));
+  }, []);
 
   const rubricTotal = newAssignment.rubric.reduce(
     (sum, r) => sum + (Number(r.maxScore) || 0),
@@ -159,36 +196,29 @@ export default function AssignmentManagement() {
       });
       return;
     }
-    const newId = Math.max(0, ...assignments.map((a) => a.id)) + 1;
-    const created = {
-      id: newId,
+    const payload = {
       title: title.trim(),
       subject,
       phase: Number(phase),
       description: description.trim(),
-      openDate,
-      dueDate,
-      maxScore: validRubric.reduce((sum, r) => sum + Number(r.maxScore), 0),
-      attachments: [],
+      open_date: openDate,
+      due_date: dueDate,
       rubric: validRubric.map((r) => ({
         item: r.item.trim(),
         maxScore: Number(r.maxScore),
       })),
-      studentSubmissions: mockStudents.map((s) => ({
-        studentId: s.id,
-        studentName: s.name,
-        status: 'pending',
-        submittedAt: null,
-        files: [],
-        score: null,
-        feedback: null,
-        rubricScores: null,
-      })),
     };
-    setAssignments((prev) => [...prev, created]);
-    setNewAssignment({ ...EMPTY_FORM });
-    setShowAddModal(false);
-    showToast({ message: '과제가 추가되었습니다.', type: 'success' });
+    teacherApi
+      .createAssignment(payload)
+      .then((created) => {
+        setAssignments((prev) => [...prev, ...normalizeAssignments([created])]);
+        setNewAssignment({ ...EMPTY_FORM });
+        setShowAddModal(false);
+        showToast({ message: '과제가 추가되었습니다.', type: 'success' });
+      })
+      .catch(() =>
+        showToast({ message: '과제 추가에 실패했습니다.', type: 'error' }),
+      );
   };
 
   const totalPending = assignments.reduce(
@@ -255,35 +285,50 @@ export default function AssignmentManagement() {
 
   const handleSubmitFeedback = (requireResubmit = false) => {
     const { assignment, student } = feedbackModal;
-    setAssignments((prev) =>
-      prev.map((a) =>
-        a.id !== assignment.id
-          ? a
-          : {
-              ...a,
-              studentSubmissions: a.studentSubmissions.map((s) =>
-                s.studentId !== student.studentId
-                  ? s
-                  : {
-                      ...s,
-                      status: requireResubmit ? 'resubmit_required' : 'graded',
-                      score: requireResubmit ? null : feedbackForm.score,
-                      feedback: feedbackForm.text,
-                      rubricScores: requireResubmit
-                        ? null
-                        : feedbackForm.rubricScores,
-                    },
-              ),
-            },
-      ),
-    );
-    setFeedbackModal(null);
-    showToast({
-      message: requireResubmit
-        ? '재제출 요청이 전달되었습니다.'
-        : '채점이 완료되었습니다.',
-      type: 'success',
-    });
+    teacherApi
+      .gradeAssignmentSubmission(assignment.id, student.studentId, {
+        status: requireResubmit ? 'resubmit_required' : 'graded',
+        score: requireResubmit ? null : feedbackForm.score,
+        feedback: feedbackForm.text,
+        rubric_scores: requireResubmit ? null : feedbackForm.rubricScores,
+        require_resubmit: requireResubmit,
+      })
+      .then(() => {
+        setAssignments((prev) =>
+          prev.map((a) =>
+            a.id !== assignment.id
+              ? a
+              : {
+                  ...a,
+                  studentSubmissions: a.studentSubmissions.map((s) =>
+                    s.studentId !== student.studentId
+                      ? s
+                      : {
+                          ...s,
+                          status: requireResubmit
+                            ? 'resubmit_required'
+                            : 'graded',
+                          score: requireResubmit ? null : feedbackForm.score,
+                          feedback: feedbackForm.text,
+                          rubricScores: requireResubmit
+                            ? null
+                            : feedbackForm.rubricScores,
+                        },
+                  ),
+                },
+          ),
+        );
+        setFeedbackModal(null);
+        showToast({
+          message: requireResubmit
+            ? '재제출 요청이 전달되었습니다.'
+            : '채점이 완료되었습니다.',
+          type: 'success',
+        });
+      })
+      .catch(() =>
+        showToast({ message: '저장에 실패했습니다.', type: 'error' }),
+      );
   };
 
   const handleConfirmSubmission = () => {
@@ -637,8 +682,7 @@ export default function AssignmentManagement() {
           </div>
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
             <p className="text-xs text-blue-700">
-              과제가 추가되면 전체 수강생({mockStudents.length}명)에게 자동으로
-              배정됩니다.
+              과제가 추가되면 전체 수강생에게 자동으로 배정됩니다.
             </p>
           </div>
           <Button variant="primary" fullWidth onClick={handleCreateAssignment}>

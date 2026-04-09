@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Download,
   CheckCircle2,
@@ -8,7 +8,7 @@ import {
   AlertTriangle,
   FileText,
 } from 'lucide-react';
-import { mockTeacherAssessments } from '@/data/mockData';
+import { teacherApi } from '@/api/teacher';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import Modal from '@/components/common/Modal';
@@ -48,10 +48,50 @@ const STATUS_CONFIG = {
   },
 };
 
+function normalizeAssessments(data) {
+  return data.map((a) => ({
+    phaseId: a.phase_id,
+    title: a.title,
+    subject: a.subject || '',
+    period: { start: '', end: a.period_end },
+    passScore: a.pass_score,
+    rubric: a.rubric || [],
+    studentSubmissions: (a.student_submissions || []).map((s) => ({
+      studentId: s.student_id,
+      studentName: s.student_name,
+      status: s.status || 'pending',
+      submittedAt: s.submitted_at || null,
+      score: s.score ?? null,
+      passed: s.passed ?? null,
+      feedback: s.feedback || '',
+      files: s.files || [],
+      rubricScores: s.rubric_scores || [],
+    })),
+  }));
+}
+
 export default function AssessmentManagement() {
   const { showToast } = useToast();
-  const [assessments, setAssessments] = useState(mockTeacherAssessments);
-  const [activePhase, setActivePhase] = useState(1);
+  const [assessments, setAssessments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activePhase, setActivePhase] = useState(null);
+
+  useEffect(() => {
+    teacherApi
+      .getAssessments()
+      .then((data) => {
+        const normalized = normalizeAssessments(data);
+        setAssessments(normalized);
+        if (normalized.length > 0) setActivePhase(normalized[0].phaseId);
+      })
+      .catch(() =>
+        showToast({
+          message: '평가 정보를 불러오지 못했습니다.',
+          type: 'error',
+        }),
+      )
+      .finally(() => setLoading(false));
+  }, []);
   const [aiModal, setAiModal] = useState(null); // { assessment, student }
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
@@ -73,22 +113,20 @@ export default function AssessmentManagement() {
 
   const handleRunAi = () => {
     setAiLoading(true);
-    setTimeout(() => {
-      const rubricScores = aiModal.assessment.rubric.map((r) => ({
-        item: r.item,
-        maxScore: r.maxScore,
-        score: Math.floor(r.maxScore * (0.65 + Math.random() * 0.33)),
-      }));
-      const total = rubricScores.reduce((sum, r) => sum + r.score, 0);
-      const passed = total >= aiModal.assessment.passScore;
-      setAiResult({
-        rubricScores,
-        score: total,
-        passed,
-        feedback: `AI 분석 결과: ${aiModal.student.studentName} 학생의 제출물을 루브릭 기준으로 분석하였습니다. 핵심 요구사항을 전반적으로 충족하였으며 코드의 구조와 논리 흐름이 명확합니다. ${passed ? `총점 ${total}점으로 합격 기준(${aiModal.assessment.passScore}점)을 초과하였습니다.` : `총점 ${total}점으로 합격 기준(${aiModal.assessment.passScore}점)에 미달하였습니다. 일부 항목 보완 후 재제출을 권장합니다.`}`,
-      });
-      setAiLoading(false);
-    }, 2500);
+    teacherApi
+      .aiScoreAssessment(aiModal.assessment.phaseId, aiModal.student.studentId)
+      .then((result) => {
+        setAiResult({
+          rubricScores: result.rubric_scores || [],
+          score: result.score,
+          passed: result.passed,
+          feedback: result.feedback || '',
+        });
+      })
+      .catch(() =>
+        showToast({ message: 'AI 채점에 실패했습니다.', type: 'error' }),
+      )
+      .finally(() => setAiLoading(false));
   };
 
   const handleUpdateAiScore = (item, value) => {
@@ -108,29 +146,41 @@ export default function AssessmentManagement() {
 
   const handleConfirmGrade = () => {
     const { assessment, student } = aiModal;
-    setAssessments((prev) =>
-      prev.map((a) =>
-        a.phaseId !== assessment.phaseId
-          ? a
-          : {
-              ...a,
-              studentSubmissions: a.studentSubmissions.map((s) =>
-                s.studentId !== student.studentId
-                  ? s
-                  : {
-                      ...s,
-                      status: 'graded',
-                      score: aiResult.score,
-                      passed: aiResult.passed,
-                      feedback: aiResult.feedback,
-                      rubricScores: aiResult.rubricScores,
-                    },
-              ),
-            },
-      ),
-    );
-    handleCloseAiModal();
-    showToast({ message: '채점이 확정되었습니다.', type: 'success' });
+    teacherApi
+      .gradeAssessmentSubmission(assessment.phaseId, student.studentId, {
+        score: aiResult.score,
+        feedback: aiResult.feedback,
+        rubric_scores: aiResult.rubricScores,
+        passed: aiResult.passed,
+      })
+      .then(() => {
+        setAssessments((prev) =>
+          prev.map((a) =>
+            a.phaseId !== assessment.phaseId
+              ? a
+              : {
+                  ...a,
+                  studentSubmissions: a.studentSubmissions.map((s) =>
+                    s.studentId !== student.studentId
+                      ? s
+                      : {
+                          ...s,
+                          status: 'graded',
+                          score: aiResult.score,
+                          passed: aiResult.passed,
+                          feedback: aiResult.feedback,
+                          rubricScores: aiResult.rubricScores,
+                        },
+                  ),
+                },
+          ),
+        );
+        handleCloseAiModal();
+        showToast({ message: '채점이 확정되었습니다.', type: 'success' });
+      })
+      .catch(() =>
+        showToast({ message: '채점 확정에 실패했습니다.', type: 'error' }),
+      );
   };
 
   return (

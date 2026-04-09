@@ -1,8 +1,5 @@
-import { useState, useMemo } from 'react';
-import {
-  mockAdminBlockedSlots,
-  mockAdminCounselingBookings,
-} from '@/data/mockData';
+import { useState, useMemo, useEffect } from 'react';
+import { counselingManageApi } from '@/api/counseling_manage';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
@@ -81,10 +78,29 @@ export default function CounselingSchedule() {
   const [currentYear, setCurrentYear] = useState(2026);
   const [currentMonth, setCurrentMonth] = useState(3);
   const [selectedDate, setSelectedDate] = useState(TODAY);
-  const [blockedSlots, setBlockedSlots] = useState(mockAdminBlockedSlots);
-  const [bookings, setBookings] = useState(mockAdminCounselingBookings);
+  const [blockedSlots, setBlockedSlots] = useState({});
+  const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
+
+  useEffect(() => {
+    counselingManageApi
+      .getBookings()
+      .then((data) => setBookings(data))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (blockedSlots[selectedDate] !== undefined) return;
+    counselingManageApi
+      .getBlockedSlots(selectedDate)
+      .then((slots) =>
+        setBlockedSlots((prev) => ({ ...prev, [selectedDate]: slots })),
+      )
+      .catch(() =>
+        setBlockedSlots((prev) => ({ ...prev, [selectedDate]: [] })),
+      );
+  }, [selectedDate]);
 
   const calendarDays = useMemo(
     () => generateCalendarDays(currentYear, currentMonth),
@@ -123,39 +139,53 @@ export default function CounselingSchedule() {
       return;
     }
     const isBlocked = blockedSlots[selectedDate]?.includes(slot);
-    if (isBlocked) {
-      setBlockedSlots((prev) => ({
-        ...prev,
-        [selectedDate]: (prev[selectedDate] || []).filter((s) => s !== slot),
-      }));
-      showToast({ message: `${slot} 차단이 해제되었습니다.`, type: 'info' });
-    } else {
-      setBlockedSlots((prev) => ({
-        ...prev,
-        [selectedDate]: [...(prev[selectedDate] || []), slot],
-      }));
-      showToast({ message: `${slot} 슬롯이 차단되었습니다.`, type: 'warning' });
-    }
+    const updatedSlots = isBlocked
+      ? (blockedSlots[selectedDate] || []).filter((s) => s !== slot)
+      : [...(blockedSlots[selectedDate] || []), slot];
+    setBlockedSlots((prev) => ({ ...prev, [selectedDate]: updatedSlots }));
+    counselingManageApi
+      .updateBlockedSlots(selectedDate, updatedSlots)
+      .catch(() => {});
+    showToast({
+      message: isBlocked
+        ? `${slot} 차단이 해제되었습니다.`
+        : `${slot} 슬롯이 차단되었습니다.`,
+      type: isBlocked ? 'info' : 'warning',
+    });
   }
 
   function handleConfirmBooking() {
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === selectedBooking.id ? { ...b, status: 'confirmed' } : b,
-      ),
-    );
-    showToast({ message: '면담이 확정되었습니다.', type: 'success' });
-    setSelectedBooking(null);
+    counselingManageApi
+      .updateBooking(selectedBooking.id, 'confirm')
+      .then(() => {
+        setBookings((prev) =>
+          prev.map((b) =>
+            b.id === selectedBooking.id ? { ...b, status: 'confirmed' } : b,
+          ),
+        );
+        showToast({ message: '면담이 확정되었습니다.', type: 'success' });
+        setSelectedBooking(null);
+      })
+      .catch(() =>
+        showToast({ message: '확정에 실패했습니다.', type: 'error' }),
+      );
   }
 
   function handleCancelBooking() {
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b,
-      ),
-    );
-    showToast({ message: '면담이 취소되었습니다.', type: 'error' });
-    setSelectedBooking(null);
+    counselingManageApi
+      .updateBooking(selectedBooking.id, 'cancel')
+      .then(() => {
+        setBookings((prev) =>
+          prev.map((b) =>
+            b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b,
+          ),
+        );
+        showToast({ message: '면담이 취소되었습니다.', type: 'error' });
+        setSelectedBooking(null);
+      })
+      .catch(() =>
+        showToast({ message: '취소에 실패했습니다.', type: 'error' }),
+      );
   }
 
   function prevMonth() {
@@ -234,12 +264,22 @@ export default function CounselingSchedule() {
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              setBookings((prev) =>
-                prev.map((b) =>
-                  b.id === row.id ? { ...b, status: 'confirmed' } : b,
-                ),
-              );
-              showToast({ message: '면담이 확정되었습니다.', type: 'success' });
+              counselingManageApi
+                .updateBooking(row.id, 'confirm')
+                .then(() => {
+                  setBookings((prev) =>
+                    prev.map((b) =>
+                      b.id === row.id ? { ...b, status: 'confirmed' } : b,
+                    ),
+                  );
+                  showToast({
+                    message: '면담이 확정되었습니다.',
+                    type: 'success',
+                  });
+                })
+                .catch(() =>
+                  showToast({ message: '확정에 실패했습니다.', type: 'error' }),
+                );
             }}
           >
             확정

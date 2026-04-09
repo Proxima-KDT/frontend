@@ -9,6 +9,13 @@ import Button from '@/components/common/Button'
 import Badge from '@/components/common/Badge'
 import { Mail, Lock } from 'lucide-react'
 
+function toKoreanAuthError(message = '') {
+  if (message.includes('Invalid login credentials')) return '이메일 또는 비밀번호가 올바르지 않습니다.'
+  if (message.includes('Email not confirmed')) return '이메일 인증이 필요합니다.'
+  if (message.includes('Too many requests')) return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
+  return '로그인에 실패했습니다.'
+}
+
 const roleLabels = {
   student: { label: '학생', variant: 'student' },
   teacher: { label: '강사', variant: 'teacher' },
@@ -30,15 +37,20 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    if (!email || !password) return
     setLoading(true)
 
-    // Mock 로그인 (0.5초 딜레이)
-    setTimeout(() => {
-      login(role)
-      showToast({ type: 'success', message: `${roleInfo.label}으로 로그인되었습니다.` })
-      navigate(`/${role}`)
+    try {
+      await login(email, password)
+      showToast({ type: 'success', message: '로그인되었습니다.' })
+      // role은 AuthContext에서 profile API로 자동 조회 → onAuthStateChange 후 리다이렉트
+      navigate('/')
+    } catch (err) {
+      const msg = toKoreanAuthError(err.message)
+      showToast({ type: 'error', message: msg })
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   return (

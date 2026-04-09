@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { mockQuestions, mockStudentUser } from '@/data/mockData';
+import { useState, useEffect } from 'react';
+import { questionsApi } from '@/api/questions';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import QuestionForm from '@/components/forms/QuestionForm';
@@ -14,13 +16,25 @@ import {
 } from 'lucide-react';
 
 export default function Questions() {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const [openAnswerId, setOpenAnswerId] = useState(null);
-  const myQuestions = mockQuestions.filter(
-    (q) => q.user_id === mockStudentUser.id,
-  );
+  const [questions, setQuestions] = useState([]);
 
-  const handleSubmitQuestion = ({ content, isAnonymous }) => {
-    console.log('질문 제출:', { content, isAnonymous });
+  useEffect(() => {
+    questionsApi.getList().then(setQuestions).catch(() => {});
+  }, []);
+
+  const myQuestions = questions.filter((q) => q.user_id === user?.id);
+
+  const handleSubmitQuestion = async ({ content, isAnonymous }) => {
+    try {
+      const newQ = await questionsApi.create(content, isAnonymous);
+      setQuestions((prev) => [newQ, ...prev]);
+      showToast({ type: 'success', message: '질문이 등록되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '질문 등록에 실패했습니다.' });
+    }
   };
 
   const toggleAnswer = (id) => {

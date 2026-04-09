@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
-import { mockAttendance, mockAttendanceMonthly } from '@/data/mockData'
+import { useState, useMemo, useEffect } from 'react'
+import { attendanceApi } from '@/api/attendance'
+import { supabase } from '@/lib/supabase'
+import { useToast } from '@/context/ToastContext'
 import Card from '@/components/common/Card'
 import Badge from '@/components/common/Badge'
 import Table from '@/components/common/Table'
@@ -19,15 +21,39 @@ export default function Attendance() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [earlyLeaveDone, setEarlyLeaveDone] = useState(false)
   const [showEarlyLeaveConfirm, setShowEarlyLeaveConfirm] = useState(false)
-  const [localAttendance, setLocalAttendance] = useState(mockAttendance)
+  const [localAttendance, setLocalAttendance] = useState([])
+  const { showToast } = useToast()
 
   // 달력 월 탐색 상태
-  const [viewYear, setViewYear] = useState(mockAttendanceMonthly.year)
-  const [viewMonth, setViewMonth] = useState(mockAttendanceMonthly.month)
+  const now2 = new Date()
+  const [viewYear, setViewYear] = useState(now2.getFullYear())
+  const [viewMonth, setViewMonth] = useState(now2.getMonth() + 1)
 
   const now = new Date()
   const isAfterCheckoutTime =
     now.getHours() * 60 + now.getMinutes() >= CHECKOUT_HOUR * 60 + CHECKOUT_MINUTE
+
+  // 오늘 출석 상태 조회 → 이미 체크인/퇴실한 경우 UI 반영
+  useEffect(() => {
+    attendanceApi.getToday()
+      .then((data) => {
+        if (data?.status) {
+          setNameConfirmed(true)
+          setSignatureSubmitted(true)
+          if (data.status === 'early_leave') setEarlyLeaveDone(true)
+          // 퇴실 완료 상태는 별도 필드 없으면 check_out_time으로 판단
+          if (data.check_out_time) setCheckoutDone(true)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  // 월별 출석 데이터 fetch
+  useEffect(() => {
+    attendanceApi.getMonthly(viewYear, viewMonth)
+      .then((data) => setLocalAttendance(data.records ?? []))
+      .catch(() => {})
+  }, [viewYear, viewMonth])
 
   const getTodayStr = () => {
     const d = new Date()
@@ -37,27 +63,61 @@ export default function Attendance() {
   const getTimeStr = () =>
     new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
 
-  const handleSignatureSave = (dataUrl) => {
-    setSignatureSubmitted(true)
-    console.log('서명 저장:', dataUrl)
+  const handleSignatureSave = async (dataUrl) => {
+    try {
+      // dataUrl → Blob → Supabase Storage 업로드
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const fileName = `signatures/${Date.now()}.png`
+      const { error: uploadError } = await supabase.storage
+        .from('attendance')
+        .upload(fileName, blob, { contentType: 'image/png' })
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase.storage.from('attendance').getPublicUrl(fileName)
+      await attendanceApi.checkIn(urlData.publicUrl)
+      setSignatureSubmitted(true)
+      showToast({ type: 'success', message: '출석 체크인이 완료되었습니다.' })
+    } catch {
+      // Storage 버킷이 없어도 체크인은 시도 (URL 없이)
+      try {
+        await attendanceApi.checkIn(null)
+        setSignatureSubmitted(true)
+        showToast({ type: 'success', message: '출석 체크인이 완료되었습니다.' })
+      } catch {
+        showToast({ type: 'error', message: '체크인에 실패했습니다.' })
+      }
+    }
   }
 
-  const handleConfirmCheckout = () => {
-    setCheckoutDone(true)
+  const handleConfirmCheckout = async () => {
+    try {
+      await attendanceApi.checkOut()
+      setCheckoutDone(true)
+      showToast({ type: 'success', message: '퇴실 처리가 완료되었습니다.' })
+    } catch {
+      showToast({ type: 'error', message: '퇴실 처리에 실패했습니다.' })
+    }
     setShowConfirm(false)
   }
 
-  const handleConfirmEarlyLeave = () => {
-    const todayStr = getTodayStr()
-    const timeStr = getTimeStr()
-    setLocalAttendance((prev) => {
-      const idx = prev.findIndex((a) => a.date === todayStr)
-      if (idx >= 0) {
-        return prev.map((a) => a.date === todayStr ? { ...a, status: 'early_leave' } : a)
-      }
-      return [...prev, { date: todayStr, status: 'early_leave', time: timeStr }]
-    })
-    setEarlyLeaveDone(true)
+  const handleConfirmEarlyLeave = async (reason = '개인 사정') => {
+    try {
+      await attendanceApi.earlyLeave(reason)
+      const todayStr = getTodayStr()
+      const timeStr = getTimeStr()
+      setLocalAttendance((prev) => {
+        const idx = prev.findIndex((a) => a.date === todayStr)
+        if (idx >= 0) {
+          return prev.map((a) => a.date === todayStr ? { ...a, status: 'early_leave' } : a)
+        }
+        return [...prev, { date: todayStr, status: 'early_leave', time: timeStr }]
+      })
+      setEarlyLeaveDone(true)
+      showToast({ type: 'success', message: '조퇴 처리가 완료되었습니다.' })
+    } catch {
+      showToast({ type: 'error', message: '조퇴 처리에 실패했습니다.' })
+    }
     setShowEarlyLeaveConfirm(false)
   }
 

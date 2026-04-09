@@ -1,26 +1,56 @@
-import { useNavigate } from 'react-router-dom'
-import { Users, UserX, FolderOpen } from 'lucide-react'
-import { mockStudents } from '@/data/mockData'
-import Card from '@/components/common/Card'
-import Badge from '@/components/common/Badge'
-import ProgressBar from '@/components/common/ProgressBar'
-import SkillRadarChart from '@/components/charts/SkillRadarChart'
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Users, UserX, FolderOpen } from 'lucide-react';
+import { adminApi } from '@/api/admin';
+import Card from '@/components/common/Card';
+import Badge from '@/components/common/Badge';
+import ProgressBar from '@/components/common/ProgressBar';
+import SkillRadarChart from '@/components/charts/SkillRadarChart';
 
-const ADMIN_COLOR = '#8B5CF6' // --color-admin-500
+const ADMIN_COLOR = '#8B5CF6'; // --color-admin-500
 
 export default function AdminDashboard() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const lowAttendanceCount = mockStudents.filter((s) => s.attendance_rate < 80).length
-  const portfolioCount = mockStudents.filter((s) =>
-    s.files.some((f) => f.type === 'portfolio')
-  ).length
+  useEffect(() => {
+    adminApi
+      .getStudents()
+      .then((data) => setStudents(data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const lowAttendanceCount = students.filter(
+    (s) => s.attendance_rate < 80,
+  ).length;
+  const portfolioCount = students.filter((s) =>
+    s.files?.some((f) => f.type === 'portfolio'),
+  ).length;
 
   const stats = [
-    { label: '전체 수강생', value: mockStudents.length, icon: Users, color: 'text-admin-500', bg: 'bg-admin-50' },
-    { label: '출석 80% 미만', value: lowAttendanceCount, icon: UserX, color: 'text-warning-500', bg: 'bg-warning-50' },
-    { label: '포트폴리오 제출', value: portfolioCount, icon: FolderOpen, color: 'text-success-500', bg: 'bg-success-50' },
-  ]
+    {
+      label: '전체 수강생',
+      value: students.length,
+      icon: Users,
+      color: 'text-admin-500',
+      bg: 'bg-admin-50',
+    },
+    {
+      label: '출석 80% 미만',
+      value: lowAttendanceCount,
+      icon: UserX,
+      color: 'text-warning-500',
+      bg: 'bg-warning-50',
+    },
+    {
+      label: '포트폴리오 제출',
+      value: portfolioCount,
+      icon: FolderOpen,
+      color: 'text-success-500',
+      bg: 'bg-success-50',
+    },
+  ];
 
   return (
     <div>
@@ -31,7 +61,9 @@ export default function AdminDashboard() {
         {stats.map((stat) => (
           <Card key={stat.label}>
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
+              <div
+                className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}
+              >
                 <stat.icon className={`w-5 h-5 ${stat.color}`} />
               </div>
               <div>
@@ -45,17 +77,22 @@ export default function AdminDashboard() {
 
       {/* 수강생 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mockStudents.map((student) => {
-          const radarData = Object.entries(student.skills).map(([subject, score]) => ({
-            subject: subject === '프로젝트·과제·시험' ? '프로젝트..' : subject,
-            score,
-            fullMark: 100,
-          }))
-          const hasPortfolio = student.files.some((f) => f.type === 'portfolio')
-          const hasResume = student.files.some((f) => f.type === 'resume')
+        {students.map((student) => {
+          const radarData = Object.entries(student.skills || {}).map(
+            ([subject, score]) => ({
+              subject:
+                subject === '프로젝트·과제·시험' ? '프로젝트..' : subject,
+              score,
+              fullMark: 100,
+            }),
+          );
+          const hasPortfolio = student.files?.some(
+            (f) => f.type === 'portfolio',
+          );
+          const hasResume = student.files?.some((f) => f.type === 'resume');
           const daysSinceActive = Math.floor(
-            (new Date() - new Date(student.last_active)) / 86400000
-          )
+            (new Date() - new Date(student.last_active)) / 86400000,
+          );
 
           return (
             <Card
@@ -67,27 +104,43 @@ export default function AdminDashboard() {
               <div className="flex items-start gap-4 mb-4">
                 <div className="shrink-0 w-20 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-md">
                   {student.avatar_url ? (
-                    <img src={student.avatar_url} alt={student.name} className="w-full h-full object-cover" />
+                    <img
+                      src={student.avatar_url}
+                      alt={student.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-admin-400 to-admin-600 flex items-center justify-center">
-                      <span className="text-white text-xl font-bold">{student.name.charAt(0)}</span>
+                      <span className="text-white text-xl font-bold">
+                        {student.name.charAt(0)}
+                      </span>
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h3 className="text-body font-semibold text-gray-900 truncate">{student.name}</h3>
-                    {hasPortfolio && <Badge variant="success">포트폴리오 있음</Badge>}
+                    <h3 className="text-body font-semibold text-gray-900 truncate">
+                      {student.name}
+                    </h3>
+                    {hasPortfolio && (
+                      <Badge variant="success">포트폴리오 있음</Badge>
+                    )}
                     {hasResume && <Badge variant="info">이력서 있음</Badge>}
                   </div>
                   <p className="text-caption text-gray-500 mb-2">
-                    {daysSinceActive === 0 ? '오늘 활동' : `${daysSinceActive}일 전 활동`}
+                    {daysSinceActive === 0
+                      ? '오늘 활동'
+                      : `${daysSinceActive}일 전 활동`}
                   </p>
                   {/* 출석률 — 멘토의 핵심 지표 */}
                   <ProgressBar
                     value={student.attendance_rate}
                     label="출석률"
-                    color={student.attendance_rate < 80 ? 'bg-error-500' : 'bg-admin-500'}
+                    color={
+                      student.attendance_rate < 80
+                        ? 'bg-error-500'
+                        : 'bg-admin-500'
+                    }
                     size="sm"
                   />
                 </div>
@@ -95,12 +148,16 @@ export default function AdminDashboard() {
 
               {/* 역량 레이더 */}
               <div className="border-t border-gray-100 pt-4">
-                <SkillRadarChart data={radarData} color={ADMIN_COLOR} size="mini" />
+                <SkillRadarChart
+                  data={radarData}
+                  color={ADMIN_COLOR}
+                  size="mini"
+                />
               </div>
             </Card>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

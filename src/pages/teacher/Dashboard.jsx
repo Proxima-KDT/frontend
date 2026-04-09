@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router-dom'
-import { Users, Calendar, FileText } from 'lucide-react'
-import { mockStudents } from '@/data/mockData'
-import Card from '@/components/common/Card'
-import ProgressBar from '@/components/common/ProgressBar'
-import SkillRadarChart from '@/components/charts/SkillRadarChart'
+import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Users, Calendar, FileText } from 'lucide-react';
+import { teacherApi } from '@/api/teacher';
+import Card from '@/components/common/Card';
+import ProgressBar from '@/components/common/ProgressBar';
+import SkillRadarChart from '@/components/charts/SkillRadarChart';
+import Skeleton from '@/components/common/Skeleton';
 
 const SKILL_COLORS = [
   'bg-blue-500',
@@ -11,19 +13,56 @@ const SKILL_COLORS = [
   'bg-violet-500',
   'bg-orange-500',
   'bg-pink-500',
-]
+];
 
 export default function TeacherDashboard() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const avgAttendance = Math.round(mockStudents.reduce((sum, s) => sum + s.attendance_rate, 0) / mockStudents.length)
-  const avgSubmission = Math.round(mockStudents.reduce((sum, s) => sum + s.submission_rate, 0) / mockStudents.length)
+  useEffect(() => {
+    teacherApi
+      .getStudents()
+      .then(setStudents)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const avgAttendance = students.length
+    ? Math.round(
+        students.reduce((sum, s) => sum + (s.attendance_rate ?? 0), 0) /
+          students.length,
+      )
+    : 0;
+  const avgSubmission = students.length
+    ? Math.round(
+        students.reduce((sum, s) => sum + (s.submission_rate ?? 0), 0) /
+          students.length,
+      )
+    : 0;
 
   const stats = [
-    { label: '전체 학생', value: mockStudents.length, icon: Users, color: 'text-primary-500', bg: 'bg-primary-50' },
-    { label: '평균 출석률', value: `${avgAttendance}%`, icon: Calendar, color: 'text-success-500', bg: 'bg-success-50' },
-    { label: '과제 제출률', value: `${avgSubmission}%`, icon: FileText, color: 'text-student-500', bg: 'bg-student-50' },
-  ]
+    {
+      label: '전체 학생',
+      value: students.length,
+      icon: Users,
+      color: 'text-primary-500',
+      bg: 'bg-primary-50',
+    },
+    {
+      label: '평균 출석률',
+      value: `${avgAttendance}%`,
+      icon: Calendar,
+      color: 'text-success-500',
+      bg: 'bg-success-50',
+    },
+    {
+      label: '과제 제출률',
+      value: `${avgSubmission}%`,
+      icon: FileText,
+      color: 'text-student-500',
+      bg: 'bg-student-50',
+    },
+  ];
 
   return (
     <div>
@@ -34,7 +73,9 @@ export default function TeacherDashboard() {
         {stats.map((stat) => (
           <Card key={stat.label}>
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
+              <div
+                className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}
+              >
                 <stat.icon className={`w-5 h-5 ${stat.color}`} />
               </div>
               <div>
@@ -47,64 +88,91 @@ export default function TeacherDashboard() {
       </div>
 
       {/* 학생 카드 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mockStudents.map((student) => {
-          const skillData = Object.entries(student.skills).map(([subject, score]) => ({
-            subject,
-            score,
-            fullMark: 100,
-          }))
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-48 rounded-2xl" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {students.map((student) => {
+            const skillData = Object.entries(student.skills || {}).map(
+              ([subject, score]) => ({
+                subject,
+                score,
+                fullMark: 100,
+              }),
+            );
 
-          // 레이더 차트용: 긴 라벨 축약
-          const radarData = skillData.map(item => ({
-            ...item,
-            subject: item.subject === '프로젝트·과제·시험' ? '프로젝트..' : item.subject,
-          }))
+            // 레이더 차트용: 긴 라벨 축약
+            const radarData = skillData.map((item) => ({
+              ...item,
+              subject:
+                item.subject === '프로젝트.과제.시험'
+                  ? '프로젝트..'
+                  : item.subject,
+            }));
 
-          return (
-            <Card
-              key={student.id}
-              hoverable
-              onClick={() => navigate(`/teacher/students/${student.id}`)}
-            >
-              <div className="flex items-start gap-4 mb-4">
-                {/* 직사각형 프로필 사진 */}
-                <div className="shrink-0 w-20 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-md">
-                  {student.avatar_url ? (
-                    <img src={student.avatar_url} alt={student.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-student-400 to-student-600 flex items-center justify-center">
-                      <span className="text-white text-xl font-bold">{student.name.charAt(0)}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 pt-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-body font-semibold text-gray-900 truncate">{student.name}</h3>
+            return (
+              <Card
+                key={student.id}
+                hoverable
+                onClick={() => navigate(`/teacher/students/${student.id}`)}
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  {/* 직사각형 프로필 사진 */}
+                  <div className="shrink-0 w-20 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+                    {student.avatar_url ? (
+                      <img
+                        src={student.avatar_url}
+                        alt={student.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-student-400 to-student-600 flex items-center justify-center">
+                        <span className="text-white text-xl font-bold">
+                          {student.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-caption text-gray-500">{student.email}</p>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-body font-semibold text-gray-900 truncate">
+                        {student.name}
+                      </h3>
+                    </div>
+                    <p className="text-caption text-gray-500">
+                      {student.email}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* 역량 분석 - MyPage 스타일 2열 레이아웃 */}
-              <div className="grid grid-cols-2 gap-3">
-                <SkillRadarChart data={radarData} color="#3B82F6" size="mini" />
-                <div className="flex flex-col justify-center gap-2">
-                  {skillData.map((skill, idx) => (
-                    <ProgressBar
-                      key={skill.subject}
-                      value={skill.score}
-                      label={skill.subject}
-                      color={SKILL_COLORS[idx]}
-                      size="sm"
-                    />
-                  ))}
+                {/* 역량 분석 - MyPage 스타일 2열 레이아웃 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <SkillRadarChart
+                    data={radarData}
+                    color="#3B82F6"
+                    size="mini"
+                  />
+                  <div className="flex flex-col justify-center gap-2">
+                    {skillData.map((skill, idx) => (
+                      <ProgressBar
+                        key={skill.subject}
+                        value={skill.score}
+                        label={skill.subject}
+                        color={SKILL_COLORS[idx]}
+                        size="sm"
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </Card>
-          )
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
-  )
+  );
 }

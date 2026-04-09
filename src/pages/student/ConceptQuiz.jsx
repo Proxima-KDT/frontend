@@ -1,48 +1,62 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, ChevronLeft, RotateCcw, Trophy } from 'lucide-react'
-import { mockSubjects } from '@/data/mockData'
+import { ArrowLeft, CheckCircle2, XCircle, RotateCcw, Trophy } from 'lucide-react'
+import { subjectsApi } from '@/api/subjects'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Badge from '@/components/common/Badge'
 import ProgressBar from '@/components/common/ProgressBar'
-
-function shuffleArray(array) {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
-}
+import Skeleton from '@/components/common/Skeleton'
 
 export default function ConceptQuiz() {
   const { subjectId, conceptId } = useParams()
   const navigate = useNavigate()
 
-  const subject = mockSubjects.find((s) => s.id === subjectId)
   const isComprehensive = conceptId === 'comprehensive'
 
-  const concept = isComprehensive
-    ? null
-    : subject?.concepts.find((c) => c.id === conceptId)
+  const [subjectTitle, setSubjectTitle] = useState('')
+  const [conceptTitle, setConceptTitle] = useState('')
+  const [problems, setProblems] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const problems = useMemo(() => {
-    if (!subject) return []
-    if (isComprehensive) {
-      const allProblems = subject.concepts.flatMap((c) => c.problems)
-      return shuffleArray(allProblems).slice(0, 10)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [subjectData, problemsData] = await Promise.all([
+          subjectsApi.getDetail(subjectId),
+          subjectsApi.getConceptProblems(subjectId, conceptId),
+        ])
+        setSubjectTitle(subjectData.title ?? '')
+        if (!isComprehensive) {
+          const concept = subjectData.concepts?.find((c) => c.id === conceptId)
+          setConceptTitle(concept?.title ?? '')
+        }
+        setProblems(problemsData)
+      } catch {
+        setProblems([])
+      } finally {
+        setLoading(false)
+      }
     }
-    return concept?.problems || []
-  }, [subject, concept, isComprehensive])
+    fetchData()
+  }, [subjectId, conceptId, isComprehensive])
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [results, setResults] = useState([]) // { problemId, selected, correct, isCorrect }
+  const [results, setResults] = useState([])
   const [isFinished, setIsFinished] = useState(false)
 
-  if (!subject || (!isComprehensive && !concept)) {
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton width="150px" height="20px" rounded="rounded-lg" />
+        <Skeleton width="100%" height="300px" rounded="rounded-2xl" />
+      </div>
+    )
+  }
+
+  if (problems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <p className="text-h3 text-gray-500">문제를 찾을 수 없습니다</p>
@@ -87,7 +101,7 @@ export default function ConceptQuiz() {
   }
 
   const correctCount = results.filter((r) => r.isCorrect).length
-  const title = isComprehensive ? `${subject.title} 종합 문제` : concept.title
+  const title = isComprehensive ? `${subjectTitle} 종합 문제` : conceptTitle
 
   // 결과 화면
   if (isFinished) {
@@ -99,7 +113,7 @@ export default function ConceptQuiz() {
           className="flex items-center gap-2 text-body-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          {subject.title} 개념 목록으로
+          {subjectTitle} 개념 목록으로
         </button>
 
         <Card className="text-center py-10">
@@ -200,7 +214,7 @@ export default function ConceptQuiz() {
         className="flex items-center gap-2 text-body-sm text-gray-500 hover:text-gray-700 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        {subject.title} 개념 목록으로
+        {subjectTitle} 개념 목록으로
       </button>
 
       {/* 진행 상황 헤더 */}

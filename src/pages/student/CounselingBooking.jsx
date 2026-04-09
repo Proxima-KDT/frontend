@@ -1,9 +1,6 @@
-import { useState, useMemo } from 'react';
-import {
-  mockCounselors,
-  mockCounselingSlots,
-  mockMyCounselingBookings,
-} from '@/data/mockData';
+import { useState, useMemo, useEffect } from 'react';
+import { counselingApi } from '@/api/counseling';
+import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
@@ -20,8 +17,9 @@ import {
   MessageSquare,
 } from 'lucide-react';
 
-const TODAY = '2026-04-08';
-const TODAY_DATE = new Date('2026-04-08');
+const _now = new Date();
+const TODAY = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+const TODAY_DATE = new Date(TODAY);
 
 const MONTH_NAMES = [
   '1월',
@@ -83,17 +81,33 @@ function generateCalendarDays(year, month) {
 }
 
 export default function CounselingBooking() {
-  const [selectedCounselorId, setSelectedCounselorId] = useState(
-    mockCounselors[0].id,
-  );
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(3); // 0-indexed → April
+  const { showToast } = useToast();
+  const [counselors, setCounselors] = useState([]);
+  const [selectedCounselorId, setSelectedCounselorId] = useState(null);
+  const [slots, setSlots] = useState({});
+  const now = new Date();
+  const [currentYear, setCurrentYear] = useState(now.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [bookingReason, setBookingReason] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [cancelTargetId, setCancelTargetId] = useState(null);
-  const [bookings, setBookings] = useState(mockMyCounselingBookings);
+  const [bookings, setBookings] = useState([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  useEffect(() => {
+    counselingApi.getCounselors().then((data) => {
+      setCounselors(data);
+      if (data.length > 0) setSelectedCounselorId(data[0].id);
+    }).catch(() => {});
+    counselingApi.getMyBookings().then(setBookings).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCounselorId) return;
+    counselingApi.getSlots(selectedCounselorId).then((data) => setSlots(data)).catch(() => {});
+  }, [selectedCounselorId]);
 
   const calendarDays = useMemo(
     () => generateCalendarDays(currentYear, currentMonth),
@@ -101,15 +115,13 @@ export default function CounselingBooking() {
   );
 
   // Dates that have available slots for the current counselor
-  const availableDates = useMemo(() => {
-    return Object.keys(mockCounselingSlots[selectedCounselorId] ?? {});
-  }, [selectedCounselorId]);
+  const availableDates = useMemo(() => Object.keys(slots), [slots]);
 
   // Times available for the selected date
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
-    return mockCounselingSlots[selectedCounselorId]?.[selectedDate] ?? [];
-  }, [selectedCounselorId, selectedDate]);
+    return slots[selectedDate] ?? [];
+  }, [slots, selectedDate]);
 
   // "date_time" keys already booked by this student (active bookings only)
   const myBookedKeys = useMemo(() => {
@@ -167,27 +179,21 @@ export default function CounselingBooking() {
     setShowModal(true);
   }
 
-  function handleBookingConfirm() {
+  async function handleBookingConfirm() {
     if (!selectedDate || !selectedTime || !bookingReason.trim()) return;
-    const counselor = mockCounselors.find((c) => c.id === selectedCounselorId);
-    setBookings((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        counselor_id: selectedCounselorId,
-        counselor_name: counselor.name,
-        counselor_role: counselor.role,
-        counselor_role_label: counselor.roleLabel,
-        date: selectedDate,
-        time: selectedTime,
-        duration: 30,
-        reason: bookingReason.trim(),
-        status: 'confirmed',
-      },
-    ]);
-    setShowModal(false);
-    setSelectedTime(null);
-    setBookingReason('');
+    setBookingLoading(true);
+    try {
+      const newBooking = await counselingApi.book(selectedCounselorId, selectedDate, selectedTime, bookingReason.trim());
+      setBookings((prev) => [...prev, newBooking]);
+      showToast({ type: 'success', message: '상담 예약이 완료되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '예약에 실패했습니다.' });
+    } finally {
+      setBookingLoading(false);
+      setShowModal(false);
+      setSelectedTime(null);
+      setBookingReason('');
+    }
   }
 
   function handleCloseModal() {
@@ -199,14 +205,18 @@ export default function CounselingBooking() {
     setCancelTargetId(bookingId);
   }
 
-  function handleCancelConfirm() {
-    setBookings((prev) => prev.filter((b) => b.id !== cancelTargetId));
+  async function handleCancelConfirm() {
+    try {
+      await counselingApi.cancel(cancelTargetId);
+      setBookings((prev) => prev.filter((b) => b.id !== cancelTargetId));
+      showToast({ type: 'success', message: '예약이 취소되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '예약 취소에 실패했습니다.' });
+    }
     setCancelTargetId(null);
   }
 
-  const selectedCounselor = mockCounselors.find(
-    (c) => c.id === selectedCounselorId,
-  );
+  const selectedCounselor = counselors.find((c) => c.id === selectedCounselorId);
 
   const activeBookings = bookings
     .filter((b) => b.status !== 'cancelled' && b.date >= TODAY)
@@ -228,7 +238,7 @@ export default function CounselingBooking() {
 
       {/* ── 상담사 선택 ── */}
       <div className="grid grid-cols-2 gap-3">
-        {mockCounselors.map((counselor) => {
+        {counselors.map((counselor) => {
           const isSelected = selectedCounselorId === counselor.id;
           return (
             <button

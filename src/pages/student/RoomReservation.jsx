@@ -1,10 +1,6 @@
-import { useState, useMemo } from 'react';
-import {
-  mockRooms,
-  mockBookedSlots,
-  mockMyReservations,
-  mockStudentUser,
-} from '@/data/mockData';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { roomsApi } from '@/api/rooms';
+import { useAuth } from '@/context/AuthContext';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
@@ -30,9 +26,8 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
-const CURRENT_USER_ID = mockStudentUser.id;
-const TODAY = '2026-04-08';
-const CURRENT_HOUR = 13; // 더미 현재 시각 (실제 배포 시 new Date().getHours() 사용)
+const TODAY = new Date().toISOString().slice(0, 10);
+const CURRENT_HOUR = new Date().getHours();
 
 const TIME_SLOTS = [
   '09:00',
@@ -107,10 +102,14 @@ function generateWeekDates(todayStr) {
 const WEEK_DATES = generateWeekDates(TODAY);
 
 export default function RoomReservation() {
+  const { user } = useAuth();
+  const [rooms, setRooms] = useState([]);
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [myReservations, setMyReservations] = useState([]);
+  const [roomsLoading, setRoomsLoading] = useState(true);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [showAvailableNow, setShowAvailableNow] = useState(false);
-  const [bookedSlots, setBookedSlots] = useState(mockBookedSlots);
-  const [myReservations, setMyReservations] = useState(mockMyReservations);
   const [selectedCell, setSelectedCell] = useState(null);
   const [purpose, setPurpose] = useState('');
   const [showReserveModal, setShowReserveModal] = useState(false);
@@ -120,6 +119,39 @@ export default function RoomReservation() {
   const [showRules, setShowRules] = useState(true);
   const [selectedDate, setSelectedDate] = useState(TODAY);
 
+  // 방 목록 및 내 예약 초기 로드
+  useEffect(() => {
+    Promise.all([
+      roomsApi.getList(),
+      roomsApi.getMyReservations(),
+    ]).then(([roomsData, reservationsData]) => {
+      setRooms(roomsData);
+      setMyReservations(reservationsData);
+    }).catch(() => {}).finally(() => setRoomsLoading(false));
+  }, []);
+
+  // 날짜 변경 시 슬롯 새로 로드
+  const loadSlots = useCallback(async (date, roomList) => {
+    if (!roomList.length) return;
+    setSlotsLoading(true);
+    try {
+      const allSlots = await Promise.all(
+        roomList.map((r) => roomsApi.getSlots(r.id, date).then((slots) => slots).catch(() => []))
+      );
+      setBookedSlots(allSlots.flat());
+    } catch {
+      setBookedSlots([]);
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (rooms.length > 0) {
+      loadSlots(selectedDate, rooms);
+    }
+  }, [selectedDate, rooms, loadSlots]);
+
   const handleDateSelect = (date) => {
     setSelectedDate(date);
     if (date !== TODAY) setShowAvailableNow(false);
@@ -127,7 +159,7 @@ export default function RoomReservation() {
 
   // 슬롯 상태 결정: available | mine | reserved | closed | past
   const getSlotStatus = (roomId, timeSlot) => {
-    const room = mockRooms.find((r) => r.id === roomId);
+    const room = rooms.find((r) => r.id === roomId);
     if (room.status === 'closed') return 'closed';
 
     // past는 오늘 기준으로만 적용 — 미래 날짜는 모든 슬롯 예약 가능
@@ -143,14 +175,14 @@ export default function RoomReservation() {
         s.start_time === timeSlot,
     );
     if (!slot) return 'available';
-    if (slot.is_mine) return 'mine';
+    if (slot.reserved_by === user?.id || slot.is_mine) return 'mine';
     return 'reserved';
   };
 
   // 지금 이용 가능한 방 id 목록 (현재 시간 슬롯 기준)
   const currentTimeSlot = `${String(CURRENT_HOUR).padStart(2, '0')}:00`;
   const availableNowIds = useMemo(() => {
-    return mockRooms
+    return rooms
       .filter((r) => {
         if (r.status === 'closed') return false;
         return !bookedSlots.some(
@@ -165,18 +197,16 @@ export default function RoomReservation() {
 
   // 탭 + 빠른 필터로 표시할 방 목록
   const filteredRooms = useMemo(() => {
-    let rooms = mockRooms;
-    if (activeTab === 'study') rooms = rooms.filter((r) => r.type === 'study');
-    if (activeTab === 'meeting')
-      rooms = rooms.filter((r) => r.type === 'meeting');
-    if (showAvailableNow)
-      rooms = rooms.filter((r) => availableNowIds.includes(r.id));
-    return rooms;
-  }, [activeTab, showAvailableNow, availableNowIds]);
+    let list = rooms;
+    if (activeTab === 'study') list = list.filter((r) => r.type === 'study');
+    if (activeTab === 'meeting') list = list.filter((r) => r.type === 'meeting');
+    if (showAvailableNow) list = list.filter((r) => availableNowIds.includes(r.id));
+    return list;
+  }, [rooms, activeTab, showAvailableNow, availableNowIds]);
 
   // 통계 요약
   const stats = useMemo(() => {
-    const openRooms = mockRooms.filter((r) => r.status !== 'closed');
+    const openRooms = rooms.filter((r) => r.status !== 'closed');
     const studyRooms = openRooms.filter((r) => r.type === 'study');
     const meetingRooms = openRooms.filter((r) => r.type === 'meeting');
     const countAvailableNow = (rooms) =>
@@ -201,33 +231,26 @@ export default function RoomReservation() {
   };
 
   // 예약 확정
-  const handleConfirmReserve = () => {
+  const handleConfirmReserve = async () => {
     const idx = TIME_SLOTS.indexOf(selectedCell.timeSlot);
     const endTime = TIME_SLOTS[idx + 1] ?? '21:00';
-    const newSlot = {
-      room_id: selectedCell.room.id,
-      date: selectedDate,
-      start_time: selectedCell.timeSlot,
-      end_time: endTime,
-      reserved_by: CURRENT_USER_ID,
-      is_mine: true,
-      purpose,
-    };
-    const newReservation = {
-      id: `res-${Date.now()}`,
-      room_id: selectedCell.room.id,
-      room_name: selectedCell.room.name,
-      room_type: selectedCell.room.type,
-      date: selectedDate,
-      start_time: selectedCell.timeSlot,
-      end_time: endTime,
-      purpose: purpose || '개인 사용',
-      status: 'confirmed',
-    };
-    setBookedSlots((prev) => [...prev, newSlot]);
-    setMyReservations((prev) => [newReservation, ...prev]);
-    setShowReserveModal(false);
-    setSelectedCell(null);
+    try {
+      const newReservation = await roomsApi.reserve({
+        room_id: selectedCell.room.id,
+        date: selectedDate,
+        start_time: selectedCell.timeSlot,
+        end_time: endTime,
+        purpose: purpose || '개인 사용',
+      });
+      // 슬롯 재로드
+      await loadSlots(selectedDate, rooms);
+      setMyReservations((prev) => [newReservation, ...prev]);
+    } catch {
+      // 예약 실패
+    } finally {
+      setShowReserveModal(false);
+      setSelectedCell(null);
+    }
   };
 
   // 예약 취소 클릭
@@ -236,25 +259,19 @@ export default function RoomReservation() {
     setShowCancelModal(true);
   };
 
-  const handleConfirmCancel = () => {
-    setMyReservations((prev) =>
-      prev.map((r) =>
-        r.id === cancelTarget.id ? { ...r, status: 'cancelled' } : r,
-      ),
-    );
-    setBookedSlots((prev) =>
-      prev.filter(
-        (s) =>
-          !(
-            s.room_id === cancelTarget.room_id &&
-            s.date === cancelTarget.date &&
-            s.start_time === cancelTarget.start_time &&
-            s.is_mine
-          ),
-      ),
-    );
-    setShowCancelModal(false);
-    setCancelTarget(null);
+  const handleConfirmCancel = async () => {
+    try {
+      await roomsApi.cancelReservation(cancelTarget.id);
+      setMyReservations((prev) =>
+        prev.map((r) => r.id === cancelTarget.id ? { ...r, status: 'cancelled' } : r),
+      );
+      await loadSlots(selectedDate, rooms);
+    } catch {
+      // 취소 실패
+    } finally {
+      setShowCancelModal(false);
+      setCancelTarget(null);
+    }
   };
 
   // 내 예약 탭 필터
@@ -328,19 +345,17 @@ export default function RoomReservation() {
     {
       key: 'all',
       label: '전체',
-      count: mockRooms.filter((r) => r.status !== 'closed').length,
+      count: rooms.filter((r) => r.status !== 'closed').length,
     },
     {
       key: 'study',
       label: '자습실',
-      count: mockRooms.filter((r) => r.type === 'study').length,
+      count: rooms.filter((r) => r.type === 'study').length,
     },
     {
       key: 'meeting',
       label: '회의실',
-      count: mockRooms.filter(
-        (r) => r.type === 'meeting' && r.status !== 'closed',
-      ).length,
+      count: rooms.filter((r) => r.type === 'meeting' && r.status !== 'closed').length,
     },
   ];
 
@@ -567,7 +582,11 @@ export default function RoomReservation() {
       </div>
 
       {/* ── 타임테이블 ──────────────────────────────────────────────────── */}
-      {filteredRooms.length === 0 ? (
+      {roomsLoading ? (
+        <Card padding="p-12" className="text-center">
+          <p className="text-gray-400">방 목록을 불러오는 중...</p>
+        </Card>
+      ) : filteredRooms.length === 0 ? (
         <Card padding="p-12" className="text-center">
           <Zap size={32} className="mx-auto text-gray-300 mb-3" />
           <p className="text-gray-500 font-medium">

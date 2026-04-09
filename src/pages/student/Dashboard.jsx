@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ChevronDown,
   CheckCircle2,
@@ -8,10 +8,11 @@ import {
   Trophy,
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
-import { mockCurriculum } from '@/data/mockData';
+import { curriculumApi } from '@/api/curriculum';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import ProgressBar from '@/components/common/ProgressBar';
+import Skeleton from '@/components/common/Skeleton';
 
 /* ── 상태별 스타일 ── */
 const statusConfig = {
@@ -222,29 +223,45 @@ function RoadPhaseCard({ phase, isSelected, onClick, position }) {
    메인 Dashboard
    ══════════════════════════════════════════════════ */
 export default function Dashboard() {
-  const inProgressPhase = mockCurriculum.find(
-    (c) => c.status === 'in_progress',
-  );
-  const [selectedPhaseId, setSelectedPhaseId] = useState(
-    inProgressPhase?.id ?? null,
-  );
+  const [curriculum, setCurriculum] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedPhaseId, setSelectedPhaseId] = useState(null)
 
-  const completedPhases = mockCurriculum.filter(
-    (c) => c.status === 'completed',
-  ).length;
-  const totalPhases = mockCurriculum.length;
-  const overallProgress = Math.round(
-    mockCurriculum.reduce((sum, c) => sum + c.progress, 0) / totalPhases,
-  );
+  useEffect(() => {
+    curriculumApi.getAll()
+      .then((data) => {
+        setCurriculum(data)
+        const inProgress = data.find((c) => c.status === 'in_progress')
+        setSelectedPhaseId(inProgress?.id ?? data[0]?.id ?? null)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const completedPhases = curriculum.filter((c) => c.status === 'completed').length;
+  const totalPhases = curriculum.length;
+  const overallProgress = totalPhases > 0
+    ? Math.round(curriculum.reduce((sum, c) => sum + c.progress, 0) / totalPhases)
+    : 0;
 
   const togglePhase = (id) =>
     setSelectedPhaseId((prev) => (prev === id ? null : id));
 
-  const selectedPhase = mockCurriculum.find((c) => c.id === selectedPhaseId);
+  const selectedPhase = curriculum.find((c) => c.id === selectedPhaseId);
 
   // 도로 행 분할: 3개씩 나누고 짝수 행은 역순
-  const row1 = mockCurriculum.slice(0, 3); // → 방향
-  const row2 = [...mockCurriculum.slice(3, 6)].reverse(); // ← 역방향
+  const row1 = curriculum.slice(0, 3); // → 방향
+  const row2 = [...curriculum.slice(3, 6)].reverse(); // ← 역방향
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton width="240px" height="32px" rounded="rounded-lg" />
+        <Skeleton width="100%" height="60px" rounded="rounded-2xl" />
+        <Skeleton width="100%" height="300px" rounded="rounded-2xl" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -410,7 +427,7 @@ export default function Dashboard() {
                   />
                   {/* 진행 표시 (역방향: 오→왼) */}
                   {(() => {
-                    const origRow = mockCurriculum.slice(3, 6);
+                    const origRow = curriculum.slice(3, 6);
                     const completedInRow = origRow.filter(
                       (p) => p.status === 'completed',
                     ).length;
@@ -495,11 +512,11 @@ export default function Dashboard() {
               className="w-1 bg-linear-to-b from-green-500 to-student-500 rounded-full transition-all duration-500"
               style={{
                 height: `${
-                  (mockCurriculum.filter((c) => c.status === 'completed')
+                  (curriculum.filter((c) => c.status === 'completed')
                     .length /
                     totalPhases) *
                     100 +
-                  (mockCurriculum.find((c) => c.status === 'in_progress')
+                  (curriculum.find((c) => c.status === 'in_progress')
                     ?.progress ?? 0) /
                     totalPhases
                 }%`,
@@ -508,7 +525,7 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-4 pl-14">
-            {mockCurriculum.map((phase) => {
+            {curriculum.map((phase) => {
               const config = statusConfig[phase.status];
               const PhaseIcon = Icons[phase.icon] || Icons.BookOpen;
               const isSelected = selectedPhaseId === phase.id;
