@@ -68,21 +68,16 @@ export function AuthProvider({ children }) {
     [loadUser],
   );
 
-  const signUp = useCallback(
-    async (email, password, name, role, cohortId = null, mentorId = null) => {
-      const metadata = { name, role };
-      if (cohortId) metadata.cohort_id = cohortId;
-      if (mentorId) metadata.mentor_id = mentorId;
+  const signUp = useCallback(async (email, password, name, role) => {
+    const metadata = { name, role };
 
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: metadata },
-      });
-      if (error) throw error;
-    },
-    [],
-  );
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: metadata },
+    });
+    if (error) throw error;
+  }, []);
 
   const logout = useCallback(async () => {
     await supabase.auth.signOut();

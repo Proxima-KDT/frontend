@@ -288,7 +288,9 @@ export default function MyPage() {
             <div className="flex items-center gap-1.5 mb-3">
               <BookOpen className="w-3.5 h-3.5 text-gray-400 shrink-0" />
               <p className="text-caption text-gray-500 truncate">
-                랭체인 AI 영상객체탐지분석 플랫폼구축
+                {profile?.cohort_name
+                  ? `${profile.cohort_name} · 랭체인 AI 영상객체탐지분석 플랫폼구축`
+                  : '랭체인 AI 영상객체탐지분석 플랫폼구축'}
               </p>
             </div>
 
