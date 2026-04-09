@@ -8,6 +8,9 @@ import {
   Trophy,
   ChevronLeft,
   ChevronRight,
+  BookOpen,
+  Save,
+  AlertCircle,
 } from 'lucide-react';
 import { subjectsApi } from '@/api/subjects';
 import { quizApi } from '@/api/quiz';
@@ -29,34 +32,88 @@ export default function ConceptQuiz() {
   const [conceptTitle, setConceptTitle] = useState('');
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [results, setResults] = useState([]);
+  const [isFinished, setIsFinished] = useState(false);
+
+  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
         const [subjectData, problemsData] = await Promise.all([
           subjectsApi.getDetail(subjectId),
           subjectsApi.getConceptProblems(subjectId, conceptId),
         ]);
+
+        if (cancelled) return;
+
         setSubjectTitle(subjectData.title ?? '');
         if (!isComprehensive) {
           const concept = subjectData.concepts?.find((c) => c.id === conceptId);
           setConceptTitle(concept?.title ?? '');
         }
         setProblems(problemsData);
+
+        // 이전 제출 기록 로드 (comprehensive는 제외)
+        if (!isComprehensive) {
+          try {
+            const submissionsData = await quizApi.getPreviousSubmissions(conceptId);
+            if (cancelled) return;
+            if (submissionsData.submissions?.length > 0) {
+              const loadedResults = submissionsData.submissions.map((sub) => {
+                const problem = problemsData.find((p) => p.id === sub.problem_id);
+                const correctIdx = problem ? problem.answer - 1 : null;
+                return {
+                  problemId: sub.problem_id,
+                  selected: sub.selected_answer,
+                  correct: correctIdx,
+                  // DB의 is_correct 대신 직접 계산 (데이터 불일치 방지)
+                  // selected_answer는 0-based, correctIdx도 0-based (answer - 1)
+                  isCorrect: correctIdx !== null && sub.selected_answer === correctIdx,
+                };
+              });
+              setResults(loadedResults);
+
+              // 마지막으로 풀었던 문제 다음으로 자동 이동
+              const solvedIds = new Set(loadedResults.map((r) => r.problemId));
+              let lastSolvedIdx = -1;
+              for (let i = 0; i < problemsData.length; i++) {
+                if (solvedIds.has(problemsData[i].id)) lastSolvedIdx = i;
+              }
+
+              const nextIdx = lastSolvedIdx + 1;
+              if (nextIdx < problemsData.length) {
+                // 아직 안 푼 문제가 있으면 그 문제로 이동
+                setCurrentIndex(nextIdx);
+              } else {
+                // 모두 풀었으면 마지막 문제를 답 표시 상태로
+                const lastResult = loadedResults.find(
+                  (r) => r.problemId === problemsData[lastSolvedIdx].id,
+                );
+                setCurrentIndex(lastSolvedIdx);
+                setSelectedAnswer(lastResult?.selected ?? null);
+                setIsSubmitted(true);
+              }
+            }
+          } catch {
+            // 제출 기록 로드 실패는 조용히 처리
+          }
+        }
       } catch {
-        setProblems([]);
+        if (!cancelled) setProblems([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
-    fetchData();
-  }, [subjectId, conceptId, isComprehensive]);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [results, setResults] = useState([]);
-  const [isFinished, setIsFinished] = useState(false);
+    fetchData();
+    return () => { cancelled = true; };
+  }, [subjectId, conceptId, isComprehensive]);
 
   if (loading) {
     return (
@@ -77,17 +134,23 @@ export default function ConceptQuiz() {
 
   const currentProblem = problems[currentIndex];
   const totalProblems = problems.length;
-  const progressPercent =
-    ((currentIndex + (isSubmitted ? 1 : 0)) / totalProblems) * 100;
 
-  const handleSubmit = () => {
+  // 모든 문제를 이미 풀었으면 복습 모드
+  const isReviewMode = !isComprehensive && results.length === totalProblems && totalProblems > 0;
+
+  const progressPercent = isReviewMode
+    ? 100
+    : ((currentIndex + (isSubmitted ? 1 : 0)) / totalProblems) * 100;
+
+  const handleSubmit = async () => {
     if (selectedAnswer === null) return;
     setIsSubmitted(true);
+    const correctIdx = currentProblem.answer - 1;
     const newEntry = {
       problemId: currentProblem.id,
       selected: selectedAnswer,
-      correct: currentProblem.answer,
-      isCorrect: selectedAnswer === currentProblem.answer,
+      correct: correctIdx,
+      isCorrect: selectedAnswer === correctIdx,
     };
     setResults((prev) => {
       const idx = prev.findIndex((r) => r.problemId === currentProblem.id);
@@ -98,6 +161,19 @@ export default function ConceptQuiz() {
       }
       return [...prev, newEntry];
     });
+
+    // 즉시 DB에 저장 + 저장 상태 표시
+    setSaveStatus('saving');
+    try {
+      await quizApi.submit(conceptId, [
+        { problem_id: currentProblem.id, selected_answer: selectedAnswer },
+      ]);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
   };
 
   const handleNext = async () => {
@@ -107,12 +183,14 @@ export default function ConceptQuiz() {
         problem_id: r.problemId,
         selected_answer: r.selected,
       }));
-      quizApi.submit(conceptId, answers).catch(() => {
+      try {
+        await quizApi.submit(conceptId, answers);
+      } catch (error) {
         showToast({
           type: 'error',
           message: '결과 저장에 실패했습니다. 네트워크를 확인해주세요.',
         });
-      });
+      }
       setIsFinished(true);
       return;
     }
@@ -136,6 +214,39 @@ export default function ConceptQuiz() {
     setIsSubmitted(false);
     setResults([]);
     setIsFinished(false);
+  };
+
+  // 복습 모드에서 번호 버튼 클릭 시 해당 문제로 이동
+  const handleNavigate = (idx) => {
+    const result = results.find((r) => r.problemId === problems[idx].id);
+    setCurrentIndex(idx);
+    if (result) {
+      setSelectedAnswer(result.selected);
+      setIsSubmitted(true);
+    } else {
+      setSelectedAnswer(null);
+      setIsSubmitted(false);
+    }
+  };
+
+  // 뒤로 갈 때 현재까지의 풀이 저장
+  const handleBackAndSave = async () => {
+    if (results.length > 0) {
+      try {
+        const answers = results.map((r) => ({
+          problem_id: r.problemId,
+          selected_answer: r.selected,
+        }));
+        await quizApi.submit(conceptId, answers);
+      } catch (error) {
+        console.error('Failed to save progress:', error);
+        showToast({
+          type: 'warning',
+          message: '풀이 저장에 실패했습니다. 다시 시도해주세요.',
+        });
+      }
+    }
+    navigate(`/student/problems/${subjectId}`);
   };
 
   const correctCount = results.filter((r) => r.isCorrect).length;
@@ -276,7 +387,7 @@ export default function ConceptQuiz() {
   return (
     <div className="space-y-6">
       <button
-        onClick={() => navigate(`/student/problems/${subjectId}`)}
+        onClick={handleBackAndSave}
         className="flex items-center gap-2 text-body-sm text-gray-500 hover:text-gray-700 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -287,13 +398,39 @@ export default function ConceptQuiz() {
       <div>
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-h2 font-bold text-gray-900">{title}</h1>
-          <Badge variant="info">
-            {currentIndex + 1} / {totalProblems}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {saveStatus === 'saving' && (
+              <span className="text-caption text-gray-400 flex items-center gap-1">
+                <Save className="w-3 h-3 animate-pulse" />
+                저장 중...
+              </span>
+            )}
+            {saveStatus === 'saved' && (
+              <span className="text-caption text-green-500 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                저장됨
+              </span>
+            )}
+            {saveStatus === 'error' && (
+              <span className="text-caption text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                저장 실패
+              </span>
+            )}
+            {isReviewMode && (
+              <Badge variant="success" className="flex items-center gap-1">
+                <BookOpen className="w-3 h-3" />
+                복습 모드
+              </Badge>
+            )}
+            <Badge variant="info">
+              {currentIndex + 1} / {totalProblems}
+            </Badge>
+          </div>
         </div>
         <ProgressBar
           value={progressPercent}
-          color="bg-student-500"
+          color={isReviewMode ? 'bg-green-500' : 'bg-student-500'}
           size="sm"
           showValue={false}
         />
@@ -317,13 +454,11 @@ export default function ConceptQuiz() {
             let bgClass = '';
 
             if (isSubmitted) {
-              if (idx === currentProblem.answer) {
+              const correctIdx = currentProblem.answer - 1; // DB는 1-based
+              if (idx === correctIdx) {
                 borderClass = 'border-green-500';
                 bgClass = 'bg-green-50';
-              } else if (
-                idx === selectedAnswer &&
-                idx !== currentProblem.answer
-              ) {
+              } else if (idx === selectedAnswer && idx !== correctIdx) {
                 borderClass = 'border-red-500';
                 bgClass = 'bg-red-50';
               } else {
@@ -344,7 +479,7 @@ export default function ConceptQuiz() {
               >
                 <div className="shrink-0 mt-0.5">
                   {isSubmitted ? (
-                    idx === currentProblem.answer ? (
+                    idx === currentProblem.answer - 1 ? (
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                     ) : idx === selectedAnswer ? (
                       <XCircle className="w-5 h-5 text-red-500" />
@@ -385,26 +520,28 @@ export default function ConceptQuiz() {
           <Button
             variant="ghost"
             disabled={currentIndex === 0}
-            onClick={() => {
-              const prevIndex = currentIndex - 1;
-              const prevResult = results.find(
-                (r) => r.problemId === problems[prevIndex].id,
-              );
-              setCurrentIndex(prevIndex);
-              if (prevResult) {
-                setSelectedAnswer(prevResult.selected);
-                setIsSubmitted(true);
-              } else {
-                setSelectedAnswer(null);
-                setIsSubmitted(false);
-              }
-            }}
+            onClick={() => handleNavigate(currentIndex - 1)}
             icon={ChevronLeft}
           >
             이전
           </Button>
 
-          {!isSubmitted ? (
+          {isReviewMode ? (
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={handleRetry} icon={RotateCcw}>
+                다시 풀기
+              </Button>
+              {currentIndex + 1 < totalProblems && (
+                <Button
+                  onClick={() => handleNavigate(currentIndex + 1)}
+                  className="bg-student-500 hover:bg-student-600"
+                  icon={ChevronRight}
+                >
+                  다음
+                </Button>
+              )}
+            </div>
+          ) : !isSubmitted ? (
             <Button
               onClick={handleSubmit}
               disabled={selectedAnswer === null}
@@ -426,23 +563,34 @@ export default function ConceptQuiz() {
 
       {/* 문제 번호 네비게이션 */}
       <div className="flex flex-wrap gap-2 justify-center">
-        {problems.map((_, idx) => {
-          const result = results.find((r) => r.problemId === problems[idx].id);
+        {problems.map((prob, idx) => {
+          const result = results.find((r) => r.problemId === prob.id);
           let colorClass = 'bg-gray-100 text-gray-500';
-          if (result) {
+
+          if (idx === currentIndex) {
+            // 현재 문제: selectedAnswer와 실제 정답을 직접 비교 (DB 값에 의존 X)
+            if (isSubmitted) {
+              const isCorrectNow = selectedAnswer === prob.answer - 1;
+              colorClass = isCorrectNow
+                ? 'bg-green-200 text-green-800 ring-2 ring-green-500'
+                : 'bg-red-200 text-red-800 ring-2 ring-red-500';
+            } else {
+              colorClass = 'bg-student-100 text-student-700 ring-2 ring-student-500';
+            }
+          } else if (result) {
+            // 다른 문제: DB 기록의 isCorrect 기준
             colorClass = result.isCorrect
               ? 'bg-green-100 text-green-700'
               : 'bg-red-100 text-red-700';
-          } else if (idx === currentIndex) {
-            colorClass =
-              'bg-student-100 text-student-700 ring-2 ring-student-500';
           }
 
           return (
             <button
               key={idx}
-              className={`w-9 h-9 rounded-lg flex items-center justify-center text-body-sm font-semibold transition-colors ${colorClass}`}
-              disabled
+              onClick={() => isReviewMode && handleNavigate(idx)}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center text-body-sm font-semibold transition-colors ${colorClass} ${
+                isReviewMode ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+              }`}
             >
               {idx + 1}
             </button>

@@ -13,6 +13,7 @@ import {
   Download,
 } from 'lucide-react';
 import { assessmentsApi } from '@/api/assessments';
+import { useToast } from '@/context/ToastContext';
 import Skeleton from '@/components/common/Skeleton';
 
 // ── 상수 ──────────────────────────────────────────────────
@@ -187,7 +188,9 @@ function FileUploadArea({ files, onFilesChange }) {
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
         <p className="text-body-sm text-gray-600">
           파일을 드래그하거나{' '}
-          <span className="text-student-600 font-semibold">클릭하여 업로드</span>
+          <span className="text-student-600 font-semibold">
+            클릭하여 업로드
+          </span>
         </p>
         <p className="text-caption text-gray-400 mt-1">
           PDF, ZIP, 이미지 등 최대 100MB
@@ -228,10 +231,11 @@ function FileUploadArea({ files, onFilesChange }) {
   );
 }
 
-function AssessmentCard({ assessment, colorClass }) {
+function AssessmentCard({ assessment, colorClass, onSubmitted }) {
+  const { showToast } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const isLocked = assessment.status === 'locked';
   const isOpen = assessment.status === 'open';
@@ -240,13 +244,21 @@ function AssessmentCard({ assessment, colorClass }) {
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) return;
+    setSubmitting(true);
     const formData = new FormData();
     uploadedFiles.forEach((f) => formData.append('files', f));
     try {
       await assessmentsApi.submit(assessment.id, formData);
-      setSubmitted(true);
+      setUploadedFiles([]);
+      showToast({
+        type: 'success',
+        message: '평가 파일이 성공적으로 제출되었습니다!',
+      });
+      onSubmitted?.(assessment.id);
     } catch {
-      // 업로드 실패 유지
+      showToast({ type: 'error', message: '평가 제출에 실패했습니다.' });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -267,19 +279,19 @@ function AssessmentCard({ assessment, colorClass }) {
             className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center shrink-0`}
           >
             <span className="text-white font-bold text-body">
-              {assessment.phaseId}
+              {assessment.phase_id}
             </span>
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-caption text-gray-400 font-medium">
-                Phase {assessment.phaseId}
+                Phase {assessment.phase_id}
               </span>
               <StatusBadge status={assessment.status} />
             </div>
             <h3 className="text-body font-bold text-gray-900 truncate">
-              {assessment.phaseTitle}
+              {assessment.phase_title}
             </h3>
             <p className="text-caption text-gray-400 mt-0.5">
               평가 기간: {assessment.period.start} ~ {assessment.period.end}
@@ -291,9 +303,7 @@ function AssessmentCard({ assessment, colorClass }) {
             <div className="text-right shrink-0">
               <p className="text-h2 font-bold text-student-600">
                 {assessment.score}
-                <span className="text-body text-gray-400 font-normal">
-                  점
-                </span>
+                <span className="text-body text-gray-400 font-normal">점</span>
               </p>
               <span
                 className={`text-xs font-bold ${
@@ -362,7 +372,7 @@ function AssessmentCard({ assessment, colorClass }) {
               평가 범위
             </p>
             <div className="flex flex-wrap gap-2">
-              {assessment.coverageTopics.map((topic, i) => (
+              {(assessment.coverage_topics || []).map((topic, i) => (
                 <span
                   key={i}
                   className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-caption font-medium"
@@ -386,7 +396,7 @@ function AssessmentCard({ assessment, colorClass }) {
             <div className="flex flex-col md:flex-row gap-4 items-start">
               <ScoreRing
                 score={assessment.score}
-                maxScore={assessment.maxScore}
+                maxScore={assessment.max_score}
                 passed={assessment.passed}
               />
               {assessment.feedback && (
@@ -403,35 +413,36 @@ function AssessmentCard({ assessment, colorClass }) {
           )}
 
           {/* 제출된 파일 */}
-          {(isSubmitted || isGraded) && assessment.submittedFiles.length > 0 && (
-            <div>
-              <p className="text-body-sm font-semibold text-gray-700 mb-2">
-                제출한 파일
-              </p>
-              <div className="space-y-2">
-                {assessment.submittedFiles.map((file, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-body-sm text-blue-700"
-                  >
-                    <Paperclip className="w-4 h-4 shrink-0" />
-                    <span className="flex-1 truncate">{file.name}</span>
-                    <span className="text-caption text-blue-400 shrink-0">
-                      {file.size}
-                    </span>
-                  </div>
-                ))}
-                {assessment.submittedAt && (
-                  <p className="text-caption text-gray-400">
-                    제출일시: {assessment.submittedAt}
-                  </p>
-                )}
+          {(isSubmitted || isGraded) &&
+            (assessment.submitted_files?.length ?? 0) > 0 && (
+              <div>
+                <p className="text-body-sm font-semibold text-gray-700 mb-2">
+                  제출한 파일
+                </p>
+                <div className="space-y-2">
+                  {assessment.submitted_files.map((file, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-body-sm text-blue-700"
+                    >
+                      <Paperclip className="w-4 h-4 shrink-0" />
+                      <span className="flex-1 truncate">{file.name}</span>
+                      <span className="text-caption text-blue-400 shrink-0">
+                        {file.size}
+                      </span>
+                    </div>
+                  ))}
+                  {assessment.submitted_at && (
+                    <p className="text-caption text-gray-400">
+                      제출일시: {assessment.submitted_at}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* 파일 업로드 (오픈 상태) */}
-          {isOpen && !submitted && (
+          {isOpen && (
             <div>
               <p className="text-body-sm font-semibold text-gray-700 mb-2">
                 평가 파일 제출
@@ -447,23 +458,13 @@ function AssessmentCard({ assessment, colorClass }) {
               />
               <button
                 onClick={handleSubmit}
-                disabled={uploadedFiles.length === 0}
+                disabled={uploadedFiles.length === 0 || submitting}
                 className="mt-3 w-full py-2.5 rounded-xl bg-student-600 text-white font-semibold text-body-sm
                   hover:bg-student-700 active:bg-student-800 transition-colors
                   disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
-                제출하기
+                {submitting ? '제출 중...' : '제출하기'}
               </button>
-            </div>
-          )}
-
-          {/* 제출 성공 */}
-          {submitted && (
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
-              <p className="text-body-sm text-blue-700 font-medium">
-                평가 파일이 성공적으로 제출되었습니다!
-              </p>
             </div>
           )}
         </div>
@@ -478,7 +479,8 @@ export default function Assessments() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    assessmentsApi.getList()
+    assessmentsApi
+      .getList()
       .then((data) => setAssessments(data))
       .catch(() => setAssessments([]))
       .finally(() => setLoading(false));
@@ -553,6 +555,15 @@ export default function Assessments() {
               key={assessment.id}
               assessment={assessment}
               colorClass={PHASE_COLORS[i % PHASE_COLORS.length]}
+              onSubmitted={(id) =>
+                setAssessments((prev) =>
+                  prev.map((a) =>
+                    String(a.id) === String(id)
+                      ? { ...a, status: 'submitted' }
+                      : a,
+                  ),
+                )
+              }
             />
           ))}
         </div>

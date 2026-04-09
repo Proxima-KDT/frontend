@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { roomsApi } from '@/api/rooms';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
@@ -103,6 +104,7 @@ const WEEK_DATES = generateWeekDates(TODAY);
 
 export default function RoomReservation() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [rooms, setRooms] = useState([]);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [myReservations, setMyReservations] = useState([]);
@@ -121,24 +123,35 @@ export default function RoomReservation() {
 
   // 방 목록 및 내 예약 초기 로드
   useEffect(() => {
-    Promise.all([
-      roomsApi.getList(),
-      roomsApi.getMyReservations(),
-    ]).then(([roomsData, reservationsData]) => {
-      setRooms(roomsData);
-      setMyReservations(reservationsData);
-    }).catch(() => {}).finally(() => setRoomsLoading(false));
+    Promise.all([roomsApi.getList(), roomsApi.getMyReservations()])
+      .then(([roomsData, reservationsData]) => {
+        setRooms(roomsData);
+        setMyReservations(reservationsData);
+      })
+      .catch(() => {})
+      .finally(() => setRoomsLoading(false));
   }, []);
 
   // 날짜 변경 시 슬롯 새로 로드
+  // DB에서 TIME 컬럼이 "HH:MM:SS" 형식으로 오기 때문에 "HH:MM"으로 정규화
   const loadSlots = useCallback(async (date, roomList) => {
     if (!roomList.length) return;
     setSlotsLoading(true);
     try {
       const allSlots = await Promise.all(
-        roomList.map((r) => roomsApi.getSlots(r.id, date).then((slots) => slots).catch(() => []))
+        roomList.map((r) =>
+          roomsApi
+            .getSlots(r.id, date)
+            .then((slots) => slots)
+            .catch(() => []),
+        ),
       );
-      setBookedSlots(allSlots.flat());
+      const normalized = allSlots.flat().map((s) => ({
+        ...s,
+        start_time: s.start_time ? s.start_time.slice(0, 5) : s.start_time,
+        end_time: s.end_time ? s.end_time.slice(0, 5) : s.end_time,
+      }));
+      setBookedSlots(normalized);
     } catch {
       setBookedSlots([]);
     } finally {
@@ -199,8 +212,10 @@ export default function RoomReservation() {
   const filteredRooms = useMemo(() => {
     let list = rooms;
     if (activeTab === 'study') list = list.filter((r) => r.type === 'study');
-    if (activeTab === 'meeting') list = list.filter((r) => r.type === 'meeting');
-    if (showAvailableNow) list = list.filter((r) => availableNowIds.includes(r.id));
+    if (activeTab === 'meeting')
+      list = list.filter((r) => r.type === 'meeting');
+    if (showAvailableNow)
+      list = list.filter((r) => availableNowIds.includes(r.id));
     return list;
   }, [rooms, activeTab, showAvailableNow, availableNowIds]);
 
@@ -242,11 +257,30 @@ export default function RoomReservation() {
         end_time: endTime,
         purpose: purpose || '개인 사용',
       });
-      // 슬롯 재로드
-      await loadSlots(selectedDate, rooms);
+      // 내 예약 목록 업데이트
       setMyReservations((prev) => [newReservation, ...prev]);
-    } catch {
-      // 예약 실패
+      // 타임테이블 즉시 반영 (새 슬롯을 낙관적으로 추가)
+      setBookedSlots((prev) => [
+        ...prev,
+        {
+          room_id: selectedCell.room.id,
+          date: selectedDate,
+          start_time: selectedCell.timeSlot,
+          end_time: endTime,
+          is_mine: true,
+          reserved_by: user?.id,
+          purpose: purpose || '개인 사용',
+        },
+      ]);
+      showToast({
+        type: 'success',
+        message: `${selectedCell.room.name} ${selectedCell.timeSlot} 예약이 확정되었습니다.`,
+      });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.detail ||
+        '예약에 실패했습니다. 다시 시도해주세요.';
+      showToast({ type: 'error', message: msg });
     } finally {
       setShowReserveModal(false);
       setSelectedCell(null);
@@ -263,11 +297,24 @@ export default function RoomReservation() {
     try {
       await roomsApi.cancelReservation(cancelTarget.id);
       setMyReservations((prev) =>
-        prev.map((r) => r.id === cancelTarget.id ? { ...r, status: 'cancelled' } : r),
+        prev.map((r) =>
+          r.id === cancelTarget.id ? { ...r, status: 'cancelled' } : r,
+        ),
       );
-      await loadSlots(selectedDate, rooms);
+      // 타임테이블에서 해당 슬롯 즉시 제거
+      setBookedSlots((prev) =>
+        prev.filter(
+          (s) =>
+            !(
+              s.room_id === cancelTarget.room_id &&
+              s.date === cancelTarget.date &&
+              s.start_time === (cancelTarget.start_time ?? '').slice(0, 5)
+            ),
+        ),
+      );
+      showToast({ type: 'success', message: '예약이 취소되었습니다.' });
     } catch {
-      // 취소 실패
+      showToast({ type: 'error', message: '예약 취소에 실패했습니다.' });
     } finally {
       setShowCancelModal(false);
       setCancelTarget(null);
@@ -355,7 +402,8 @@ export default function RoomReservation() {
     {
       key: 'meeting',
       label: '회의실',
-      count: rooms.filter((r) => r.type === 'meeting' && r.status !== 'closed').length,
+      count: rooms.filter((r) => r.type === 'meeting' && r.status !== 'closed')
+        .length,
     },
   ];
 

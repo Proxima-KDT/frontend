@@ -2532,6 +2532,7 @@ export const studentMenuItems = [
     icon: 'Mic',
     path: '/student/voice-feedback',
     group: '학습',
+    ai: true,
   },
   {
     key: 'questions',
@@ -2560,6 +2561,7 @@ export const studentMenuItems = [
     icon: 'MessageSquare',
     path: '/student/mock-interview',
     group: '취업',
+    ai: true,
   },
   {
     key: 'jobs',
