@@ -50,22 +50,31 @@ const STATUS_CONFIG = {
 
 function normalizeAssessments(data) {
   return data.map((a) => ({
-    phaseId: a.phase_id,
-    title: a.title,
+    id: a.id,
+    phaseId: a.phaseId ?? a.phase_id,
+    phaseTitle: a.phaseTitle ?? a.phase_title ?? '',
+    title: a.title ?? '',
     subject: a.subject || '',
-    period: { start: '', end: a.period_end },
-    passScore: a.pass_score,
+    period: {
+      start: a.period?.start ?? a.period_start ?? '',
+      end: a.period?.end ?? a.period_end ?? '',
+    },
+    passScore: a.passScore ?? a.pass_score ?? 60,
     rubric: a.rubric || [],
-    studentSubmissions: (a.student_submissions || []).map((s) => ({
-      studentId: s.student_id,
-      studentName: s.student_name,
+    studentSubmissions: (
+      a.studentSubmissions ??
+      a.student_submissions ??
+      []
+    ).map((s) => ({
+      studentId: s.studentId ?? s.student_id,
+      studentName: s.studentName ?? s.student_name,
       status: s.status || 'pending',
-      submittedAt: s.submitted_at || null,
+      submittedAt: s.submittedAt ?? s.submitted_at ?? null,
       score: s.score ?? null,
       passed: s.passed ?? null,
       feedback: s.feedback || '',
       files: s.files || [],
-      rubricScores: s.rubric_scores || [],
+      rubricScores: s.rubricScores ?? s.rubric_scores ?? [],
     })),
   }));
 }
@@ -92,29 +101,61 @@ export default function AssessmentManagement() {
       )
       .finally(() => setLoading(false));
   }, []);
-  const [aiModal, setAiModal] = useState(null); // { assessment, student }
+  const [aiModal, setAiModal] = useState(null); // { assessment, student, mode: 'ai'|'manual' }
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
+  const [signedFiles, setSignedFiles] = useState([]);
 
   const current = assessments.find((a) => a.phaseId === activePhase);
   const phaseColor = PHASE_COLORS[(activePhase - 1) % 6];
 
+  const fetchSignedFiles = (assessment, student) => {
+    // 항상 API에서 signed URL 조회 — files 배열에 의존하지 않음
+    teacherApi
+      .getAssessmentFiles(assessment.id, student.studentId)
+      .then((res) => setSignedFiles(res.files || []))
+      .catch(() => setSignedFiles([]));
+  };
+
   const handleOpenAiModal = (assessment, student) => {
-    setAiModal({ assessment, student });
+    setAiModal({ assessment, student, mode: 'ai' });
     setAiResult(null);
     setAiLoading(false);
+    fetchSignedFiles(assessment, student);
+  };
+
+  const handleOpenManualModal = (assessment, student) => {
+    const rubricScores =
+      student.rubricScores?.length > 0
+        ? student.rubricScores
+        : assessment.rubric.map((r) => ({
+            item: r.item,
+            score: 0,
+            maxScore: r.maxScore,
+          }));
+    const score = rubricScores.reduce((sum, r) => sum + (r.score || 0), 0);
+    setAiModal({ assessment, student, mode: 'manual' });
+    setAiResult({
+      rubricScores,
+      score,
+      passed: score >= assessment.passScore,
+      feedback: student.feedback || '',
+    });
+    setAiLoading(false);
+    fetchSignedFiles(assessment, student);
   };
 
   const handleCloseAiModal = () => {
     setAiModal(null);
     setAiResult(null);
     setAiLoading(false);
+    setSignedFiles([]);
   };
 
   const handleRunAi = () => {
     setAiLoading(true);
     teacherApi
-      .aiScoreAssessment(aiModal.assessment.phaseId, aiModal.student.studentId)
+      .aiScoreAssessment(aiModal.assessment.id, aiModal.student.studentId)
       .then((result) => {
         setAiResult({
           rubricScores: result.rubric_scores || [],
@@ -144,10 +185,25 @@ export default function AssessmentManagement() {
     }));
   };
 
+  const handleDownloadFile = (assessment, student) => {
+    teacherApi
+      .getAssessmentFiles(assessment.id, student.studentId)
+      .then(({ files }) => {
+        if (!files?.length) {
+          showToast({ message: '다운로드할 파일이 없습니다.', type: 'info' });
+          return;
+        }
+        files.forEach((f) => window.open(f.url, '_blank'));
+      })
+      .catch(() =>
+        showToast({ message: '파일 다운로드에 실패했습니다.', type: 'error' }),
+      );
+  };
+
   const handleConfirmGrade = () => {
     const { assessment, student } = aiModal;
     teacherApi
-      .gradeAssessmentSubmission(assessment.phaseId, student.studentId, {
+      .gradeAssessmentSubmission(assessment.id, student.studentId, {
         score: aiResult.score,
         feedback: aiResult.feedback,
         rubric_scores: aiResult.rubricScores,
@@ -352,30 +408,44 @@ export default function AssessmentManagement() {
                         {student.score}점 {student.passed ? '✓' : '✗'}
                       </span>
                     )}
-                    {student.files?.length > 0 && (
+                    {student.status !== 'pending' && (
                       <button
+                        onClick={() => handleDownloadFile(current, student)}
                         className="p-1.5 rounded-lg hover:bg-white text-gray-500 cursor-pointer transition-colors shrink-0"
-                        title="파일 다운로드"
+                        title="제출 파일 다운로드"
                       >
                         <Download className="w-4 h-4" />
                       </button>
                     )}
                     <div className="flex gap-1.5 shrink-0">
                       {student.status === 'submitted' && (
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          icon={Sparkles}
-                          onClick={() => handleOpenAiModal(current, student)}
-                        >
-                          AI 채점
-                        </Button>
+                        <>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() =>
+                              handleOpenManualModal(current, student)
+                            }
+                          >
+                            직접 채점
+                          </Button>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            icon={Sparkles}
+                            onClick={() => handleOpenAiModal(current, student)}
+                          >
+                            AI 채점
+                          </Button>
+                        </>
                       )}
                       {student.status === 'graded' && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleOpenAiModal(current, student)}
+                          onClick={() =>
+                            handleOpenManualModal(current, student)
+                          }
                         >
                           재채점
                         </Button>
@@ -394,38 +464,42 @@ export default function AssessmentManagement() {
         <Modal
           isOpen={!!aiModal}
           onClose={handleCloseAiModal}
-          title={`AI 채점 — ${aiModal.student.studentName}`}
+          title={`${aiModal.mode === 'manual' ? '직접 채점' : 'AI 채점'} — ${aiModal.student.studentName}`}
           maxWidth="max-w-[560px]"
+          persistent
         >
           <div className="space-y-4">
-            {/* 경고 배너 */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex gap-2">
-              <AlertTriangle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-yellow-700">
-                AI 채점 결과는 참고용입니다. 반드시 검토 후 확정하세요.
-              </p>
-            </div>
+            {/* 경고 배너 — AI 모드에서만 표시 */}
+            {aiModal.mode === 'ai' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex gap-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-yellow-700">
+                  AI 채점 결과는 참고용입니다. 반드시 검토 후 확정하세요.
+                </p>
+              </div>
+            )}
 
-            {/* 제출 파일 */}
-            {aiModal.student.files.length > 0 && (
+            {/* 제출 파일 — signed URL 기준으로 렌더링 */}
+            {signedFiles.length > 0 && (
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-2">
                   제출 파일
                 </p>
                 <div className="space-y-1.5">
-                  {aiModal.student.files.map((f) => (
+                  {signedFiles.map((f) => (
                     <div
                       key={f.name}
                       className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg"
                     >
                       <FileText className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 flex-1">
+                      <span className="text-sm text-gray-700 flex-1 truncate">
                         {f.name}
                       </span>
-                      <span className="text-caption text-gray-400">
-                        {f.size}
-                      </span>
-                      <button className="p-1 rounded hover:bg-gray-200 cursor-pointer">
+                      <button
+                        className="p-1 rounded hover:bg-gray-200 cursor-pointer shrink-0"
+                        onClick={() => window.open(f.url, '_blank')}
+                        title="파일 열기"
+                      >
                         <Download className="w-3.5 h-3.5 text-gray-500" />
                       </button>
                     </div>
@@ -473,7 +547,7 @@ export default function AssessmentManagement() {
               <>
                 <div className="bg-green-50 border border-green-200 rounded-xl p-3">
                   <p className="text-sm font-semibold text-green-700">
-                    AI 채점 완료
+                    {aiModal.mode === 'manual' ? '직접 채점' : 'AI 채점 완료'}
                   </p>
                   <p className="text-caption text-gray-600 mt-0.5">
                     점수와 피드백을 검토하고 수정한 뒤 확정하세요.

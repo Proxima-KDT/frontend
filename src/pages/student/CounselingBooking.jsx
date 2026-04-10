@@ -250,6 +250,13 @@ export default function CounselingBooking() {
 
   function getSlotStatus(time) {
     if (myBookedKeys.has(`${selectedDate}_${time}`)) return 'mine';
+    // 오늘 날짜에서 현재 시각 이전 슬롯은 예약 불가
+    if (selectedDate === TODAY) {
+      const [h, m] = time.split(':').map(Number);
+      const slotTime = new Date();
+      slotTime.setHours(h, m, 0, 0);
+      if (slotTime <= new Date()) return 'unavailable';
+    }
     if (!availableTimes.includes(time)) return 'unavailable';
     return 'available';
   }
@@ -754,6 +761,7 @@ export default function CounselingBooking() {
         isOpen={showModal}
         onClose={handleCloseModal}
         title="면담 예약 확인"
+        persistent
       >
         <div className="space-y-4">
           {/* 예약 요약 */}

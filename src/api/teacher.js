@@ -24,6 +24,16 @@ export const teacherApi = {
   getClassroomSeats: () =>
     axiosInstance.get('/api/teacher/classroom/seats').then((r) => r.data),
 
+  assignSeat: (seatId, studentId) =>
+    axiosInstance
+      .patch(`/api/teacher/classroom/seats/${seatId}/assign`, {
+        student_id: studentId ?? null,
+      })
+      .then((r) => r.data),
+
+  initClassroomSeats: () =>
+    axiosInstance.post('/api/teacher/classroom/seats/init').then((r) => r.data),
+
   getAttendanceByDate: (dateStr) =>
     axiosInstance.get(`/api/teacher/attendance/${dateStr}`).then((r) => r.data),
 
@@ -57,9 +67,29 @@ export const teacherApi = {
       )
       .then((r) => r.data),
 
-  // ── 평가 관리 ─────────────────────────────────────
+  getAiAssignmentFeedback: (assignmentId, studentId) =>
+    axiosInstance
+      .post(
+        `/api/teacher/assignments/${assignmentId}/submissions/${studentId}/ai-feedback`,
+      )
+      .then((r) => r.data),
+
+  getSubmissionDownloadUrls: (assignmentId, studentId) =>
+    axiosInstance
+      .get(
+        `/api/teacher/assignments/${assignmentId}/submissions/${studentId}/download-urls`,
+      )
+      .then((r) => r.data),
+
   getAssessments: () =>
     axiosInstance.get('/api/teacher/assessments').then((r) => r.data),
+
+  getAssessmentFiles: (assessmentId, studentId) =>
+    axiosInstance
+      .get(
+        `/api/teacher/assessments/${assessmentId}/submissions/${studentId}/download-urls`,
+      )
+      .then((r) => r.data),
 
   aiScoreAssessment: (assessmentId, studentId) =>
     axiosInstance
@@ -99,13 +129,14 @@ export const teacherApi = {
       .then((r) => r.data),
 
   // ── 상담 (음성 녹음) ──────────────────────────────
-  uploadCounselingAudio: (formData) =>
+  uploadCounselingAudio: (formData, studentName) =>
     axiosInstance
       .post('/api/teacher/counseling/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        params: { student_name: studentName },
       })
       .then((r) => r.data),
 
   getCounselingRecords: () =>
-    axiosInstance.get('/api/teacher/counseling/records').then((r) => r.data),
+    axiosInstance.get('/api/teacher/counseling-records').then((r) => r.data),
 };

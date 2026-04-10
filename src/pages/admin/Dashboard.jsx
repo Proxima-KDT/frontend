@@ -78,10 +78,16 @@ export default function AdminDashboard() {
       {/* 수강생 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {students.map((student) => {
+          const RADAR_MAP = {
+            출결: '출결',
+            AI_말하기: 'AI말하기',
+            AI_면접: 'AI면접',
+            포트폴리오: '포트폴리오',
+            프로젝트_과제_시험: '프로젝트',
+          };
           const radarData = Object.entries(student.skills || {}).map(
-            ([subject, score]) => ({
-              subject:
-                subject === '프로젝트·과제·시험' ? '프로젝트..' : subject,
+            ([key, score]) => ({
+              subject: RADAR_MAP[key] ?? key,
               score,
               fullMark: 100,
             }),
@@ -90,10 +96,6 @@ export default function AdminDashboard() {
             (f) => f.type === 'portfolio',
           );
           const hasResume = student.files?.some((f) => f.type === 'resume');
-          const daysSinceActive = Math.floor(
-            (new Date() - new Date(student.last_active)) / 86400000,
-          );
-
           return (
             <Card
               key={student.id}
@@ -127,11 +129,6 @@ export default function AdminDashboard() {
                     )}
                     {hasResume && <Badge variant="info">이력서 있음</Badge>}
                   </div>
-                  <p className="text-caption text-gray-500 mb-2">
-                    {daysSinceActive === 0
-                      ? '오늘 활동'
-                      : `${daysSinceActive}일 전 활동`}
-                  </p>
                   {/* 출석률 — 멘토의 핵심 지표 */}
                   <ProgressBar
                     value={student.attendance_rate}

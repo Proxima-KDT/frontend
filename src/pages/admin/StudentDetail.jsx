@@ -4,10 +4,25 @@ import {
   ArrowLeft,
   Mail,
   Calendar as CalendarIcon,
-  Clock,
   FileText,
   FolderOpen,
 } from 'lucide-react';
+
+const SKILL_LABELS = {
+  출결: '출결',
+  AI_말하기: 'AI 말하기',
+  AI_면접: 'AI 면접',
+  포트폴리오: '포트폴리오',
+  프로젝트_과제_시험: '프로젝트/과제/시험',
+};
+
+const RADAR_LABELS = {
+  출결: '출결',
+  AI_말하기: 'AI말하기',
+  AI_면접: 'AI면접',
+  포트폴리오: '포트폴리오',
+  프로젝트_과제_시험: '프로젝트',
+};
 
 const SKILL_COLORS = [
   'bg-blue-500',
@@ -53,17 +68,19 @@ export default function AdminStudentDetail() {
     return <div className="p-8 text-gray-400">로딩 중...</div>;
 
   const skillData = Object.entries(student.skills || {}).map(
-    ([subject, score]) => ({
-      subject,
-      score,
+    ([key, score]) => ({
+      key,
+      label: SKILL_LABELS[key] ?? key,
+      radarLabel: RADAR_LABELS[key] ?? key,
+      score: score ?? 0,
       fullMark: 100,
     }),
   );
 
   const radarData = skillData.map((item) => ({
-    ...item,
-    subject:
-      item.subject === '프로젝트.과제.시험' ? '프로젝트..' : item.subject,
+    subject: item.radarLabel,
+    score: item.score,
+    fullMark: 100,
   }));
 
   const statusColors = {
@@ -114,27 +131,24 @@ export default function AdminStudentDetail() {
                 <CalendarIcon className="w-4 h-4" /> 등록일:{' '}
                 {student.enrolled_at}
               </span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" /> 최근 활동: {student.last_active}
-              </span>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* 역량 분석 */}
+      {/* 스킬 분석 */}
       <Card className="mb-6">
-        <h2 className="text-h3 font-semibold text-gray-900 mb-6">역량 분석</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="flex justify-center items-center">
+        <h2 className="text-h3 font-semibold text-gray-900 mb-5">스킬 분석</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div className="flex justify-center">
             <SkillRadarChart data={radarData} color="#8B5CF6" />
           </div>
-          <div className="flex flex-col justify-center gap-4">
+          <div className="flex flex-col gap-3">
             {skillData.map((skill, idx) => (
               <ProgressBar
-                key={skill.subject}
+                key={skill.key}
                 value={skill.score}
-                label={skill.subject}
+                label={skill.label}
                 color={SKILL_COLORS[idx]}
                 size="md"
               />

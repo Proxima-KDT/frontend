@@ -10,7 +10,7 @@ import {
   FileText,
   X,
   Paperclip,
-  Download,
+  RefreshCw,
 } from 'lucide-react';
 import { assessmentsApi } from '@/api/assessments';
 import { useToast } from '@/context/ToastContext';
@@ -112,10 +112,12 @@ function ScoreRing({ score, maxScore, passed }) {
   );
 }
 
-function RubricTable({ rubric }) {
-  const total = rubric.reduce((s, r) => s + (r.score ?? 0), 0);
+function RubricTable({ rubric, totalScore }) {
   const max = rubric.reduce((s, r) => s + r.maxScore, 0);
   const isGraded = rubric.some((r) => r.score !== null);
+  // 최종 점수는 DB의 채점 점수(totalScore)를 우선 사용하고,
+  // 없으면 루브릭 항목 합산으로 fallback
+  const total = totalScore ?? rubric.reduce((s, r) => s + (r.score ?? 0), 0);
 
   return (
     <div className="rounded-xl border border-gray-200 overflow-hidden">
@@ -236,11 +238,16 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
   const [expanded, setExpanded] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [resubmitting, setResubmitting] = useState(false);
 
   const isLocked = assessment.status === 'locked';
   const isOpen = assessment.status === 'open';
   const isGraded = assessment.status === 'graded';
   const isSubmitted = assessment.status === 'submitted';
+
+  // 마감일 기준 재제출 가능 여부 (period.end 당일까지 허용)
+  const today = new Date().toISOString().split('T')[0];
+  const canResubmit = isSubmitted && assessment.period.end >= today;
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) return;
@@ -250,9 +257,12 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
     try {
       await assessmentsApi.submit(assessment.id, formData);
       setUploadedFiles([]);
+      setResubmitting(false);
       showToast({
         type: 'success',
-        message: '평가 파일이 성공적으로 제출되었습니다!',
+        message: resubmitting
+          ? '평가 파일이 교체되었습니다!'
+          : '평가 파일이 성공적으로 제출되었습니다!',
       });
       onSubmitted?.(assessment.id);
     } catch {
@@ -388,7 +398,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
             <p className="text-body-sm font-semibold text-gray-700 mb-2">
               {isGraded ? '항목별 채점 결과' : '평가 기준 (루브릭)'}
             </p>
-            <RubricTable rubric={assessment.rubric} />
+            <RubricTable rubric={assessment.rubric} totalScore={isGraded ? assessment.score : undefined} />
           </div>
 
           {/* 채점완료: 결과 요약 + 피드백 */}
@@ -416,28 +426,83 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
           {(isSubmitted || isGraded) &&
             (assessment.submitted_files?.length ?? 0) > 0 && (
               <div>
-                <p className="text-body-sm font-semibold text-gray-700 mb-2">
-                  제출한 파일
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-body-sm font-semibold text-gray-700">
+                    제출한 파일
+                  </p>
+                  {/* 마감 전 재제출 버튼 */}
+                  {canResubmit && !resubmitting && (
+                    <button
+                      onClick={() => setResubmitting(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-semibold
+                        text-amber-700 bg-amber-50 border border-amber-200
+                        hover:bg-amber-100 transition-colors"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      파일 교체하기
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-2">
                   {assessment.submitted_files.map((file, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-body-sm text-blue-700"
+                      className={`flex items-center gap-2 p-2.5 rounded-lg text-body-sm border ${
+                        resubmitting
+                          ? 'bg-gray-50 border-gray-200 text-gray-400 line-through'
+                          : 'bg-blue-50 border-blue-100 text-blue-700'
+                      }`}
                     >
                       <Paperclip className="w-4 h-4 shrink-0" />
                       <span className="flex-1 truncate">{file.name}</span>
-                      <span className="text-caption text-blue-400 shrink-0">
+                      <span className="text-caption shrink-0 opacity-70">
                         {file.size}
                       </span>
                     </div>
                   ))}
-                  {assessment.submitted_at && (
+                  {assessment.submitted_at && !resubmitting && (
                     <p className="text-caption text-gray-400">
                       제출일시: {assessment.submitted_at}
                     </p>
                   )}
                 </div>
+
+                {/* 재제출 업로드 영역 */}
+                {resubmitting && (
+                  <div className="mt-4 space-y-3">
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                      <p className="text-caption text-amber-700">
+                        새 파일을 업로드하면 기존 제출 파일이 교체됩니다 · 마감:
+                        {assessment.period.end} 23:59
+                      </p>
+                    </div>
+                    <FileUploadArea
+                      files={uploadedFiles}
+                      onFilesChange={setUploadedFiles}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setResubmitting(false);
+                          setUploadedFiles([]);
+                        }}
+                        className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-600
+                          font-semibold text-body-sm hover:bg-gray-50 transition-colors"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={handleSubmit}
+                        disabled={uploadedFiles.length === 0 || submitting}
+                        className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white font-semibold text-body-sm
+                          hover:bg-amber-600 active:bg-amber-700 transition-colors
+                          disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {submitting ? '교체 중...' : '파일 교체 제출'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -45,6 +45,9 @@ const AssignmentManagement = lazy(
 const AssessmentManagement = lazy(
   () => import('@/pages/teacher/AssessmentManagement'),
 );
+const ProblemManagement = lazy(
+  () => import('@/pages/teacher/ProblemManagement'),
+);
 
 // Admin 페이지
 const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'));
@@ -61,12 +64,12 @@ const AdminCounselingSchedule = lazy(
 
 // 로그인 상태면 role 대시보드로, 아니면 랜딩페이지 표시
 function HomeRoute() {
-  const { isAuthenticated, role, loading } = useAuth()
-  if (loading) return null
-  if (!isAuthenticated) return <LandingPage />
-  if (role === 'teacher') return <Navigate to="/teacher" replace />
-  if (role === 'admin') return <Navigate to="/admin" replace />
-  return <Navigate to="/student" replace />
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <LandingPage />;
+  if (role === 'teacher') return <Navigate to="/teacher" replace />;
+  if (role === 'admin') return <Navigate to="/admin" replace />;
+  return <Navigate to="/student" replace />;
 }
 
 function PageLoader() {
@@ -281,6 +284,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="teacher">
               <AssessmentManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/problems"
+          element={
+            <ProtectedRoute role="teacher">
+              <ProblemManagement />
             </ProtectedRoute>
           }
         />

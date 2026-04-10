@@ -263,6 +263,7 @@ export default function EquipmentManagement() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="장비 등록"
+        persistent
       >
         <div className="space-y-4">
           <Input

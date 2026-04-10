@@ -220,6 +220,7 @@ export default function ProblemManagement() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="문제 추가"
+        persistent
       >
         <div className="space-y-4">
           <Input
@@ -335,6 +336,7 @@ export default function ProblemManagement() {
         isOpen={showAiModal}
         onClose={() => setShowAiModal(false)}
         title="AI 문제 자동생성"
+        persistent
       >
         <div className="space-y-4">
           <Select

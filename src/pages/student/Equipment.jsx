@@ -308,6 +308,7 @@ export default function Equipment() {
         onClose={closeModal}
         title="장비 대여 신청"
         maxWidth="max-w-sm"
+        persistent
       >
         {modal.item && (
           <div className="space-y-4">
@@ -357,6 +358,7 @@ export default function Equipment() {
         onClose={closeModal}
         title="장비 반납"
         maxWidth="max-w-sm"
+        persistent
       >
         {modal.item && (
           <div className="space-y-4">

@@ -920,6 +920,7 @@ export default function RoomReservation() {
           isOpen={showReserveModal}
           onClose={() => setShowReserveModal(false)}
           title="예약 확인"
+          persistent
         >
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">

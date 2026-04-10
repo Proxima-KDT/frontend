@@ -57,7 +57,7 @@ const mobileMenus = {
     },
   ],
   admin: [
-    { key: 'dashboard', label: '홈', icon: 'LayoutDashboard', path: '/admin' },
+    { key: 'dashboard', label: '수강생', icon: 'Users', path: '/admin' },
     {
       key: 'equipment',
       label: '장비',

@@ -12,4 +12,10 @@ export const interviewApi = {
 
   end: (data) =>
     axiosInstance.post('/api/interview/end', data).then((r) => r.data),
+
+  getHistory: () =>
+    axiosInstance.get('/api/interview/history').then((r) => r.data),
+
+  getHistoryDetail: (id) =>
+    axiosInstance.get(`/api/interview/history/${id}`).then((r) => r.data),
 }

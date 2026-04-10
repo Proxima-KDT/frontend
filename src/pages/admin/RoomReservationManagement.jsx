@@ -639,6 +639,7 @@ export default function RoomReservationManagement() {
             isOpen={showAddModal}
             onClose={() => setShowAddModal(false)}
             title={editTarget ? '방 정보 수정' : '새 방 추가'}
+            persistent
           >
             <div className="space-y-4">
               <Input

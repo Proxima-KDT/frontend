@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   CheckCircle,
   Clock,
@@ -8,6 +8,13 @@ import {
   ChevronRight,
   UserCheck,
   LogOut,
+  Users,
+  GripVertical,
+  Edit3,
+  Check,
+  X,
+  RotateCcw,
+  CalendarDays,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import Card from '@/components/common/Card';
@@ -16,14 +23,16 @@ import Button from '@/components/common/Button';
 import Tabs from '@/components/common/Tabs';
 import Table from '@/components/common/Table';
 import Drawer from '@/components/common/Drawer';
+import Skeleton from '@/components/common/Skeleton';
 import { useToast } from '@/context/ToastContext';
 
-const TODAY = '2026-04-08';
+// 실시간 오늘 날짜
+const TODAY = new Date().toISOString().slice(0, 10);
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 function formatDateLabel(dateStr) {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr + 'T00:00:00');
   const year = d.getFullYear();
   const month = d.getMonth() + 1;
   const day = d.getDate();
@@ -33,7 +42,7 @@ function formatDateLabel(dateStr) {
 
 // 평일 기준으로 delta일 이동 (주말 건너뜀)
 function moveDateByWorkday(dateStr, delta) {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr + 'T00:00:00');
   let moved = 0;
   const step = delta > 0 ? 1 : -1;
   while (moved < Math.abs(delta)) {
@@ -73,14 +82,351 @@ const STATUS_CONFIG = {
     icon: LogOut,
     iconClass: 'text-amber-500',
   },
-  null: {
-    label: '미확인',
-    badgeVariant: 'default',
-    bg: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-    icon: Minus,
-    iconClass: 'text-gray-400',
-  },
 };
+
+const NULL_CFG = {
+  label: '미확인',
+  badgeVariant: 'default',
+  bg: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+  icon: Minus,
+  iconClass: 'text-gray-400',
+};
+
+const getCfg = (status) => STATUS_CONFIG[status] ?? NULL_CFG;
+
+// ── 날짜 선택 캘린더 팝오버 ──────────────────────────────────────────
+function DatePickerPopover({ selectedDate, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [viewYear, setViewYear] = useState(() =>
+    new Date(selectedDate + 'T00:00:00').getFullYear(),
+  );
+  const [viewMonth, setViewMonth] = useState(() =>
+    new Date(selectedDate + 'T00:00:00').getMonth(),
+  );
+  const ref = useRef(null);
+
+  // 외부 클릭시 닫힘
+  useEffect(() => {
+    if (!open) return;
+    function onMouseDown(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [open]);
+
+  // 선택 날짜가 화살표로 바뀌면 캘린더 뷰도 동기화
+  useEffect(() => {
+    const d = new Date(selectedDate + 'T00:00:00');
+    setViewYear(d.getFullYear());
+    setViewMonth(d.getMonth());
+  }, [selectedDate]);
+
+  function prevMonth() {
+    if (viewMonth === 0) {
+      setViewYear((y) => y - 1);
+      setViewMonth(11);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  }
+
+  function nextMonth() {
+    const todayD = new Date(TODAY + 'T00:00:00');
+    const isLastAllowedMonth =
+      viewYear === todayD.getFullYear() && viewMonth >= todayD.getMonth();
+    if (isLastAllowedMonth) return;
+    if (viewMonth === 11) {
+      setViewYear((y) => y + 1);
+      setViewMonth(0);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  }
+
+  // 달력 셀 계산 (앞 공백 + 날짜들 + 뒤 공백)
+  const firstDow = new Date(viewYear, viewMonth, 1).getDay(); // 0=일
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  function handleDayClick(day) {
+    if (!day) return;
+    const ds = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dow = new Date(ds + 'T00:00:00').getDay();
+    if (dow === 0 || dow === 6) return; // 주말 차단
+    if (ds > TODAY) return; // 미래 차단
+    onChange(ds);
+    setOpen(false);
+  }
+
+  function goToday() {
+    onChange(TODAY);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors group"
+      >
+        <span className="text-body font-semibold text-gray-900">
+          {formatDateLabel(selectedDate)}
+        </span>
+        <CalendarDays
+          size={16}
+          className="text-gray-400 group-hover:text-primary-500 transition-colors"
+        />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 w-72">
+          {/* 월 이동 헤더 */}
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={prevMonth}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span className="text-body-sm font-bold text-gray-800">
+              {viewYear}년 {viewMonth + 1}월
+            </span>
+            <button
+              onClick={nextMonth}
+              disabled={(() => {
+                const todayD = new Date(TODAY + 'T00:00:00');
+                return (
+                  viewYear === todayD.getFullYear() &&
+                  viewMonth >= todayD.getMonth()
+                );
+              })()}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+
+          {/* 요일 헤더 */}
+          <div className="grid grid-cols-7 mb-1">
+            {DAY_NAMES.map((d, i) => (
+              <div
+                key={d}
+                className={`text-center text-caption font-semibold py-1 ${
+                  i === 0
+                    ? 'text-error-400'
+                    : i === 6
+                      ? 'text-primary-400'
+                      : 'text-gray-400'
+                }`}
+              >
+                {d}
+              </div>
+            ))}
+          </div>
+
+          {/* 날짜 그리드 */}
+          <div className="grid grid-cols-7 gap-y-0.5">
+            {cells.map((day, i) => {
+              if (!day) return <div key={`empty-${i}`} className="w-9 h-9" />;
+              const ds = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const dow = new Date(ds + 'T00:00:00').getDay();
+              const isWeekend = dow === 0 || dow === 6;
+              const isDayFuture = ds > TODAY;
+              const isDisabled = isWeekend || isDayFuture;
+              const isSelected = ds === selectedDate;
+              const isToday = ds === TODAY;
+              return (
+                <button
+                  key={day}
+                  onClick={() => handleDayClick(day)}
+                  disabled={isDisabled}
+                  className={`w-9 h-9 mx-auto rounded-full text-caption font-medium transition-colors flex items-center justify-center
+                    ${
+                      isSelected
+                        ? 'bg-primary-500 text-white'
+                        : isToday
+                          ? 'ring-2 ring-primary-400 text-primary-700 font-bold'
+                          : isDisabled
+                            ? 'text-gray-300 cursor-default'
+                            : 'text-gray-700 hover:bg-primary-50 hover:text-primary-700'
+                    }`}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 하단 오늘로 이동 */}
+          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-center">
+            <button
+              onClick={goToday}
+              className="text-caption font-semibold text-primary-600 hover:text-primary-800 px-3 py-1 rounded-lg hover:bg-primary-50 transition-colors"
+            >
+              오늘로 이동
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── 좌석 그리드 컴포넌트 (일반 뷰 + 드래그앤드롭 편집 뷰 통합) ──────────
+function SeatGrid({
+  seats,
+  editMode,
+  attendanceData,
+  draggedStudentId,
+  dragOverSeatId,
+  onStudentClick,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onDragEnd,
+}) {
+  const maxRow = seats.reduce((m, s) => Math.max(m, s.row ?? 0), 0);
+  const maxCol = seats.reduce((m, s) => Math.max(m, s.col ?? 0), 0);
+
+  if (maxRow === 0) return null;
+
+  return (
+    <div
+      className="grid gap-3 mb-4"
+      style={{ gridTemplateColumns: `repeat(${maxCol}, minmax(0, 1fr))` }}
+    >
+      {Array.from({ length: maxRow }, (_, ri) =>
+        Array.from({ length: maxCol }, (_, ci) => {
+          const row = ri + 1;
+          const col = ci + 1;
+          const seat = seats.find((s) => s.row === row && s.col === col);
+
+          if (!seat) {
+            return <div key={`gap-${row}-${col}`} className="min-h-20" />;
+          }
+
+          const isDragTarget = editMode && dragOverSeatId === seat.seat_id;
+          const isBeingDragged =
+            editMode &&
+            draggedStudentId &&
+            seat.student_id === draggedStudentId;
+
+          // ── 빈 자리 ──
+          if (!seat.student_id) {
+            return (
+              <div
+                key={seat.seat_id}
+                onDragOver={
+                  editMode ? (e) => onDragOver(e, seat.seat_id) : undefined
+                }
+                onDragLeave={editMode ? onDragLeave : undefined}
+                onDrop={editMode ? (e) => onDrop(e, seat.seat_id) : undefined}
+                className={`border-2 border-dashed rounded-xl min-h-20 flex flex-col items-center justify-center gap-1 transition-all duration-150
+                  ${
+                    editMode
+                      ? isDragTarget
+                        ? 'border-primary-400 bg-primary-50 scale-105'
+                        : 'border-gray-300 bg-gray-50 hover:border-primary-300 hover:bg-primary-50/50'
+                      : 'border-gray-300 bg-gray-50 opacity-50'
+                  }`}
+              >
+                {editMode && isDragTarget ? (
+                  <span className="text-caption text-primary-500 font-medium">
+                    여기에 배정
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-caption text-gray-400 font-medium">
+                      {seat.seat_id}
+                    </span>
+                    <span className="text-caption text-gray-300">빈 자리</span>
+                  </>
+                )}
+              </div>
+            );
+          }
+
+          // ── 학생 배정된 자리 ──
+          const attRecord = (attendanceData ?? []).find(
+            (r) => r.student_id === seat.student_id,
+          );
+          const cfg = getCfg(attRecord?.status);
+          const Icon = cfg.icon;
+
+          if (editMode) {
+            return (
+              <div
+                key={seat.seat_id}
+                draggable
+                onDragStart={(e) =>
+                  onDragStart(
+                    e,
+                    seat.student_id,
+                    seat.seat_id,
+                    seat.student_name,
+                  )
+                }
+                onDragEnd={onDragEnd}
+                onDragOver={(e) => onDragOver(e, seat.seat_id)}
+                onDragLeave={onDragLeave}
+                onDrop={(e) => onDrop(e, seat.seat_id)}
+                className={`border-2 rounded-xl p-3 min-h-20 flex flex-col justify-between cursor-grab active:cursor-grabbing select-none transition-all duration-150
+                  ${
+                    isBeingDragged
+                      ? 'opacity-40 scale-95 border-dashed border-gray-400'
+                      : isDragTarget
+                        ? 'border-primary-400 bg-primary-50 scale-105 shadow-lg'
+                        : 'border-gray-300 bg-white hover:border-primary-300 hover:shadow-md'
+                  }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-caption text-gray-400">
+                    {seat.seat_id}
+                  </span>
+                  <GripVertical size={13} className="text-gray-300" />
+                </div>
+                <p className="text-body-sm font-semibold text-gray-800 truncate">
+                  {seat.student_name}
+                </p>
+              </div>
+            );
+          }
+
+          // 일반 출석 뷰
+          return (
+            <button
+              key={seat.seat_id}
+              onClick={() =>
+                onStudentClick?.(
+                  seat.student_id,
+                  seat.student_name,
+                  seat.seat_id,
+                )
+              }
+              className={`border-2 rounded-xl p-3 text-left transition-colors cursor-pointer min-h-20 flex flex-col justify-between ${cfg.bg}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-caption text-gray-500 font-medium">
+                  {seat.seat_id}
+                </span>
+                <Icon size={14} className={cfg.iconClass} />
+              </div>
+              <p className="text-body-sm font-semibold text-gray-800 truncate">
+                {seat.student_name}
+              </p>
+              <p className={`text-caption ${cfg.iconClass}`}>{cfg.label}</p>
+            </button>
+          );
+        }),
+      )}
+    </div>
+  );
+}
 
 export default function AttendanceCheck() {
   const { showToast } = useToast();
@@ -94,10 +440,24 @@ export default function AttendanceCheck() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
-  useEffect(() => {
+  // 드래그앤드롭 편집 모드
+  const [editMode, setEditMode] = useState(false);
+  const [localSeats, setLocalSeats] = useState([]); // 편집 중 임시 상태
+  const [draggedStudentId, setDraggedStudentId] = useState(null);
+  const [draggedFromSeatId, setDraggedFromSeatId] = useState(null);
+  const [dragOverSeatId, setDragOverSeatId] = useState(null);
+  const [seatSaving, setSeatSaving] = useState(false);
+  const [draggedStudentName, setDraggedStudentName] = useState(null);
+  const pendingChangesRef = useRef({}); // { seatId: studentId | null }
+
+  const loadSeats = useCallback(() => {
+    setSeatsLoading(true);
     teacherApi
       .getClassroomSeats()
-      .then((data) => setSeats(data))
+      .then((data) => {
+        setSeats(data);
+        setLocalSeats(data);
+      })
       .catch(() =>
         showToast({
           message: '좌석 정보를 불러오지 못했습니다.',
@@ -108,6 +468,32 @@ export default function AttendanceCheck() {
   }, []);
 
   useEffect(() => {
+    // 좌석이 없으면 10개 자동 초기화 후 로드
+    teacherApi
+      .getClassroomSeats()
+      .then((data) => {
+        if (data.length === 0) {
+          return teacherApi
+            .initClassroomSeats()
+            .then(() => teacherApi.getClassroomSeats());
+        }
+        return data;
+      })
+      .then((data) => {
+        setSeats(data);
+        setLocalSeats(data);
+      })
+      .catch(() =>
+        showToast({
+          message: '좌석 정보를 불러오지 못했습니다.',
+          type: 'error',
+        }),
+      )
+      .finally(() => setSeatsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate > TODAY) return; // 미래 날짜는 API 호출 불필요
     if (attendanceData[selectedDate] !== undefined) return;
     setAttendanceLoading(true);
     teacherApi
@@ -125,7 +511,108 @@ export default function AttendanceCheck() {
       .finally(() => setAttendanceLoading(false));
   }, [selectedDate]);
 
-  // 선택된 날짜의 출석 레코드 (없는 날짜는 전원 미확인)
+  // 편집 모드 진입 — localSeats를 현재 seats로 초기화
+  function enterEditMode() {
+    setLocalSeats([...seats]);
+    pendingChangesRef.current = {};
+    setEditMode(true);
+  }
+
+  // 편집 취소
+  function cancelEditMode() {
+    setLocalSeats([...seats]);
+    pendingChangesRef.current = {};
+    setEditMode(false);
+    setDraggedStudentName(null);
+  }
+
+  // 편집 저장 — pendingChanges를 순차 API 호출
+  async function saveEditMode() {
+    const changes = Object.entries(pendingChangesRef.current);
+    if (changes.length === 0) {
+      setEditMode(false);
+      return;
+    }
+    setSeatSaving(true);
+    try {
+      for (const [seatId, studentId] of changes) {
+        await teacherApi.assignSeat(seatId, studentId);
+      }
+      // 저장 후 최신 데이터 다시 로드
+      const fresh = await teacherApi.getClassroomSeats();
+      setSeats(fresh);
+      setLocalSeats(fresh);
+      pendingChangesRef.current = {};
+      setEditMode(false);
+      showToast({ message: '좌석 배치가 저장되었습니다.', type: 'success' });
+    } catch {
+      showToast({ message: '저장에 실패했습니다.', type: 'error' });
+    } finally {
+      setSeatSaving(false);
+    }
+  }
+
+  // ── 드래그앤드롭 핸들러 ──────────────────────────
+  function handleDragStart(e, studentId, fromSeatId, studentName) {
+    setDraggedStudentId(studentId);
+    setDraggedFromSeatId(fromSeatId);
+    setDraggedStudentName(studentName ?? null);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleDragOver(e, targetSeatId) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverSeatId(targetSeatId);
+  }
+
+  function handleDragLeave() {
+    setDragOverSeatId(null);
+  }
+
+  function handleDrop(e, targetSeatId) {
+    e.preventDefault();
+    setDragOverSeatId(null);
+    if (!draggedStudentId || targetSeatId === draggedFromSeatId) {
+      setDraggedStudentId(null);
+      setDraggedFromSeatId(null);
+      setDraggedStudentName(null);
+      return;
+    }
+
+    const nameToAssign = draggedStudentName;
+    setLocalSeats((prev) => {
+      return prev.map((s) => {
+        if (draggedFromSeatId && s.seat_id === draggedFromSeatId) {
+          // 좌석에서 드래그한 경우에만 원래 자리 비움
+          pendingChangesRef.current[s.seat_id] = null;
+          return { ...s, student_id: null, student_name: null };
+        }
+        if (s.seat_id === targetSeatId) {
+          pendingChangesRef.current[s.seat_id] = draggedStudentId;
+          return {
+            ...s,
+            student_id: draggedStudentId,
+            student_name: nameToAssign ?? null,
+          };
+        }
+        return s;
+      });
+    });
+
+    setDraggedStudentId(null);
+    setDraggedFromSeatId(null);
+    setDraggedStudentName(null);
+  }
+
+  function handleDragEnd() {
+    setDraggedStudentId(null);
+    setDraggedFromSeatId(null);
+    setDraggedStudentName(null);
+    setDragOverSeatId(null);
+  }
+
+  // 선택된 날짜의 출석 레코드 (없는 날짜는 좌석 기반 미확인으로 초기화)
   const todayRecords =
     attendanceData[selectedDate] ??
     seats
@@ -138,7 +625,25 @@ export default function AttendanceCheck() {
         check_in_time: null,
       }));
 
+  // 좌석 배치 계획 존재 여부 (student_id가 배정된 좌석이 있는지)
+  const hasSeatingPlan = seats.some((s) => s.student_id);
+
+  // 좌석에 배정되지 않은 학생 목록 (편집 모드 중에는 localSeats 기준)
+  const assignedStudentIds = new Set(
+    (editMode ? localSeats : seats)
+      .filter((s) => s.student_id)
+      .map((s) => s.student_id),
+  );
+  const unassignedStudents = todayRecords.filter(
+    (r) => !assignedStudentIds.has(r.student_id),
+  );
+
+  // 좌석 그리드 크기 동적 계산
+  const maxRow = seats.reduce((m, s) => Math.max(m, s.row ?? 0), 0);
+  const maxCol = seats.reduce((m, s) => Math.max(m, s.col ?? 0), 0);
+
   // 통계
+  const total = todayRecords.length;
   const stats = {
     present: todayRecords.filter((r) => r.status === 'present').length,
     late: todayRecords.filter((r) => r.status === 'late').length,
@@ -146,19 +651,19 @@ export default function AttendanceCheck() {
     early_leave: todayRecords.filter((r) => r.status === 'early_leave').length,
     unknown: todayRecords.filter((r) => r.status === null).length,
   };
+  const confirmed = total - stats.unknown;
 
-  // 좌석별 출석 정보 조회
-  function getRecordForSeat(seatId) {
-    return todayRecords.find((r) => r.seat_id === seatId) ?? null;
+  function getRecordForStudent(studentId) {
+    return todayRecords.find((r) => r.student_id === studentId) ?? null;
   }
 
-  function handleSeatClick(seat) {
-    if (!seat.student_id) return;
-    const record = getRecordForSeat(seat.seat_id);
+  function handleStudentClick(studentId, studentName, seatId) {
+    if (isFuture) return; // 미래 날짜는 수정 불가
+    const record = getRecordForStudent(studentId);
     setSelectedRecord({
-      seat_id: seat.seat_id,
-      student_id: seat.student_id,
-      student_name: seat.student_name,
+      seat_id: seatId,
+      student_id: studentId,
+      student_name: studentName,
       status: record?.status ?? null,
       check_in_time: record?.check_in_time ?? null,
     });
@@ -175,17 +680,7 @@ export default function AttendanceCheck() {
       )
       .then(() => {
         setAttendanceData((prev) => {
-          const existing =
-            prev[selectedDate] ??
-            seats
-              .filter((s) => s.student_id)
-              .map((s) => ({
-                student_id: s.student_id,
-                student_name: s.student_name,
-                seat_id: s.seat_id,
-                status: null,
-                check_in_time: null,
-              }));
+          const existing = prev[selectedDate] ?? todayRecords;
           const updated = existing.map((r) =>
             r.student_id === selectedRecord.student_id
               ? { ...r, status: pendingStatus }
@@ -208,7 +703,7 @@ export default function AttendanceCheck() {
 
   // 목록 탭 필터
   const tabList = [
-    { key: 'all', label: '전체', count: todayRecords.length },
+    { key: 'all', label: '전체', count: total },
     { key: 'present', label: '출석', count: stats.present },
     { key: 'late', label: '지각', count: stats.late },
     { key: 'absent', label: '결석', count: stats.absent },
@@ -237,12 +732,12 @@ export default function AttendanceCheck() {
       key: 'seat_id',
       label: '좌석',
       render: (val) => (
-        <span className="text-body-sm text-gray-600">{val}</span>
+        <span className="text-body-sm text-gray-500">{val ?? '미배정'}</span>
       ),
     },
     {
       key: 'check_in_time',
-      label: '체크인 시간',
+      label: '체크인',
       render: (val) => (
         <span className="text-body-sm text-gray-500">{val ?? '-'}</span>
       ),
@@ -251,157 +746,282 @@ export default function AttendanceCheck() {
       key: 'status',
       label: '상태',
       render: (val) => {
-        const cfg = STATUS_CONFIG[val] ?? STATUS_CONFIG.null;
+        const cfg = getCfg(val);
         return <Badge variant={cfg.badgeVariant}>{cfg.label}</Badge>;
       },
     },
   ];
 
-  // 3행 × 3열 그리드
-  const rows = [1, 2, 3, 4];
-  const cols = [1, 2, 3];
+  const isFuture = selectedDate > TODAY;
+  const isLoading = seatsLoading || attendanceLoading;
 
   return (
     <div>
-      <h1 className="text-h1 font-bold text-gray-900 mb-4">출석 확인</h1>
+      {/* 헤더 */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-h1 font-bold text-gray-900">출석 확인</h1>
+        {!isLoading && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-xl">
+            <Users size={16} className="text-gray-500" />
+            <span className="text-body-sm font-semibold text-gray-700">
+              전체 {total}명
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* 날짜 네비게이션 */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-1 mb-5">
         <button
           onClick={() => setSelectedDate((d) => moveDateByWorkday(d, -1))}
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
         >
           <ChevronLeft size={20} />
         </button>
-        <span className="text-body font-semibold text-gray-900 min-w-[200px] text-center">
-          {formatDateLabel(selectedDate)}
-        </span>
+        <DatePickerPopover
+          selectedDate={selectedDate}
+          onChange={setSelectedDate}
+        />
         <button
           onClick={() => setSelectedDate((d) => moveDateByWorkday(d, 1))}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+          disabled={selectedDate >= TODAY}
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronRight size={20} />
         </button>
-        {selectedDate === TODAY && (
+        {selectedDate === TODAY ? (
           <span className="ml-1 text-caption text-primary-600 font-medium bg-primary-50 px-2 py-0.5 rounded-full">
             오늘
           </span>
+        ) : (
+          <button
+            onClick={() => setSelectedDate(TODAY)}
+            className="ml-1 text-caption text-primary-600 font-medium bg-primary-50 px-3 py-1 rounded-full hover:bg-primary-100 transition-colors"
+          >
+            오늘로 이동
+          </button>
         )}
       </div>
 
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-5 gap-3 mb-6">
-        <Card padding="p-4">
-          <p className="text-caption text-gray-500 mb-1">출석</p>
-          <p className="text-h2 font-bold text-success-600">
-            {stats.present}명
-          </p>
-        </Card>
-        <Card padding="p-4">
-          <p className="text-caption text-gray-500 mb-1">지각</p>
-          <p className="text-h2 font-bold text-warning-600">{stats.late}명</p>
-        </Card>
-        <Card padding="p-4">
-          <p className="text-caption text-gray-500 mb-1">결석</p>
-          <p className="text-h2 font-bold text-error-600">{stats.absent}명</p>
-        </Card>
-        <Card padding="p-4">
-          <p className="text-caption text-gray-500 mb-1">조퇴</p>
-          <p className="text-h2 font-bold text-amber-500">
-            {stats.early_leave}명
-          </p>
-        </Card>
-        <Card padding="p-4">
-          <p className="text-caption text-gray-500 mb-1">미확인</p>
-          <p className="text-h2 font-bold text-gray-500">{stats.unknown}명</p>
-        </Card>
-      </div>
+      {/* 통계 카드 (전체 포함 6개) */}
+      {isLoading ? (
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-5">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-5">
+          <Card padding="p-4" className="border-l-4 border-l-primary-400">
+            <p className="text-caption text-gray-500 mb-1">전체</p>
+            <p className="text-h2 font-bold text-primary-600">{total}명</p>
+          </Card>
+          <Card padding="p-4" className="border-l-4 border-l-success-400">
+            <p className="text-caption text-gray-500 mb-1">출석</p>
+            <p className="text-h2 font-bold text-success-600">
+              {stats.present}명
+            </p>
+          </Card>
+          <Card padding="p-4" className="border-l-4 border-l-warning-400">
+            <p className="text-caption text-gray-500 mb-1">지각</p>
+            <p className="text-h2 font-bold text-warning-600">{stats.late}명</p>
+          </Card>
+          <Card padding="p-4" className="border-l-4 border-l-error-400">
+            <p className="text-caption text-gray-500 mb-1">결석</p>
+            <p className="text-h2 font-bold text-error-600">{stats.absent}명</p>
+          </Card>
+          <Card padding="p-4" className="border-l-4 border-l-amber-400">
+            <p className="text-caption text-gray-500 mb-1">조퇴</p>
+            <p className="text-h2 font-bold text-amber-500">
+              {stats.early_leave}명
+            </p>
+          </Card>
+          <Card padding="p-4" className="border-l-4 border-l-gray-300">
+            <p className="text-caption text-gray-500 mb-1">미확인</p>
+            <p className="text-h2 font-bold text-gray-500">{stats.unknown}명</p>
+          </Card>
+        </div>
+      )}
 
       {/* 메인 2컬럼 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* 강의실 배치도 */}
+        {/* ── 강의실 배치도 ── */}
         <Card className="flex flex-col">
-          <p className="text-body-sm font-semibold text-gray-700 mb-4">
-            강의실 배치도
-          </p>
-
-          {/* 좌석 그리드 */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            {rows.flatMap((row) =>
-              cols.map((col) => {
-                const seat = seats.find((s) => s.row === row && s.col === col);
-                if (!seat) return null;
-
-                if (!seat.student_id) {
-                  return (
+          {/* 카드 헤더 */}
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-body-sm font-semibold text-gray-700">
+              강의실 배치도
+            </p>
+            <div className="flex items-center gap-2">
+              {!editMode && !isLoading && total > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      key={`${row}-${col}`}
-                      className="border-2 border-dashed border-gray-300 bg-gray-100 rounded-xl p-3 opacity-50 min-h-[90px] flex items-center justify-center"
+                      className="h-full bg-primary-500 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${total > 0 ? (confirmed / total) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-caption text-gray-500 font-medium">
+                    {confirmed}/{total}명
+                  </span>
+                </div>
+              )}
+              {/* 편집 모드 토글 버튼 */}
+              {!seatsLoading &&
+                (editMode ? (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={cancelEditMode}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-caption font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
-                      <span className="text-caption text-gray-400">빈자리</span>
-                    </div>
-                  );
-                }
-
-                const record = getRecordForSeat(seat.seat_id);
-                const status = record?.status ?? null;
-                const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.null;
-                const Icon = cfg.icon;
-
-                return (
+                      <X size={13} />
+                      취소
+                    </button>
+                    <button
+                      onClick={saveEditMode}
+                      disabled={seatSaving}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-caption font-medium text-white bg-primary-500 hover:bg-primary-600 transition-colors disabled:opacity-60"
+                    >
+                      <Check size={13} />
+                      {seatSaving ? '저장 중...' : '저장'}
+                    </button>
+                  </div>
+                ) : (
                   <button
-                    key={seat.seat_id}
-                    onClick={() => handleSeatClick(seat)}
-                    className={`border-2 rounded-xl p-3 text-left transition-colors cursor-pointer min-h-[90px] flex flex-col justify-between ${cfg.bg}`}
+                    onClick={enterEditMode}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-caption font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-caption text-gray-500 font-medium">
-                        {seat.seat_id}
-                      </span>
-                      <Icon size={16} className={cfg.iconClass} />
-                    </div>
-                    <p className="text-body-sm font-semibold text-gray-800">
-                      {seat.student_name}
-                    </p>
-                    <p className={`text-caption ${cfg.iconClass}`}>
-                      {status === 'present' ||
-                      status === 'late' ||
-                      status === 'early_leave'
-                        ? (record?.check_in_time ?? cfg.label)
-                        : cfg.label}
-                    </p>
+                    <Edit3 size={13} />
+                    자리 배치 편집
                   </button>
-                );
-              }),
-            )}
+                ))}
+            </div>
           </div>
 
+          {/* 편집 모드 안내 */}
+          {editMode && (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg">
+              <GripVertical size={14} className="text-primary-500 shrink-0" />
+              <p className="text-caption text-primary-700">
+                학생 카드를 드래그해서 다른 자리로 이동하세요. 빈 자리에
+                드롭하면 배정됩니다.
+              </p>
+            </div>
+          )}
+
+          {/* 미배정 학생 풀 (편집 모드) */}
+          {editMode && unassignedStudents.length > 0 && (
+            <div className="mb-3 p-3 bg-gray-50 border border-dashed border-gray-300 rounded-xl">
+              <p className="text-caption text-gray-500 font-medium mb-2">
+                미배정 학생 — 자리로 드래그해서 배정하세요
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {unassignedStudents.map((r) => (
+                  <div
+                    key={r.student_id}
+                    draggable
+                    onDragStart={(e) =>
+                      handleDragStart(e, r.student_id, null, r.student_name)
+                    }
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center gap-1.5 px-3 py-2 bg-white border-2 rounded-xl cursor-grab active:cursor-grabbing select-none transition-all duration-150 ${
+                      draggedStudentId === r.student_id
+                        ? 'opacity-40 scale-95 border-dashed border-gray-400'
+                        : 'border-gray-300 hover:border-primary-300 hover:shadow-sm'
+                    }`}
+                  >
+                    <GripVertical size={13} className="text-gray-300" />
+                    <span className="text-body-sm font-semibold text-gray-800">
+                      {r.student_name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 좌석 그리드 */}
+          {seatsLoading ? (
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <SeatGrid
+              seats={editMode ? localSeats : seats}
+              editMode={editMode}
+              attendanceData={attendanceData[selectedDate]}
+              draggedStudentId={draggedStudentId}
+              dragOverSeatId={dragOverSeatId}
+              onStudentClick={editMode ? null : handleStudentClick}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onDragEnd={handleDragEnd}
+            />
+          )}
+
+          {/* 미배정 학생 (일반 뷰) */}
+          {!editMode && !seatsLoading && unassignedStudents.length > 0 && (
+            <div className="mb-3 pt-3 border-t border-dashed border-gray-200">
+              <p className="text-caption text-gray-400 font-medium mb-2">
+                좌석 미배정
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {unassignedStudents.map((r) => {
+                  const cfg = getCfg(r.status);
+                  const Icon = cfg.icon;
+                  return (
+                    <button
+                      key={r.student_id}
+                      onClick={() =>
+                        handleStudentClick(r.student_id, r.student_name, null)
+                      }
+                      className={`flex items-center gap-1.5 px-3 py-2 border-2 rounded-xl transition-colors ${cfg.bg}`}
+                    >
+                      <Icon size={13} className={cfg.iconClass} />
+                      <span className="text-body-sm font-semibold text-gray-800">
+                        {r.student_name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* 강사석 */}
-          <div className="bg-primary-100 text-primary-700 text-caption font-medium text-center py-2 rounded-lg tracking-widest">
+          <div className="bg-primary-100 text-primary-700 text-caption font-medium text-center py-2 rounded-lg tracking-widest mt-auto">
             강 사 석
           </div>
 
-          {/* 범례 — 카드 하단 고정 */}
-          <div className="mt-auto pt-4 border-t border-gray-100 flex flex-wrap gap-3">
-            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
-              const Icon = cfg.icon;
-              return (
-                <div key={key} className="flex items-center gap-1.5">
-                  <Icon size={14} className={cfg.iconClass} />
-                  <span className="text-caption text-gray-600">
-                    {cfg.label}
-                  </span>
-                </div>
-              );
-            })}
-            <div className="flex items-center gap-1.5">
-              <div className="w-3.5 h-3.5 border-2 border-dashed border-gray-400 rounded" />
-              <span className="text-caption text-gray-600">빈자리</span>
+          {/* 범례 (출석 모드에서만 표시) */}
+          {!editMode && (
+            <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-3">
+              {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
+                const Icon = cfg.icon;
+                return (
+                  <div key={key} className="flex items-center gap-1.5">
+                    <Icon size={13} className={cfg.iconClass} />
+                    <span className="text-caption text-gray-500">
+                      {cfg.label}
+                    </span>
+                  </div>
+                );
+              })}
+              <div className="flex items-center gap-1.5">
+                <Minus size={13} className="text-gray-400" />
+                <span className="text-caption text-gray-500">미확인</span>
+              </div>
             </div>
-          </div>
+          )}
         </Card>
 
-        {/* 출석 목록 */}
+        {/* ── 출석 목록 ── */}
         <Card>
           <p className="text-body-sm font-semibold text-gray-700 mb-4">
             출석 목록
@@ -412,17 +1032,26 @@ export default function AttendanceCheck() {
             onChange={setActiveTab}
             className="mb-4"
           />
-          <Table
-            columns={tableColumns}
-            data={filteredRecords}
-            onRowClick={(record) => {
-              const seat = seats.find(
-                (s) => s.student_id === record.student_id,
-              );
-              if (seat) handleSeatClick(seat);
-            }}
-            emptyMessage="해당하는 학생이 없습니다."
-          />
+          {attendanceLoading ? (
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-12 rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <Table
+              columns={tableColumns}
+              data={filteredRecords}
+              onRowClick={(record) =>
+                handleStudentClick(
+                  record.student_id,
+                  record.student_name,
+                  record.seat_id,
+                )
+              }
+              emptyMessage="해당하는 학생이 없습니다."
+            />
+          )}
         </Card>
       </div>
 
@@ -448,7 +1077,9 @@ export default function AttendanceCheck() {
                   {selectedRecord.student_name}
                 </p>
                 <p className="text-body-sm text-gray-500">
-                  좌석 {selectedRecord.seat_id}
+                  {selectedRecord.seat_id
+                    ? `좌석 ${selectedRecord.seat_id}`
+                    : '좌석 미배정'}
                 </p>
               </div>
             </div>
@@ -470,7 +1101,7 @@ export default function AttendanceCheck() {
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {['present', 'late', 'absent', 'early_leave'].map((s) => {
-                  const cfg = STATUS_CONFIG[s];
+                  const cfg = getCfg(s);
                   const isSelected = pendingStatus === s;
                   const selectedStyle =
                     s === 'present'
@@ -510,4 +1141,61 @@ export default function AttendanceCheck() {
       </Drawer>
     </div>
   );
+}
+
+// 좌석별 출석 정보 조회
+function getRecordForSeat(seatId) {
+  return todayRecords.find((r) => r.seat_id === seatId) ?? null;
+}
+
+function handleSeatClick(seat) {
+  if (!seat.student_id) return;
+  const record = getRecordForSeat(seat.seat_id);
+  setSelectedRecord({
+    seat_id: seat.seat_id,
+    student_id: seat.student_id,
+    student_name: seat.student_name,
+    status: record?.status ?? null,
+    check_in_time: record?.check_in_time ?? null,
+  });
+  setPendingStatus(record?.status ?? null);
+}
+
+function handleSave() {
+  setSaving(true);
+  teacherApi
+    .updateAttendanceStatus(
+      selectedDate,
+      selectedRecord.student_id,
+      pendingStatus,
+    )
+    .then(() => {
+      setAttendanceData((prev) => {
+        const existing =
+          prev[selectedDate] ??
+          seats
+            .filter((s) => s.student_id)
+            .map((s) => ({
+              student_id: s.student_id,
+              student_name: s.student_name,
+              seat_id: s.seat_id,
+              status: null,
+              check_in_time: null,
+            }));
+        const updated = existing.map((r) =>
+          r.student_id === selectedRecord.student_id
+            ? { ...r, status: pendingStatus }
+            : r,
+        );
+        return { ...prev, [selectedDate]: updated };
+      });
+      showToast({
+        message: `${selectedRecord.student_name} 출석 상태가 수정되었습니다.`,
+        type: 'success',
+      });
+      setSelectedRecord(null);
+      setPendingStatus(null);
+    })
+    .catch(() => showToast({ message: '저장에 실패했습니다.', type: 'error' }))
+    .finally(() => setSaving(false));
 }
