@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Users, Calendar, FileText } from 'lucide-react';
+import { Users, Calendar } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import Card from '@/components/common/Card';
 import ProgressBar from '@/components/common/ProgressBar';
@@ -33,13 +33,6 @@ export default function TeacherDashboard() {
           students.length,
       )
     : 0;
-  const avgSubmission = students.length
-    ? Math.round(
-        students.reduce((sum, s) => sum + (s.submission_rate ?? 0), 0) /
-          students.length,
-      )
-    : 0;
-
   const stats = [
     {
       label: '전체 학생',
@@ -54,13 +47,6 @@ export default function TeacherDashboard() {
       icon: Calendar,
       color: 'text-success-500',
       bg: 'bg-success-50',
-    },
-    {
-      label: '과제 제출률',
-      value: `${avgSubmission}%`,
-      icon: FileText,
-      color: 'text-student-500',
-      bg: 'bg-student-50',
     },
   ];
 

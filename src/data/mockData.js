@@ -3914,10 +3914,10 @@ export const teacherMenuItems = [
 export const adminMenuItems = [
   {
     key: 'dashboard',
-    label: '대시보드',
-    icon: 'LayoutDashboard',
+    label: '수강생 현황',
+    icon: 'Users',
     path: '/admin',
-    group: '홈',
+    group: '수강생 관리',
   },
   {
     key: 'equipment',

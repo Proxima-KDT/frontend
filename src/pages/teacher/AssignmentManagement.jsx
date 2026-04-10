@@ -24,27 +24,34 @@ import Textarea from '@/components/common/Textarea';
 import ProgressBar from '@/components/common/ProgressBar';
 import { useToast } from '@/context/ToastContext';
 
-const SUBJECT_OPTIONS = [
-  { value: 'Python 기초', label: 'Python 기초' },
-  { value: 'JavaScript & React', label: 'JavaScript & React' },
-  { value: 'DB & SQL', label: 'DB & SQL' },
-  { value: '알고리즘 & 자료구조', label: '알고리즘 & 자료구조' },
-  { value: '풀스택 프로젝트', label: '풀스택 프로젝트' },
-  { value: 'ML/DL & 취업준비', label: 'ML/DL & 취업준비' },
-];
-
+// Phase 선택 하나로 과목(subject)도 자동 결정됨
 const PHASE_OPTIONS = [
-  { value: '1', label: 'Phase 1 — Python 기초' },
-  { value: '2', label: 'Phase 2 — JavaScript & React' },
-  { value: '3', label: 'Phase 3 — DB & SQL' },
-  { value: '4', label: 'Phase 4 — 알고리즘 & 자료구조' },
-  { value: '5', label: 'Phase 5 — 풀스택 프로젝트' },
-  { value: '6', label: 'Phase 6 — ML/DL & 취업준비' },
+  { value: '1', label: 'Phase 1 — Python 기초', subject: 'Python 기초' },
+  {
+    value: '2',
+    label: 'Phase 2 — JavaScript & React',
+    subject: 'JavaScript & React',
+  },
+  { value: '3', label: 'Phase 3 — DB & SQL', subject: 'DB & SQL' },
+  {
+    value: '4',
+    label: 'Phase 4 — 알고리즘 & 자료구조',
+    subject: '알고리즘 & 자료구조',
+  },
+  {
+    value: '5',
+    label: 'Phase 5 — 풀스택 프로젝트',
+    subject: '풀스택 프로젝트',
+  },
+  {
+    value: '6',
+    label: 'Phase 6 — ML/DL & 취업준비',
+    subject: 'ML/DL & 취업준비',
+  },
 ];
 
 const EMPTY_FORM = {
   title: '',
-  subject: '',
   phase: '',
   description: '',
   openDate: '',
@@ -102,18 +109,22 @@ function normalizeAssignments(data) {
     subject: a.subject,
     phase: a.phase,
     description: a.description,
-    openDate: a.open_date,
-    dueDate: a.due_date,
+    openDate: a.openDate ?? a.open_date ?? '',
+    dueDate: a.dueDate ?? a.due_date ?? '',
     rubric: a.rubric || [],
-    studentSubmissions: (a.student_submissions || []).map((s) => ({
-      studentId: s.student_id,
-      studentName: s.student_name,
+    studentSubmissions: (
+      a.studentSubmissions ??
+      a.student_submissions ??
+      []
+    ).map((s) => ({
+      studentId: s.studentId ?? s.student_id,
+      studentName: s.studentName ?? s.student_name,
       status: s.status || 'pending',
-      submittedAt: s.submitted_at || null,
+      submittedAt: s.submittedAt ?? s.submitted_at ?? null,
       files: s.files || [],
       score: s.score ?? null,
       feedback: s.feedback || null,
-      rubricScores: s.rubric_scores || null,
+      rubricScores: s.rubricScores ?? s.rubric_scores ?? null,
     })),
   }));
 }
@@ -132,6 +143,8 @@ export default function AssignmentManagement() {
   });
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAssignment, setNewAssignment] = useState({ ...EMPTY_FORM });
+  const [phaseFilter, setPhaseFilter] = useState(0); // 0 = 전체
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // assignment
 
   useEffect(() => {
     teacherApi
@@ -173,11 +186,12 @@ export default function AssignmentManagement() {
     }));
 
   const handleCreateAssignment = () => {
-    const { title, subject, phase, description, openDate, dueDate, rubric } =
+    const { title, phase, description, openDate, dueDate, rubric } =
       newAssignment;
+    // Phase에서 subject 자동 도출
+    const phaseOption = PHASE_OPTIONS.find((p) => p.value === String(phase));
     if (
       !title.trim() ||
-      !subject ||
       !phase ||
       !description.trim() ||
       !openDate ||
@@ -198,11 +212,11 @@ export default function AssignmentManagement() {
     }
     const payload = {
       title: title.trim(),
-      subject,
+      subject: phaseOption?.subject ?? '',
       phase: Number(phase),
       description: description.trim(),
-      open_date: openDate,
-      due_date: dueDate,
+      openDate,
+      dueDate,
       rubric: validRubric.map((r) => ({
         item: r.item.trim(),
         maxScore: Number(r.maxScore),
@@ -220,6 +234,26 @@ export default function AssignmentManagement() {
         showToast({ message: '과제 추가에 실패했습니다.', type: 'error' }),
       );
   };
+
+  const handleDeleteAssignment = (assignment) => {
+    teacherApi
+      .deleteAssignment(assignment.id)
+      .then(() => {
+        setAssignments((prev) => prev.filter((a) => a.id !== assignment.id));
+        setDeleteConfirm(null);
+        if (expandedId === assignment.id) setExpandedId(null);
+        showToast({ message: '과제가 삭제되었습니다.', type: 'success' });
+      })
+      .catch(() =>
+        showToast({ message: '삭제에 실패했습니다.', type: 'error' }),
+      );
+  };
+
+  // Phase 오름차순 정렬 후 필터 적용
+  const filteredAssignments = assignments
+    .slice()
+    .sort((a, b) => (a.phase ?? 99) - (b.phase ?? 99))
+    .filter((a) => phaseFilter === 0 || a.phase === phaseFilter);
 
   const totalPending = assignments.reduce(
     (acc, a) =>
@@ -249,25 +283,38 @@ export default function AssignmentManagement() {
   };
 
   const handleAiFeedback = () => {
+    const { assignment, student } = feedbackModal;
     setAiLoading(true);
-    setTimeout(() => {
-      const aiRubricScores = feedbackModal.assignment.rubric.map((r) => ({
-        item: r.item,
-        maxScore: r.maxScore,
-        score: Math.floor(r.maxScore * (0.7 + Math.random() * 0.28)),
-      }));
-      const aiTotal = aiRubricScores.reduce((sum, r) => sum + r.score, 0);
-      setFeedbackForm({
-        text: `AI 분석 결과: 전반적으로 과제의 요구사항을 충실히 이행하였습니다. 코드 구조와 논리 흐름이 명확하며 핵심 기능을 올바르게 구현하였습니다. 다만 일부 엣지 케이스 처리와 코드 주석 보완이 필요합니다. 전체적으로 ${aiTotal >= 80 ? '우수한' : '양호한'} 수준의 제출물입니다.`,
-        rubricScores: aiRubricScores,
-        score: aiTotal,
-      });
-      setAiLoading(false);
-      showToast({
-        message: 'AI 피드백이 생성되었습니다. 검토 후 확정하세요.',
-        type: 'info',
-      });
-    }, 2000);
+    teacherApi
+      .getAiAssignmentFeedback(assignment.id, student.studentId)
+      .then((result) => {
+        // 백엔드가 반환한 루브릭 점수로 폼 갱신
+        const merged = assignment.rubric.map((r) => {
+          const ai = result.rubricScores?.find((s) => s.item === r.item);
+          return {
+            item: r.item,
+            maxScore: r.maxScore,
+            score: ai ? ai.score : 0,
+          };
+        });
+        setFeedbackForm({
+          text: result.feedback || '',
+          rubricScores: merged,
+          score: merged.reduce((sum, r) => sum + r.score, 0),
+        });
+        const filesRead = result.filesRead ?? 0;
+        showToast({
+          message:
+            filesRead > 0
+              ? `AI 피드백이 생성되었습니다. (파일 ${filesRead}개 분석)`
+              : 'AI 피드백이 생성되었습니다. (제출 파일 없음 — 과제 정보 기반)',
+          type: 'info',
+        });
+      })
+      .catch(() => {
+        showToast({ message: 'AI 피드백 생성에 실패했습니다.', type: 'error' });
+      })
+      .finally(() => setAiLoading(false));
   };
 
   const handleRubricScoreChange = (item, value) => {
@@ -331,8 +378,40 @@ export default function AssignmentManagement() {
       );
   };
 
-  const handleConfirmSubmission = () => {
-    showToast({ message: '제출이 확인되었습니다.', type: 'success' });
+  const handleDownload = (assignment, student) => {
+    teacherApi
+      .getSubmissionDownloadUrls(assignment.id, student.studentId)
+      .then(({ files }) => {
+        if (!files?.length) {
+          showToast({ message: '다운로드할 파일이 없습니다.', type: 'info' });
+          return;
+        }
+        // fetch → Blob → objectURL 방식으로 크로스 오리진 다운로드 처리
+        // (a.download 속성은 동일 출처에서만 동작 — supabase.co URL 에서는 새 탭으로 열림)
+        files.forEach(({ name, url }) => {
+          fetch(url)
+            .then((res) => res.blob())
+            .then((blob) => {
+              const objectUrl = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = objectUrl;
+              a.download = name;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(objectUrl);
+            })
+            .catch(() =>
+              showToast({
+                message: `${name} 다운로드에 실패했습니다.`,
+                type: 'error',
+              }),
+            );
+        });
+      })
+      .catch(() =>
+        showToast({ message: '파일 다운로드에 실패했습니다.', type: 'error' }),
+      );
   };
 
   return (
@@ -393,9 +472,35 @@ export default function AssignmentManagement() {
         </Card>
       </div>
 
+      {/* Phase 탭 필터 */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {[0, 1, 2, 3, 4, 5, 6].map((p) => {
+          const count =
+            p === 0
+              ? assignments.length
+              : assignments.filter((a) => a.phase === p).length;
+          if (p !== 0 && count === 0) return null;
+          return (
+            <button
+              key={p}
+              onClick={() => setPhaseFilter(p)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                phaseFilter === p
+                  ? p === 0
+                    ? 'bg-gray-800 text-white'
+                    : `${PHASE_COLORS[(p - 1) % 6]} ring-2 ring-offset-1 ring-current`
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+            >
+              {p === 0 ? `전체 (${count})` : `Phase ${p} (${count})`}
+            </button>
+          );
+        })}
+      </div>
+
       {/* 과제 목록 */}
       <div className="space-y-3">
-        {assignments.map((assignment) => {
+        {filteredAssignments.map((assignment) => {
           const submitted = assignment.studentSubmissions.filter(
             (s) => s.status !== 'pending',
           ).length;
@@ -409,7 +514,7 @@ export default function AssignmentManagement() {
           const isExpanded = expandedId === assignment.id;
 
           return (
-            <Card key={assignment.id} padding="p-0">
+            <Card key={assignment.id} padding="p-0" className="relative">
               {/* 과제 헤더 */}
               <button
                 className="w-full flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 rounded-2xl transition-colors"
@@ -454,67 +559,132 @@ export default function AssignmentManagement() {
                 )}
               </button>
 
+              {/* 삭제 버튼 — 카드 우상단 */}
+              <button
+                className="absolute top-3 right-10 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                title="과제 삭제"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteConfirm(assignment);
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+
               {/* 학생 제출 목록 */}
               {isExpanded && (
-                <div className="border-t border-gray-100 p-4">
-                  {/* 제출률 프로그레스 */}
-                  <div className="mb-4">
-                    <ProgressBar
-                      value={
-                        total > 0 ? Math.round((submitted / total) * 100) : 0
-                      }
-                      label="제출률"
-                      color="bg-primary-500"
-                      size="sm"
-                    />
+                <div className="border-t border-gray-100">
+                  {/* ── 과제 정보 패널 ── */}
+                  <div className="p-4 bg-gray-50 border-b border-gray-100 space-y-3">
+                    {/* 기간 */}
+                    <div className="flex items-center gap-4 text-caption text-gray-500">
+                      <span>
+                        <span className="font-semibold text-gray-700">
+                          공개
+                        </span>{' '}
+                        {assignment.openDate || '—'}
+                      </span>
+                      <span className="text-gray-300">→</span>
+                      <span>
+                        <span className="font-semibold text-gray-700">
+                          마감
+                        </span>{' '}
+                        {assignment.dueDate || '—'}
+                      </span>
+                    </div>
+
+                    {/* 과제 설명 */}
+                    {assignment.description && (
+                      <p className="text-body-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                        {assignment.description}
+                      </p>
+                    )}
+
+                    {/* 루브릭 */}
+                    {assignment.rubric?.length > 0 && (
+                      <div>
+                        <p className="text-caption font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                          채점 기준
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {assignment.rubric.map((r) => (
+                            <span
+                              key={r.item}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-caption text-gray-700"
+                            >
+                              <span className="font-semibold">{r.item}</span>
+                              <span className="text-gray-400">
+                                {r.maxScore}점
+                              </span>
+                            </span>
+                          ))}
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-primary-50 border border-primary-100 text-caption font-semibold text-primary-600">
+                            총{' '}
+                            {assignment.rubric.reduce(
+                              (s, r) => s + (r.maxScore ?? 0),
+                              0,
+                            )}
+                            점
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* 학생 행 */}
-                  <div className="space-y-2">
-                    {assignment.studentSubmissions.map((student) => (
-                      <div
-                        key={student.studentId}
-                        className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-primary-600">
-                            {student.studentName[0]}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 text-sm">
-                            {student.studentName}
-                          </p>
-                          {student.submittedAt && (
-                            <p className="text-caption text-gray-500">
-                              {student.submittedAt}
+                  <div className="p-4">
+                    {/* 제출률 프로그레스 */}
+                    <div className="mb-4">
+                      <ProgressBar
+                        value={
+                          total > 0 ? Math.round((submitted / total) * 100) : 0
+                        }
+                        label="제출률"
+                        color="bg-primary-500"
+                        size="sm"
+                      />
+                    </div>
+
+                    {/* 학생 행 */}
+                    <div className="space-y-2">
+                      {assignment.studentSubmissions.map((student) => (
+                        <div
+                          key={student.studentId}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                            <span className="text-xs font-bold text-primary-600">
+                              {student.studentName[0]}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 text-sm">
+                              {student.studentName}
                             </p>
+                            {student.submittedAt && (
+                              <p className="text-caption text-gray-500">
+                                {student.submittedAt}
+                              </p>
+                            )}
+                          </div>
+                          <StatusBadge status={student.status} />
+                          {student.score !== null && (
+                            <span className="font-bold text-gray-900 text-sm">
+                              {student.score}점
+                            </span>
                           )}
-                        </div>
-                        <StatusBadge status={student.status} />
-                        {student.score !== null && (
-                          <span className="font-bold text-gray-900 text-sm">
-                            {student.score}점
-                          </span>
-                        )}
-                        {student.files.length > 0 && (
-                          <button
-                            className="p-1.5 rounded-lg hover:bg-white text-gray-500 cursor-pointer transition-colors"
-                            title="파일 다운로드"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                        )}
-                        <div className="flex gap-1.5 shrink-0">
-                          {student.status === 'submitted' && (
-                            <>
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={handleConfirmSubmission}
-                              >
-                                제출 확인
-                              </Button>
+                          {student.files.length > 0 && (
+                            <button
+                              className="p-1.5 rounded-lg hover:bg-white text-gray-500 cursor-pointer transition-colors"
+                              title="파일 다운로드"
+                              onClick={() =>
+                                handleDownload(assignment, student)
+                              }
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          )}
+                          <div className="flex gap-1.5 shrink-0">
+                            {student.status === 'submitted' && (
                               <Button
                                 variant="primary"
                                 size="sm"
@@ -525,27 +695,27 @@ export default function AssignmentManagement() {
                               >
                                 피드백
                               </Button>
-                            </>
-                          )}
-                          {student.status === 'graded' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                openFeedbackModal(assignment, student)
-                              }
-                            >
-                              수정
-                            </Button>
-                          )}
-                          {student.status === 'resubmit_required' && (
-                            <span className="text-xs text-orange-600 font-medium px-1">
-                              재제출 대기중
-                            </span>
-                          )}
+                            )}
+                            {student.status === 'graded' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  openFeedbackModal(assignment, student)
+                                }
+                              >
+                                수정
+                              </Button>
+                            )}
+                            {student.status === 'resubmit_required' && (
+                              <span className="text-xs text-orange-600 font-medium px-1">
+                                재제출 대기중
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -562,6 +732,7 @@ export default function AssignmentManagement() {
           setNewAssignment({ ...EMPTY_FORM });
         }}
         title="과제 추가"
+        persistent
         maxWidth="max-w-[560px]"
       >
         <div className="space-y-4">
@@ -573,27 +744,14 @@ export default function AssignmentManagement() {
               setNewAssignment((prev) => ({ ...prev, title: e.target.value }))
             }
           />
-          <div className="grid grid-cols-2 gap-3">
-            <Select
-              label="과목"
-              options={SUBJECT_OPTIONS}
-              value={newAssignment.subject}
-              onChange={(e) =>
-                setNewAssignment((prev) => ({
-                  ...prev,
-                  subject: e.target.value,
-                }))
-              }
-            />
-            <Select
-              label="Phase"
-              options={PHASE_OPTIONS}
-              value={newAssignment.phase}
-              onChange={(e) =>
-                setNewAssignment((prev) => ({ ...prev, phase: e.target.value }))
-              }
-            />
-          </div>
+          <Select
+            label="Phase (과목 자동 설정)"
+            options={PHASE_OPTIONS}
+            value={newAssignment.phase}
+            onChange={(e) =>
+              setNewAssignment((prev) => ({ ...prev, phase: e.target.value }))
+            }
+          />
           <Textarea
             label="과제 설명"
             placeholder="과제의 요구사항을 상세히 작성하세요."
@@ -700,6 +858,7 @@ export default function AssignmentManagement() {
             setAiLoading(false);
           }}
           title={`피드백 작성 — ${feedbackModal.student.studentName}`}
+          persistent
           maxWidth="max-w-[560px]"
         >
           <div className="space-y-5">
@@ -786,6 +945,43 @@ export default function AssignmentManagement() {
                 disabled={!feedbackForm.text.trim()}
               >
                 채점 확정
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* 삭제 확인 모달 */}
+      {deleteConfirm && (
+        <Modal
+          isOpen={!!deleteConfirm}
+          onClose={() => setDeleteConfirm(null)}
+          title="과제 삭제"
+          maxWidth="max-w-sm"
+        >
+          <div className="space-y-4">
+            <p className="text-body-sm text-gray-600">
+              <span className="font-semibold text-gray-900">
+                {deleteConfirm.title}
+              </span>{' '}
+              과제를 삭제하면 모든 제출 기록도 함께 삭제됩니다.
+              <br />
+              정말 삭제하시겠습니까?
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => setDeleteConfirm(null)}
+              >
+                취소
+              </Button>
+              <Button
+                variant="danger"
+                className="flex-1"
+                onClick={() => handleDeleteAssignment(deleteConfirm)}
+              >
+                삭제
               </Button>
             </div>
           </div>

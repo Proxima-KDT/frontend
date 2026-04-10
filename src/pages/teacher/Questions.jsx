@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { questionsApi } from '@/api/questions';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -9,11 +10,34 @@ import Drawer from '@/components/common/Drawer';
 import Textarea from '@/components/common/Textarea';
 import { useToast } from '@/context/ToastContext';
 
+const PAGE_SIZE = 10;
+
+function formatDate(iso) {
+  if (!iso) return '-';
+  const date = new Date(iso);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return '방금 전';
+  if (diffMins < 60) return `${diffMins}분 전`;
+  if (diffHours < 24) return `${diffHours}시간 전`;
+  if (diffDays < 7) return `${diffDays}일 전`;
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 export default function TeacherQuestions() {
   const { showToast } = useToast();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [answerDraft, setAnswerDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -36,10 +60,36 @@ export default function TeacherQuestions() {
   const answeredCount = questions.filter((q) => !!q.answer).length;
 
   const filtered = questions.filter((q) => {
-    if (activeTab === 'unanswered') return !q.answer;
-    if (activeTab === 'answered') return !!q.answer;
-    return true;
+    const matchTab =
+      activeTab === 'unanswered'
+        ? !q.answer
+        : activeTab === 'answered'
+          ? !!q.answer
+          : true;
+    const q2 = searchQuery.trim().toLowerCase();
+    const matchSearch =
+      !q2 ||
+      q.content.toLowerCase().includes(q2) ||
+      (!q.is_anonymous && q.author?.toLowerCase().includes(q2));
+    return matchTab && matchSearch;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedData = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
 
   const tabs = [
     { key: 'all', label: '전체', count: totalCount },
@@ -62,14 +112,18 @@ export default function TeacherQuestions() {
         row.is_anonymous ? (
           <span className="text-body-sm text-gray-400 italic">익명</span>
         ) : (
-          <span className="text-body-sm text-gray-700">{val}</span>
+          <span className="text-body-sm text-gray-700">
+            {val || '이름 없음'}
+          </span>
         ),
     },
     {
       key: 'created_at',
       label: '등록일시',
       render: (val) => (
-        <span className="text-body-sm text-gray-500">{val}</span>
+        <span className="text-body-sm text-gray-500" title={val}>
+          {formatDate(val)}
+        </span>
       ),
     },
     {
@@ -148,16 +202,94 @@ export default function TeacherQuestions() {
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
-            onChange={setActiveTab}
+            onChange={handleTabChange}
             className="mb-4"
           />
         </div>
+
+        {/* 검색창 */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder="질문 내용 또는 작성자 이름으로 검색"
+            className="w-full pl-9 pr-4 py-2 text-body-sm border border-gray-200 rounded-xl outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-colors"
+          />
+        </div>
+
         <Table
           columns={columns}
-          data={filtered}
+          data={pagedData}
           onRowClick={handleRowClick}
-          emptyMessage="해당하는 질문이 없습니다."
+          emptyMessage={
+            searchQuery
+              ? `"${searchQuery}"에 해당하는 질문이 없습니다.`
+              : '해당하는 질문이 없습니다.'
+          }
         />
+
+        {/* 페이지네이션 */}
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <span className="text-caption text-gray-400">
+              {(safePage - 1) * PAGE_SIZE + 1}–
+              {Math.min(safePage * PAGE_SIZE, filtered.length)} / 전체{' '}
+              {filtered.length}건
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(
+                  (p) =>
+                    p === 1 || p === totalPages || Math.abs(p - safePage) <= 2,
+                )
+                .reduce((acc, p, idx, arr) => {
+                  if (idx > 0 && p - arr[idx - 1] > 1) acc.push('…');
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, idx) =>
+                  p === '…' ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-1 text-gray-400 text-body-sm"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`min-w-8 h-8 rounded-lg text-body-sm font-medium transition-colors ${
+                        p === safePage
+                          ? 'bg-primary-600 text-white'
+                          : 'hover:bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={safePage === totalPages}
+                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* 질문 상세 Drawer */}
@@ -181,11 +313,14 @@ export default function TeacherQuestions() {
                   </span>
                 ) : (
                   <span className="text-body-sm text-gray-700">
-                    {selectedQuestion.author}
+                    {selectedQuestion.author || '이름 없음'}
                   </span>
                 )}
-                <span className="text-caption text-gray-400 ml-auto">
-                  {selectedQuestion.created_at}
+                <span
+                  className="text-caption text-gray-400 ml-auto"
+                  title={selectedQuestion.created_at}
+                >
+                  {formatDate(selectedQuestion.created_at)}
                 </span>
               </div>
               <div className="bg-gray-50 rounded-xl p-4">

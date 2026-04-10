@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { attendanceApi } from '@/api/attendance';
+import { profileApi } from '@/api/profile';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
@@ -23,6 +24,8 @@ const CHECKOUT_MINUTE = 50;
 export default function Attendance() {
   const [name, setName] = useState('');
   const [nameConfirmed, setNameConfirmed] = useState(false);
+  const [nameMismatch, setNameMismatch] = useState(false);
+  const [profileName, setProfileName] = useState('');
   const [signatureSubmitted, setSignatureSubmitted] = useState(false);
   const [checkoutDone, setCheckoutDone] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -44,15 +47,23 @@ export default function Attendance() {
 
   // 오늘 출석 상태 조회 → 이미 체크인/퇴실한 경우 UI 반영
   useEffect(() => {
+    // 프로필 이름 로드
+    profileApi
+      .getMe()
+      .then((p) => setProfileName(p.name ?? ''))
+      .catch(() => {});
+
     attendanceApi
       .getToday()
       .then((data) => {
         if (data?.status) {
           setNameConfirmed(true);
           setSignatureSubmitted(true);
-          if (data.status === 'early_leave') setEarlyLeaveDone(true);
-          if (data.status === 'present' || data.status === 'late')
-            setCheckoutDone(true);
+          // check_out_time이 있을 때만 퇴실 완료로 표시
+          if (data.check_out_time) {
+            if (data.status === 'early_leave') setEarlyLeaveDone(true);
+            else setCheckoutDone(true);
+          }
         }
       })
       .catch(() => {});
@@ -81,6 +92,17 @@ export default function Attendance() {
       minute: '2-digit',
       hour12: false,
     });
+
+  // 이름 확인: 프로필 이름과 비교
+  const handleConfirmName = () => {
+    if (!name.trim()) return;
+    if (profileName && name.trim() !== profileName.trim()) {
+      setNameMismatch(true);
+      return;
+    }
+    setNameMismatch(false);
+    setNameConfirmed(true);
+  };
 
   const handleSignatureSave = async (dataUrl) => {
     try {
@@ -289,58 +311,8 @@ export default function Attendance() {
             ) : null}
           </div>
 
-          {/* 이름 입력 + 확인 버튼 */}
-          <div className="mb-3">
-            <label className="block text-body-sm font-medium text-gray-700 mb-1">
-              이름 <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && name.trim() && !nameConfirmed) {
-                    setNameConfirmed(true);
-                  }
-                }}
-                placeholder="이름을 입력하세요"
-                disabled={nameConfirmed}
-                className={`flex-1 px-3 py-2 rounded-lg border text-body-sm transition-colors outline-none
-                  ${
-                    nameConfirmed
-                      ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
-                      : 'border-gray-300 bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100'
-                  }`}
-              />
-              <button
-                onClick={() => setNameConfirmed(true)}
-                disabled={!name.trim() || nameConfirmed}
-                className={`px-4 py-2 rounded-lg text-body-sm font-medium transition-colors whitespace-nowrap
-                  ${
-                    !name.trim() || nameConfirmed
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-student-500 hover:bg-student-600 text-white cursor-pointer'
-                  }`}
-              >
-                {nameConfirmed ? '확인됨' : '확인'}
-              </button>
-            </div>
-          </div>
-
-          <SignatureCanvas
-            onSave={handleSignatureSave}
-            disabled={!nameConfirmed}
-            submitted={signatureSubmitted}
-            onCheckout={() => setShowConfirm(true)}
-            checkoutDisabled={!isAfterCheckoutTime}
-            checkoutDone={checkoutDone}
-            onEarlyLeave={() => setShowEarlyLeaveConfirm(true)}
-            earlyLeaveDone={earlyLeaveDone}
-          />
-
           {/* 안내 규칙 - 2열 그리드 */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-4 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-gray-100">
             <div className="flex items-center gap-2 text-body-sm text-gray-600">
               <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
               <span>09:00 이전 → 출석</span>
@@ -358,6 +330,68 @@ export default function Attendance() {
               <span>17:50 이후 → 퇴실</span>
             </div>
           </div>
+
+          {/* 이름 입력 + 확인 버튼 */}
+          <div className="mb-3">
+            <label className="block text-body-sm font-medium text-gray-700 mb-1">
+              이름 <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setNameMismatch(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && name.trim() && !nameConfirmed) {
+                    handleConfirmName();
+                  }
+                }}
+                placeholder="이름을 입력하세요"
+                disabled={nameConfirmed}
+                className={`flex-1 px-3 py-2 rounded-lg border text-body-sm transition-colors outline-none
+                  ${
+                    nameConfirmed
+                      ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
+                      : nameMismatch
+                        ? 'border-red-400 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100'
+                        : 'border-gray-300 bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100'
+                  }`}
+              />
+              <button
+                onClick={handleConfirmName}
+                disabled={!name.trim() || nameConfirmed}
+                className={`px-4 py-2 rounded-lg text-body-sm font-medium transition-colors whitespace-nowrap
+                  ${
+                    !name.trim() || nameConfirmed
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-student-500 hover:bg-student-600 text-white cursor-pointer'
+                  }`}
+              >
+                {nameConfirmed ? '확인됨' : '확인'}
+              </button>
+            </div>
+            {nameMismatch && (
+              <p className="flex items-center gap-1.5 mt-1.5 text-caption text-red-500">
+                <XCircle className="w-3.5 h-3.5 shrink-0" />
+                등록된 이름({profileName})과 다릅니다. 다시 확인해주세요.
+              </p>
+            )}
+          </div>
+
+          <SignatureCanvas
+            onSave={handleSignatureSave}
+            disabled={!nameConfirmed}
+            submitted={signatureSubmitted}
+            guideName={nameConfirmed ? name : ''}
+            onCheckout={() => setShowConfirm(true)}
+            checkoutDisabled={!isAfterCheckoutTime}
+            checkoutDone={checkoutDone}
+            onEarlyLeave={() => setShowEarlyLeaveConfirm(true)}
+            earlyLeaveDone={earlyLeaveDone}
+          />
         </Card>
 
         {/* Right: Calendar & Stats */}
@@ -587,7 +621,7 @@ export default function Attendance() {
               취소
             </Button>
             <Button
-              onClick={handleConfirmEarlyLeave}
+              onClick={() => handleConfirmEarlyLeave()}
               className="bg-amber-500 hover:bg-amber-600 text-white"
             >
               조퇴 확인

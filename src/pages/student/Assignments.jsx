@@ -47,6 +47,76 @@ const STATUS_CONFIG = {
 
 const FILTERS = ['전체', '미제출', '제출완료', '채점완료', '재제출 요청'];
 
+const PHASE_CONFIG = [
+  {
+    phase: 1,
+    label: 'Phase 1',
+    subject: 'Python 기초',
+    bg: 'bg-purple-100',
+    text: 'text-purple-700',
+    dot: 'bg-purple-500',
+    tab: 'bg-purple-500',
+  },
+  {
+    phase: 2,
+    label: 'Phase 2',
+    subject: 'JavaScript & React',
+    bg: 'bg-blue-100',
+    text: 'text-blue-700',
+    dot: 'bg-blue-500',
+    tab: 'bg-blue-500',
+  },
+  {
+    phase: 3,
+    label: 'Phase 3',
+    subject: 'DB & SQL',
+    bg: 'bg-green-100',
+    text: 'text-green-700',
+    dot: 'bg-green-500',
+    tab: 'bg-green-500',
+  },
+  {
+    phase: 4,
+    label: 'Phase 4',
+    subject: '알고리즘 & 자료구조',
+    bg: 'bg-orange-100',
+    text: 'text-orange-700',
+    dot: 'bg-orange-500',
+    tab: 'bg-orange-500',
+  },
+  {
+    phase: 5,
+    label: 'Phase 5',
+    subject: '풀스택 프로젝트',
+    bg: 'bg-pink-100',
+    text: 'text-pink-700',
+    dot: 'bg-pink-500',
+    tab: 'bg-pink-500',
+  },
+  {
+    phase: 6,
+    label: 'Phase 6',
+    subject: 'ML/DL & 취업준비',
+    bg: 'bg-indigo-100',
+    text: 'text-indigo-700',
+    dot: 'bg-indigo-500',
+    tab: 'bg-indigo-500',
+  },
+];
+
+function getPhaseCfg(phase) {
+  return (
+    PHASE_CONFIG.find((p) => p.phase === Number(phase)) ?? {
+      label: `Phase ${phase}`,
+      subject: '',
+      bg: 'bg-gray-100',
+      text: 'text-gray-600',
+      dot: 'bg-gray-400',
+      tab: 'bg-gray-400',
+    }
+  );
+}
+
 function getDDay(dueDate) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -215,14 +285,24 @@ function FileUploadArea({ files, onFilesChange }) {
   );
 }
 
-function AssignmentCard({ assignment, onSubmitted }) {
+function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
   const { showToast } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingPath, setDeletingPath] = useState(null); // 삭제 중인 파일 path
+  // 제출 파일 목록은 로컬에서 관리 (삭제 후 즉시 반영)
+  const [localSubmittedFiles, setLocalSubmittedFiles] = useState(
+    assignment.submitted_files ?? [],
+  );
 
   const canSubmit =
     assignment.status === 'pending' ||
+    assignment.status === 'resubmit_required';
+
+  // 파일 삭제 가능 조건: 채점 완료가 아닌 제출 상태
+  const canDeleteFile =
+    assignment.status === 'submitted' ||
     assignment.status === 'resubmit_required';
 
   const handleSubmit = async () => {
@@ -245,6 +325,21 @@ function AssignmentCard({ assignment, onSubmitted }) {
     }
   };
 
+  const handleDeleteFile = async (filePath) => {
+    setDeletingPath(filePath);
+    try {
+      const result = await assignmentsApi.deleteFile(assignment.id, filePath);
+      setLocalSubmittedFiles(result.submitted_files);
+      showToast({ type: 'success', message: '파일이 삭제되었습니다.' });
+      // 부모에게 상태 변경 알림 (모두 삭제 시 pending으로 복원 등)
+      onFileDeleted?.(assignment.id, result.status, result.submitted_files);
+    } catch {
+      showToast({ type: 'error', message: '파일 삭제에 실패했습니다.' });
+    } finally {
+      setDeletingPath(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       {/* 카드 헤더 */}
@@ -255,9 +350,31 @@ function AssignmentCard({ assignment, onSubmitted }) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1.5">
-              <span className="text-caption text-gray-400 font-medium">
-                {assignment.subject}
-              </span>
+              {/* Phase 뱃지 (subject 포함) */}
+              {assignment.phase
+                ? (() => {
+                    const pcfg = getPhaseCfg(assignment.phase);
+                    return (
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold ${pcfg.bg} ${pcfg.text}`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${pcfg.dot} inline-block shrink-0`}
+                        />
+                        {pcfg.label}
+                        {assignment.subject && (
+                          <span className="font-medium opacity-75">
+                            · {assignment.subject}
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })()
+                : assignment.subject && (
+                    <span className="text-caption text-gray-400 font-medium">
+                      {assignment.subject}
+                    </span>
+                  )}
               <StatusBadge status={assignment.status} />
               {assignment.status !== 'graded' && (
                 <DueDateBadge
@@ -328,22 +445,38 @@ function AssignmentCard({ assignment, onSubmitted }) {
           )}
 
           {/* 제출된 파일 (이미 제출한 경우) */}
-          {(assignment.submitted_files?.length ?? 0) > 0 && (
+          {localSubmittedFiles.length > 0 && (
             <div>
               <p className="text-body-sm font-semibold text-gray-700 mb-2">
                 제출한 파일
               </p>
               <div className="space-y-2">
-                {assignment.submitted_files.map((file, i) => (
+                {localSubmittedFiles.map((file, i) => (
                   <div
                     key={i}
                     className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-body-sm text-blue-700"
                   >
                     <Paperclip className="w-4 h-4 shrink-0" />
                     <span className="flex-1 truncate">{file.name}</span>
-                    <span className="text-caption text-blue-400 shrink-0">
-                      {file.size}
-                    </span>
+                    {file.size && (
+                      <span className="text-caption text-blue-400 shrink-0">
+                        {file.size}
+                      </span>
+                    )}
+                    {canDeleteFile && (
+                      <button
+                        onClick={() => handleDeleteFile(file.path)}
+                        disabled={deletingPath === file.path}
+                        className="ml-1 p-1 rounded-md hover:bg-blue-100 active:bg-blue-200 transition-colors disabled:opacity-40"
+                        title="파일 삭제"
+                      >
+                        {deletingPath === file.path ? (
+                          <span className="w-3.5 h-3.5 block border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <X className="w-3.5 h-3.5 text-blue-500" />
+                        )}
+                      </button>
+                    )}
                   </div>
                 ))}
                 {assignment.submitted_at && (
@@ -416,9 +549,49 @@ function AssignmentCard({ assignment, onSubmitted }) {
   );
 }
 
+// ── Phase 그룹 헤더 ───────────────────────────────────────
+function PhaseGroupHeader({ phase, allItems }) {
+  const cfg = getPhaseCfg(phase);
+  const total = allItems.length;
+  const done = allItems.filter((a) => a.status === 'graded').length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${cfg.bg} ${cfg.text}`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} shrink-0`} />
+        {cfg.label}
+        <span className="font-medium opacity-75">· {cfg.subject}</span>
+      </span>
+      <div className="flex-1 h-px bg-gray-200" />
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-caption text-gray-400">
+          {done}/{total} 완료
+        </span>
+        <div className="w-14 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${cfg.dot}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── 메인 페이지 ───────────────────────────────────────────
+const STATUS_FILTER_VALUES = {
+  미제출: 'pending',
+  제출완료: 'submitted',
+  채점완료: 'graded',
+  '재제출 요청': 'resubmit_required',
+};
+
 export default function Assignments() {
-  const [filter, setFilter] = useState('전체');
+  const [statusFilter, setStatusFilter] = useState('전체');
+  const [phaseFilter, setPhaseFilter] = useState(0); // 0 = 전체
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -430,9 +603,17 @@ export default function Assignments() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Phase 탭에 표시할 Phase 목록 (데이터 기반)
+  const presentPhases = [
+    ...new Set(assignments.map((a) => Number(a.phase)).filter(Boolean)),
+  ].sort((a, b) => a - b);
+
   const filtered = assignments.filter((a) => {
-    if (filter === '전체') return true;
-    return STATUS_CONFIG[a.status]?.label === filter;
+    const phaseMatch = phaseFilter === 0 || Number(a.phase) === phaseFilter;
+    const statusMatch =
+      statusFilter === '전체' ||
+      STATUS_FILTER_VALUES[statusFilter] === a.status;
+    return phaseMatch && statusMatch;
   });
 
   const stats = {
@@ -443,6 +624,44 @@ export default function Assignments() {
       (a) => a.status === 'pending' || a.status === 'resubmit_required',
     ).length,
   };
+
+  // Phase 탭별 미완료 과제 수
+  function getPhasePendingCount(phase) {
+    return assignments.filter(
+      (a) =>
+        Number(a.phase) === phase &&
+        (a.status === 'pending' || a.status === 'resubmit_required'),
+    ).length;
+  }
+
+  const activePhaseCfg = phaseFilter > 0 ? getPhaseCfg(phaseFilter) : null;
+
+  // 파일 삭제 후 부모 상태 동기화
+  const handleFileDeleted = (assignmentId, newStatus, newFiles) => {
+    setAssignments((prev) =>
+      prev.map((a) =>
+        String(a.id) === String(assignmentId)
+          ? { ...a, status: newStatus, submitted_files: newFiles }
+          : a,
+      ),
+    );
+  };
+
+  // 전체 뷰용 Phase별 그룹핑 (phase 오름차순, 내부는 due_date 순 유지)
+  const phaseGroups =
+    phaseFilter === 0
+      ? (() => {
+          const map = new Map();
+          filtered.forEach((a) => {
+            const p = Number(a.phase) || 0;
+            if (!map.has(p)) map.set(p, []);
+            map.get(p).push(a);
+          });
+          return [...map.entries()]
+            .sort(([a], [b]) => a - b)
+            .map(([phase, items]) => ({ phase, items }));
+        })()
+      : [];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -475,14 +694,80 @@ export default function Assignments() {
         </div>
       </div>
 
-      {/* 필터 탭 */}
+      {/* Phase 탭 필터 */}
+      {!loading && presentPhases.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <button
+            onClick={() => setPhaseFilter(0)}
+            className={`shrink-0 px-4 py-2 rounded-xl text-body-sm font-semibold transition-all ${
+              phaseFilter === 0
+                ? 'bg-gray-800 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            전체 Phase
+          </button>
+          {presentPhases.map((p) => {
+            const cfg = getPhaseCfg(p);
+            const pendingCnt = getPhasePendingCount(p);
+            const isActive = phaseFilter === p;
+            return (
+              <button
+                key={p}
+                onClick={() => setPhaseFilter(p)}
+                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-body-sm font-semibold transition-all ${
+                  isActive
+                    ? `${cfg.tab} text-white shadow-sm`
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full inline-block ${isActive ? 'bg-white' : cfg.dot}`}
+                />
+                {cfg.label}
+                {pendingCnt > 0 && (
+                  <span
+                    className={`ml-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold ${
+                      isActive
+                        ? 'bg-white/30 text-white'
+                        : 'bg-orange-400 text-white'
+                    }`}
+                  >
+                    {pendingCnt}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 선택된 Phase 설명 배너 */}
+      {activePhaseCfg && (
+        <div
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl ${activePhaseCfg.bg}`}
+        >
+          <span
+            className={`w-2 h-2 rounded-full inline-block ${activePhaseCfg.dot}`}
+          />
+          <span className={`text-body-sm font-semibold ${activePhaseCfg.text}`}>
+            {activePhaseCfg.label} — {activePhaseCfg.subject}
+          </span>
+          <span className={`ml-auto text-caption ${activePhaseCfg.text}`}>
+            {assignments.filter((a) => Number(a.phase) === phaseFilter).length}
+            개 과제
+          </span>
+        </div>
+      )}
+
+      {/* 상태 필터 탭 */}
       <div className="flex gap-2 flex-wrap">
         {FILTERS.map((f) => (
           <button
             key={f}
-            onClick={() => setFilter(f)}
+            onClick={() => setStatusFilter(f)}
             className={`px-3.5 py-1.5 rounded-full text-body-sm font-medium transition-colors ${
-              filter === f
+              statusFilter === f
                 ? 'bg-student-600 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
@@ -500,27 +785,59 @@ export default function Assignments() {
           <Skeleton width="100%" height="80px" rounded="rounded-2xl" />
         </div>
       ) : filtered.length > 0 ? (
-        <div className="space-y-3">
-          {filtered.map((assignment) => (
-            <AssignmentCard
-              key={assignment.id}
-              assignment={assignment}
-              onSubmitted={(id) =>
-                setAssignments((prev) =>
-                  prev.map((a) =>
-                    String(a.id) === String(id)
-                      ? { ...a, status: 'submitted' }
-                      : a,
-                  ),
-                )
-              }
-            />
-          ))}
-        </div>
+        phaseFilter === 0 ? (
+          /* 전체 뷰: Phase 그룹 헤더 + 카드 */
+          <div className="space-y-6">
+            {phaseGroups.map(({ phase, items }) => (
+              <div key={phase} className="space-y-3">
+                <PhaseGroupHeader
+                  phase={phase}
+                  allItems={assignments.filter((a) => Number(a.phase) === phase)}
+                />
+                {items.map((assignment) => (
+                  <AssignmentCard
+                    key={assignment.id}
+                    assignment={assignment}
+                    onSubmitted={(id) =>
+                      setAssignments((prev) =>
+                        prev.map((a) =>
+                          String(a.id) === String(id)
+                            ? { ...a, status: 'submitted' }
+                            : a,
+                        ),
+                      )
+                    }
+                    onFileDeleted={handleFileDeleted}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* 특정 Phase 뷰: 기존 플랫 리스트 */
+          <div className="space-y-3">
+            {filtered.map((assignment) => (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                onSubmitted={(id) =>
+                  setAssignments((prev) =>
+                    prev.map((a) =>
+                      String(a.id) === String(id)
+                        ? { ...a, status: 'submitted' }
+                        : a,
+                    ),
+                  )
+                }
+                onFileDeleted={handleFileDeleted}
+              />
+            ))}
+          </div>
+        )
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
           <XCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-body text-gray-400">해당 상태의 과제가 없습니다</p>
+          <p className="text-body text-gray-400">해당하는 과제가 없습니다</p>
         </div>
       )}
     </div>

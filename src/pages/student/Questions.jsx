@@ -16,6 +16,9 @@ import {
   MessageCircle,
   Clock,
   Trash2,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react';
 
 export default function Questions() {
@@ -25,6 +28,9 @@ export default function Questions() {
   const [questions, setQuestions] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     questionsApi
@@ -42,6 +48,32 @@ export default function Questions() {
       showToast({ type: 'success', message: '질문이 등록되었습니다.' });
     } catch {
       showToast({ type: 'error', message: '질문 등록에 실패했습니다.' });
+    }
+  };
+
+  const handleEditStart = (q) => {
+    setEditingId(q.id);
+    setEditContent(q.content);
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditContent('');
+  };
+
+  const handleEditSave = async (id) => {
+    if (!editContent.trim()) return;
+    setSaving(true);
+    try {
+      const updated = await questionsApi.update(id, editContent.trim());
+      setQuestions((prev) => prev.map((q) => (q.id === id ? updated : q)));
+      setEditingId(null);
+      setEditContent('');
+      showToast({ type: 'success', message: '질문이 수정되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '수정에 실패했습니다.' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -108,66 +140,110 @@ export default function Questions() {
                 >
                   {/* 질문 행 */}
                   <div className="p-4 bg-gray-50">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className="text-body-sm text-gray-800 leading-relaxed flex-1">
-                        {q.content}
-                      </p>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {q.is_anonymous ? (
-                          <Badge variant="default">
-                            <EyeOff className="w-3 h-3 mr-1 inline-block -mt-0.5" />
-                            익명
-                          </Badge>
-                        ) : (
-                          <Badge variant="info">
-                            <Eye className="w-3 h-3 mr-1 inline-block -mt-0.5" />
-                            실명
-                          </Badge>
-                        )}
-                        {!q.answer && (
+                    {editingId === q.id ? (
+                      /* ── 편집 모드 ── */
+                      <div className="space-y-2">
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 text-body-sm text-gray-800 leading-relaxed border border-student-300 rounded-lg resize-none outline-none focus:ring-2 focus:ring-student-100 bg-white"
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => setDeleteConfirmId(q.id)}
-                            disabled={deletingId === q.id}
-                            className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="질문 삭제"
+                            onClick={handleEditCancel}
+                            disabled={saving}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-caption font-medium text-gray-500 hover:bg-gray-200 transition-colors disabled:opacity-40"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <X className="w-3.5 h-3.5" />
+                            취소
                           </button>
-                        )}
+                          <button
+                            onClick={() => handleEditSave(q.id)}
+                            disabled={saving || !editContent.trim()}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-caption font-medium bg-student-600 text-white hover:bg-student-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            {saving ? '저장 중...' : '저장'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      /* ── 일반 모드 ── */
+                      <>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <p className="text-body-sm text-gray-800 leading-relaxed flex-1">
+                            {q.content}
+                          </p>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {q.is_anonymous ? (
+                              <Badge variant="default">
+                                <EyeOff className="w-3 h-3 mr-1 inline-block -mt-0.5" />
+                                익명
+                              </Badge>
+                            ) : (
+                              <Badge variant="info">
+                                <Eye className="w-3 h-3 mr-1 inline-block -mt-0.5" />
+                                실명
+                              </Badge>
+                            )}
+                            {!q.answer && (
+                              <>
+                                <button
+                                  onClick={() => handleEditStart(q)}
+                                  disabled={!!editingId || deletingId === q.id}
+                                  className="p-1.5 rounded-lg text-gray-300 hover:text-student-500 hover:bg-student-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                  title="질문 수정"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirmId(q.id)}
+                                  disabled={!!editingId || deletingId === q.id}
+                                  className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                  title="질문 삭제"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-caption text-gray-400">
-                        {!q.is_anonymous && q.author && (
-                          <>
-                            <span>{q.author}</span>
-                            <span>&middot;</span>
-                          </>
-                        )}
-                        <span>{q.created_at}</span>
-                      </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-caption text-gray-400">
+                            {!q.is_anonymous && q.author && (
+                              <>
+                                <span>{q.author}</span>
+                                <span>&middot;</span>
+                              </>
+                            )}
+                            <span>{q.created_at}</span>
+                          </div>
 
-                      {q.answer ? (
-                        <button
-                          onClick={() => toggleAnswer(q.id)}
-                          className="flex items-center gap-1.5 text-caption font-medium text-student-600 hover:text-student-700 transition-colors"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          답변 확인
-                          {openAnswerId === q.id ? (
-                            <ChevronUp className="w-3.5 h-3.5" />
+                          {q.answer ? (
+                            <button
+                              onClick={() => toggleAnswer(q.id)}
+                              className="flex items-center gap-1.5 text-caption font-medium text-student-600 hover:text-student-700 transition-colors"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              답변 확인
+                              {openAnswerId === q.id ? (
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
+                            </button>
                           ) : (
-                            <ChevronDown className="w-3.5 h-3.5" />
+                            <span className="flex items-center gap-1 text-caption text-gray-400">
+                              <Clock className="w-3.5 h-3.5" />
+                              답변 대기중
+                            </span>
                           )}
-                        </button>
-                      ) : (
-                        <span className="flex items-center gap-1 text-caption text-gray-400">
-                          <Clock className="w-3.5 h-3.5" />
-                          답변 대기중
-                        </span>
-                      )}
-                    </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* 답변 영역 (아코디언) */}

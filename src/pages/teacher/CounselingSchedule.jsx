@@ -9,7 +9,8 @@ import Drawer from '@/components/common/Drawer';
 import { useToast } from '@/context/ToastContext';
 import { ChevronLeft, ChevronRight, User, X, Circle } from 'lucide-react';
 
-const TODAY = '2026-04-08';
+const TODAY = new Date().toISOString().slice(0, 10);
+const BOOKING_PAGE_SIZE = 8;
 
 const MONTH_NAMES = [
   '1월',
@@ -49,8 +50,9 @@ const TIME_SLOTS = [
 ];
 
 const STATUS_CONFIG = {
-  confirmed: { label: '확정', variant: 'success' },
   pending: { label: '대기중', variant: 'warning' },
+  confirmed: { label: '확정', variant: 'success' },
+  completed: { label: '완료', variant: 'info' },
   cancelled: { label: '취소됨', variant: 'error' },
 };
 
@@ -75,13 +77,16 @@ function formatDayOfWeek(dateStr) {
 
 export default function CounselingSchedule() {
   const { showToast } = useToast();
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(3);
+  const [currentYear, setCurrentYear] = useState(() =>
+    new Date().getFullYear(),
+  );
+  const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth());
   const [selectedDate, setSelectedDate] = useState(TODAY);
   const [blockedSlots, setBlockedSlots] = useState({});
   const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [bookingPage, setBookingPage] = useState(1);
 
   useEffect(() => {
     counselingManageApi
@@ -140,20 +145,30 @@ export default function CounselingSchedule() {
       setSelectedBooking(status.booking);
       return;
     }
-    const isBlocked = blockedSlots[selectedDate]?.includes(slot);
+    const isBlocked = status.type === 'blocked';
+    const prevSlots = blockedSlots[selectedDate] || [];
     const updatedSlots = isBlocked
-      ? (blockedSlots[selectedDate] || []).filter((s) => s !== slot)
-      : [...(blockedSlots[selectedDate] || []), slot];
+      ? prevSlots.filter((s) => s !== slot)
+      : [...prevSlots, slot];
+
+    // 낙관적 업데이트
     setBlockedSlots((prev) => ({ ...prev, [selectedDate]: updatedSlots }));
+
     counselingManageApi
       .updateBlockedSlots(selectedDate, updatedSlots)
-      .catch(() => {});
-    showToast({
-      message: isBlocked
-        ? `${slot} \ucc28\ub2e8\uc774 \ud574\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4.`
-        : `${slot} \uc2ac\ub86f\uc774 \ucc28\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4.`,
-      type: isBlocked ? 'info' : 'warning',
-    });
+      .then(() => {
+        showToast({
+          message: isBlocked
+            ? `${slot} 차단이 해제되었습니다.`
+            : `${slot} 슬롯이 차단되었습니다.`,
+          type: isBlocked ? 'info' : 'warning',
+        });
+      })
+      .catch(() => {
+        // 실패 시 이전 상태로 롤백
+        setBlockedSlots((prev) => ({ ...prev, [selectedDate]: prevSlots }));
+        showToast({ message: '슬롯 상태 변경에 실패했습니다.', type: 'error' });
+      });
   }
 
   function handleConfirmBooking() {
@@ -218,27 +233,49 @@ export default function CounselingSchedule() {
   }
 
   // 통계
-  const activeBookings = bookings.filter((b) => b.status !== 'cancelled');
-  const pendingCount = activeBookings.filter(
-    (b) => b.status === 'pending',
-  ).length;
-  const confirmedCount = activeBookings.filter(
+  const totalCount = bookings.length;
+  const pendingCount = bookings.filter((b) => b.status === 'pending').length;
+  const confirmedCount = bookings.filter(
     (b) => b.status === 'confirmed',
+  ).length;
+  const completedCount = bookings.filter(
+    (b) => b.status === 'completed',
+  ).length;
+  const cancelledCount = bookings.filter(
+    (b) => b.status === 'cancelled',
   ).length;
 
   // 하단 탭 필터
   const filteredBookings = bookings.filter((b) => {
-    if (b.status === 'cancelled') return false;
     if (activeTab === 'pending') return b.status === 'pending';
     if (activeTab === 'confirmed') return b.status === 'confirmed';
-    return true;
+    if (activeTab === 'completed') return b.status === 'completed';
+    if (activeTab === 'cancelled') return b.status === 'cancelled';
+    return true; // 전체
   });
 
   const tabs = [
-    { key: 'all', label: '전체', count: activeBookings.length },
+    { key: 'all', label: '전체', count: totalCount },
     { key: 'pending', label: '대기중', count: pendingCount },
     { key: 'confirmed', label: '확정', count: confirmedCount },
+    { key: 'completed', label: '완료', count: completedCount },
+    { key: 'cancelled', label: '취소', count: cancelledCount },
   ];
+
+  const totalBookingPages = Math.max(
+    1,
+    Math.ceil(filteredBookings.length / BOOKING_PAGE_SIZE),
+  );
+  const safeBookingPage = Math.min(bookingPage, totalBookingPages);
+  const pagedBookings = filteredBookings.slice(
+    (safeBookingPage - 1) * BOOKING_PAGE_SIZE,
+    safeBookingPage * BOOKING_PAGE_SIZE,
+  );
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setBookingPage(1);
+  };
 
   const tableColumns = [
     {
@@ -253,7 +290,7 @@ export default function CounselingSchedule() {
       label: '날짜·시간',
       render: (val, row) => (
         <span className="text-body-sm text-gray-600">
-          {val} {row.time}
+          {val} {row.time ? row.time.slice(0, 5) : ''}
         </span>
       ),
     },
@@ -273,42 +310,6 @@ export default function CounselingSchedule() {
         </Badge>
       ),
     },
-    {
-      key: 'id',
-      label: '액션',
-      render: (val, row) =>
-        row.status === 'pending' ? (
-          <Button
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              counselingManageApi
-                .updateBooking(row.id, 'confirm')
-                .then(() => {
-                  setBookings((prev) =>
-                    prev.map((b) =>
-                      b.id === row.id ? { ...b, status: 'confirmed' } : b,
-                    ),
-                  );
-                  showToast({
-                    message:
-                      '\uba74\ub2f4\uc774 \ud655\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
-                    type: 'success',
-                  });
-                })
-                .catch(() =>
-                  showToast({
-                    message:
-                      '\ud655\uc815\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.',
-                    type: 'error',
-                  }),
-                );
-            }}
-          >
-            확정
-          </Button>
-        ) : null,
-    },
   ];
 
   // 선택 날짜 표시 텍스트
@@ -321,12 +322,10 @@ export default function CounselingSchedule() {
       <h1 className="text-h1 font-bold text-gray-900 mb-6">상담일정</h1>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-4 gap-3 mb-6">
         <Card>
           <p className="text-caption text-gray-500 mb-1">전체 신청</p>
-          <p className="text-h2 font-bold text-gray-900">
-            {activeBookings.length}건
-          </p>
+          <p className="text-h2 font-bold text-gray-900">{totalCount}건</p>
         </Card>
         <Card>
           <p className="text-caption text-gray-500 mb-1">대기중</p>
@@ -336,6 +335,12 @@ export default function CounselingSchedule() {
           <p className="text-caption text-gray-500 mb-1">확정</p>
           <p className="text-h2 font-bold text-success-600">
             {confirmedCount}건
+          </p>
+        </Card>
+        <Card>
+          <p className="text-caption text-gray-500 mb-1">완료</p>
+          <p className="text-h2 font-bold text-primary-600">
+            {completedCount}건
           </p>
         </Card>
       </div>
@@ -521,16 +526,82 @@ export default function CounselingSchedule() {
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
-            onChange={setActiveTab}
+            onChange={handleTabChange}
             className="mb-4"
           />
         </div>
         <Table
           columns={tableColumns}
-          data={filteredBookings}
+          data={pagedBookings}
           onRowClick={(row) => setSelectedBooking(row)}
           emptyMessage="신청된 면담이 없습니다."
         />
+
+        {/* 페이지네이션 */}
+        {filteredBookings.length > 0 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <span className="text-caption text-gray-400">
+              {(safeBookingPage - 1) * BOOKING_PAGE_SIZE + 1}–
+              {Math.min(
+                safeBookingPage * BOOKING_PAGE_SIZE,
+                filteredBookings.length,
+              )}{' '}
+              / 전체 {filteredBookings.length}건
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setBookingPage((p) => Math.max(1, p - 1))}
+                disabled={safeBookingPage === 1}
+                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
+              </button>
+              {Array.from({ length: totalBookingPages }, (_, i) => i + 1)
+                .filter(
+                  (p) =>
+                    p === 1 ||
+                    p === totalBookingPages ||
+                    Math.abs(p - safeBookingPage) <= 2,
+                )
+                .reduce((acc, p, idx, arr) => {
+                  if (idx > 0 && p - arr[idx - 1] > 1) acc.push('…');
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, idx) =>
+                  p === '…' ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-1 text-gray-400 text-body-sm"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setBookingPage(p)}
+                      className={`min-w-8 h-8 rounded-lg text-body-sm font-medium transition-colors ${
+                        p === safeBookingPage
+                          ? 'bg-primary-600 text-white'
+                          : 'hover:bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+              <button
+                onClick={() =>
+                  setBookingPage((p) => Math.min(totalBookingPages, p + 1))
+                }
+                disabled={safeBookingPage === totalBookingPages}
+                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* 면담 상세 Drawer */}

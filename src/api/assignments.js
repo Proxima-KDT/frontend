@@ -11,4 +11,9 @@ export const assignmentsApi = {
 
   getFeedback: (id) =>
     axiosInstance.get(`/api/assignments/${id}/feedback`).then((r) => r.data),
+
+  deleteFile: (id, filePath) =>
+    axiosInstance
+      .delete(`/api/assignments/${id}/files`, { data: { file_path: filePath } })
+      .then((r) => r.data),
 }

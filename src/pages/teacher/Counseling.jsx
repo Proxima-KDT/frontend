@@ -6,6 +6,7 @@ import {
   FileAudio,
   MessageSquare,
   Sparkles,
+  User,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import { useToast } from '@/context/ToastContext';
@@ -28,19 +29,33 @@ export default function Counseling() {
   const [uploadResult, setUploadResult] = useState(null);
   const [records, setRecords] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(true);
+  const [students, setStudents] = useState([]);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     teacherApi
       .getCounselingRecords()
       .then((data) => setRecords(data))
-      .catch(() => {})
+      .catch(() => showToast('상담 이력을 불러오지 못했습니다.', 'error'))
       .finally(() => setRecordsLoading(false));
+
+    teacherApi
+      .getStudents()
+      .then((data) => setStudents(data))
+      .catch(() => {});
   }, []);
+
+  const selectedStudent = students.find((s) => s.id === selectedStudentId);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!selectedStudentId) {
+      showToast('먼저 학생을 선택해주세요.', 'error');
+      e.target.value = '';
+      return;
+    }
     startUpload(file);
     e.target.value = '';
   };
@@ -50,15 +65,16 @@ export default function Counseling() {
     setUploadResult(null);
     setCurrentStep(0);
     let step = 0;
+    // 진행 단계 애니메이션 (최대 3단계까지만, API 완료 전 멈춤)
     const interval = setInterval(() => {
       step++;
       setCurrentStep(step);
-      if (step >= 3) clearInterval(interval);
+      if (step >= 2) clearInterval(interval);
     }, 1500);
     const formData = new FormData();
     formData.append('file', file);
     teacherApi
-      .uploadCounselingAudio(formData)
+      .uploadCounselingAudio(formData, selectedStudent.name)
       .then((result) => {
         clearInterval(interval);
         setCurrentStep(3);
@@ -68,15 +84,30 @@ export default function Counseling() {
           setProcessing(false);
           setShowResult(true);
         }, 500);
+        showToast('상담 기록이 저장되었습니다.', 'success');
       })
       .catch(() => {
         clearInterval(interval);
         setProcessing(false);
         setCurrentStep(-1);
+        showToast('업로드 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
       });
   };
 
-  const handleDropzoneClick = () => fileInputRef.current?.click();
+  const handleDropzoneClick = () => {
+    if (!selectedStudentId) {
+      showToast('먼저 학생을 선택해주세요.', 'error');
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleReset = () => {
+    setShowResult(false);
+    setCurrentStep(-1);
+    setUploadResult(null);
+    setSelectedStudentId('');
+  };
 
   return (
     <div>
@@ -90,6 +121,26 @@ export default function Counseling() {
 
         {!processing && !showResult && (
           <>
+            {/* 학생 선택 */}
+            <div className="mb-4">
+              <label className="block text-body-sm font-medium text-gray-700 mb-1">
+                <User className="w-4 h-4 inline mr-1" />
+                상담 학생 선택 <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedStudentId}
+                onChange={(e) => setSelectedStudentId(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-body-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teacher-400 bg-white"
+              >
+                <option value="">학생을 선택하세요</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -99,11 +150,25 @@ export default function Counseling() {
             />
             <div
               onClick={handleDropzoneClick}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-colors"
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+                selectedStudentId
+                  ? 'border-gray-300 cursor-pointer hover:border-teacher-400 hover:bg-teacher-50/30'
+                  : 'border-gray-200 cursor-not-allowed bg-gray-50'
+              }`}
             >
-              <FileAudio className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-body font-medium text-gray-700 mb-1">
-                음성 파일을 드래그하거나 클릭하세요
+              <FileAudio
+                className={`w-12 h-12 mx-auto mb-3 ${
+                  selectedStudentId ? 'text-gray-300' : 'text-gray-200'
+                }`}
+              />
+              <p
+                className={`text-body font-medium mb-1 ${
+                  selectedStudentId ? 'text-gray-700' : 'text-gray-400'
+                }`}
+              >
+                {selectedStudentId
+                  ? '음성 파일을 드래그하거나 클릭하세요'
+                  : '학생을 먼저 선택하세요'}
               </p>
               <p className="text-caption text-gray-400">
                 MP3, WAV, M4A (최대 100MB)
@@ -156,9 +221,30 @@ export default function Counseling() {
           </div>
         )}
 
+        {/* 처리 중 안내 */}
+        {processing && (
+          <p className="text-body-sm text-gray-500 text-center mt-2">
+            AI가 음성을 분석 중입니다. 잠시만 기다려주세요…
+          </p>
+        )}
+
         {/* 결과 */}
         {showResult && (
           <div className="space-y-4">
+            <div className="flex items-center gap-2 text-body-sm text-gray-500 mb-2">
+              <User className="w-4 h-4" />
+              <span className="font-medium text-gray-700">
+                {uploadResult?.student_name}
+              </span>
+              <span>·</span>
+              <span>{uploadResult?.date}</span>
+              {uploadResult?.duration && (
+                <>
+                  <span>·</span>
+                  <span>{uploadResult.duration}</span>
+                </>
+              )}
+            </div>
             <div>
               <h3 className="text-body font-semibold text-gray-900 mb-2">
                 대화 요약
@@ -192,15 +278,7 @@ export default function Counseling() {
               </div>
             )}
 
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setShowResult(false);
-                setCurrentStep(-1);
-                setUploadResult(null);
-              }}
-            >
+            <Button variant="secondary" size="sm" onClick={handleReset}>
               새 파일 업로드
             </Button>
           </div>
@@ -220,25 +298,27 @@ export default function Counseling() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="text-body font-semibold text-gray-900">
-                    {record.student_name}
+                    {record.student_name || '—'}
                   </h3>
                   <div className="flex items-center gap-3 text-caption text-gray-500 mt-0.5">
                     <span>{record.date}</span>
-                    <span>{record.duration}</span>
+                    {record.duration && <span>{record.duration}</span>}
                   </div>
                 </div>
                 <Badge variant="default">완료</Badge>
               </div>
               <p className="text-body-sm text-gray-700 mb-3">
-                {record.summary}
+                {record.summary || '요약 없음'}
               </p>
-              <div className="flex flex-wrap gap-2">
-                {record.action_items.map((item, i) => (
-                  <Badge key={i} variant="info">
-                    {item}
-                  </Badge>
-                ))}
-              </div>
+              {record.action_items?.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {record.action_items.map((item, i) => (
+                    <Badge key={i} variant="info">
+                      {item}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </Card>
           ))
         )}

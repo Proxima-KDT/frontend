@@ -40,6 +40,7 @@ export default function Equipment() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [equipment, setEquipment] = useState([]);
+  const [pendingEquipmentIds, setPendingEquipmentIds] = useState(new Set());
   const [activeCategory, setActiveCategory] = useState('all');
   const [modal, setModal] = useState({ type: null, item: null });
   const [reason, setReason] = useState('');
@@ -49,6 +50,12 @@ export default function Equipment() {
     equipmentApi
       .getList()
       .then(setEquipment)
+      .catch(() => {});
+    equipmentApi
+      .getMyRequests()
+      .then((data) =>
+        setPendingEquipmentIds(new Set(data.pending_equipment_ids)),
+      )
       .catch(() => {});
   }, []);
 
@@ -81,21 +88,12 @@ export default function Equipment() {
     setActionLoading(true);
     try {
       await equipmentApi.borrow(modal.item.id, reason);
-      const today = new Date().toISOString().split('T')[0];
-      setEquipment((prev) =>
-        prev.map((e) =>
-          e.id === modal.item.id
-            ? {
-                ...e,
-                status: 'borrowed',
-                borrower_name: user?.name,
-                borrower_id: user?.id,
-                borrowed_at: today,
-              }
-            : e,
-        ),
-      );
-      showToast({ type: 'success', message: '대여 신청이 완료되었습니다.' });
+      setPendingEquipmentIds((prev) => new Set([...prev, modal.item.id]));
+      showToast({
+        type: 'success',
+        message:
+          '대여 신청이 접수되었습니다. 관리자 승인 후 대여가 확정됩니다.',
+      });
     } catch {
       showToast({ type: 'error', message: '대여 신청에 실패했습니다.' });
     } finally {
@@ -147,6 +145,14 @@ export default function Equipment() {
 
   const renderActionButton = (item) => {
     const isMine = item.borrower_id === user?.id;
+    // 내가 신청 중인 장비 (관리자 승인 대기)
+    if (item.status === 'available' && pendingEquipmentIds.has(item.id)) {
+      return (
+        <Button size="sm" fullWidth disabled>
+          신청중
+        </Button>
+      );
+    }
     switch (item.status) {
       case 'available':
         return (
@@ -302,6 +308,7 @@ export default function Equipment() {
         onClose={closeModal}
         title="장비 대여 신청"
         maxWidth="max-w-sm"
+        persistent
       >
         {modal.item && (
           <div className="space-y-4">
@@ -329,10 +336,15 @@ export default function Equipment() {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="ghost" fullWidth onClick={closeModal}>
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={closeModal}
+                disabled={actionLoading}
+              >
                 취소
               </Button>
-              <Button fullWidth onClick={handleBorrow}>
+              <Button fullWidth loading={actionLoading} onClick={handleBorrow}>
                 신청하기
               </Button>
             </div>
@@ -346,6 +358,7 @@ export default function Equipment() {
         onClose={closeModal}
         title="장비 반납"
         maxWidth="max-w-sm"
+        persistent
       >
         {modal.item && (
           <div className="space-y-4">
@@ -363,10 +376,20 @@ export default function Equipment() {
             </p>
 
             <div className="flex gap-3">
-              <Button variant="ghost" fullWidth onClick={closeModal}>
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={closeModal}
+                disabled={actionLoading}
+              >
                 취소
               </Button>
-              <Button variant="danger" fullWidth onClick={handleReturn}>
+              <Button
+                variant="danger"
+                fullWidth
+                loading={actionLoading}
+                onClick={handleReturn}
+              >
                 반납하기
               </Button>
             </div>

@@ -247,6 +247,19 @@ export default function RoomReservation() {
 
   // 예약 확정
   const handleConfirmReserve = async () => {
+    // 선택한 날짜의 기존 예약 건수 프론트 선제 검증
+    const todayReservations = myReservations.filter(
+      (r) => r.date === selectedDate && r.status !== 'cancelled',
+    );
+    if (todayReservations.length >= 3) {
+      showToast({
+        type: 'error',
+        message: '하루 최대 3건까지만 예약할 수 있습니다.',
+      });
+      setShowReserveModal(false);
+      setSelectedCell(null);
+      return;
+    }
     const idx = TIME_SLOTS.indexOf(selectedCell.timeSlot);
     const endTime = TIME_SLOTS[idx + 1] ?? '21:00';
     try {
@@ -296,11 +309,8 @@ export default function RoomReservation() {
   const handleConfirmCancel = async () => {
     try {
       await roomsApi.cancelReservation(cancelTarget.id);
-      setMyReservations((prev) =>
-        prev.map((r) =>
-          r.id === cancelTarget.id ? { ...r, status: 'cancelled' } : r,
-        ),
-      );
+      // 취소된 예약은 목록에서 즉시 제거
+      setMyReservations((prev) => prev.filter((r) => r.id !== cancelTarget.id));
       // 타임테이블에서 해당 슬롯 즉시 제거
       setBookedSlots((prev) =>
         prev.filter(
@@ -321,7 +331,7 @@ export default function RoomReservation() {
     }
   };
 
-  // 내 예약 탭 필터
+  // 내 예약 탭 필터 (오늘/예정만 - 지난 예약 탭 제거)
   const myResFiltered = useMemo(() => {
     if (myResTab === 'today')
       return myReservations.filter(
@@ -331,14 +341,7 @@ export default function RoomReservation() {
       return myReservations.filter(
         (r) => r.date > TODAY && r.status === 'confirmed',
       );
-    if (myResTab === 'past')
-      return myReservations.filter(
-        (r) =>
-          r.date < TODAY ||
-          r.status === 'completed' ||
-          r.status === 'cancelled',
-      );
-    return myReservations;
+    return myReservations.filter((r) => r.status !== 'cancelled');
   }, [myResTab, myReservations]);
 
   // ─── 셀 스타일 ────────────────────────────────────────────────────────────
@@ -410,7 +413,6 @@ export default function RoomReservation() {
   const myResTabItems = [
     { key: 'today', label: '오늘' },
     { key: 'upcoming', label: '예정' },
-    { key: 'past', label: '지난 예약' },
   ];
 
   const statusBadge = (status) => {
@@ -466,7 +468,7 @@ export default function RoomReservation() {
                 icon: Clock,
                 text: '이용 시간: 09:00 ~ 21:00 (1시간 단위 예약)',
               },
-              { icon: CalendarCheck, text: '1인 최대 2건/일 예약 가능' },
+              { icon: CalendarCheck, text: '1인 최대 3건/일 예약 가능' },
               {
                 icon: XCircle,
                 text: '예약 후 노쇼(미이용) 시 당일 예약 기능 제한',
@@ -621,9 +623,20 @@ export default function RoomReservation() {
             }
           />
           지금 이용 가능
-          {showAvailableNow && selectedDate === TODAY && (
-            <span className="bg-white/30 text-white text-xs rounded-full px-1.5">
-              {availableNowIds.length}
+          {selectedDate === TODAY && (
+            <span
+              className={`text-xs rounded-full px-1.5 ${
+                showAvailableNow
+                  ? 'bg-white/30 text-white'
+                  : 'bg-green-100 text-green-700'
+              }`}
+            >
+              {activeTab === 'study'
+                ? stats.studyAvailable
+                : activeTab === 'meeting'
+                  ? stats.meetingAvailable
+                  : stats.availableNow}
+              개
             </span>
           )}
         </button>
@@ -883,7 +896,7 @@ export default function RoomReservation() {
                         )}
                       </div>
                     </div>
-                    {res.status === 'confirmed' && (
+                    {res.status === 'confirmed' && res.date >= TODAY && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -907,6 +920,7 @@ export default function RoomReservation() {
           isOpen={showReserveModal}
           onClose={() => setShowReserveModal(false)}
           title="예약 확인"
+          persistent
         >
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
@@ -989,7 +1003,7 @@ export default function RoomReservation() {
                 fullWidth
                 onClick={() => setShowCancelModal(false)}
               >
-                닫기
+                아니요
               </Button>
               <Button
                 fullWidth
