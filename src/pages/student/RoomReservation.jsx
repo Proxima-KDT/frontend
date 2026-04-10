@@ -247,6 +247,19 @@ export default function RoomReservation() {
 
   // 예약 확정
   const handleConfirmReserve = async () => {
+    // 선택한 날짜의 기존 예약 건수 프론트 선제 검증
+    const todayReservations = myReservations.filter(
+      (r) => r.date === selectedDate && r.status !== 'cancelled',
+    );
+    if (todayReservations.length >= 3) {
+      showToast({
+        type: 'error',
+        message: '하루 최대 3건까지만 예약할 수 있습니다.',
+      });
+      setShowReserveModal(false);
+      setSelectedCell(null);
+      return;
+    }
     const idx = TIME_SLOTS.indexOf(selectedCell.timeSlot);
     const endTime = TIME_SLOTS[idx + 1] ?? '21:00';
     try {
@@ -455,7 +468,7 @@ export default function RoomReservation() {
                 icon: Clock,
                 text: '이용 시간: 09:00 ~ 21:00 (1시간 단위 예약)',
               },
-              { icon: CalendarCheck, text: '1인 최대 2건/일 예약 가능' },
+              { icon: CalendarCheck, text: '1인 최대 3건/일 예약 가능' },
               {
                 icon: XCircle,
                 text: '예약 후 노쇼(미이용) 시 당일 예약 기능 제한',
@@ -610,9 +623,20 @@ export default function RoomReservation() {
             }
           />
           지금 이용 가능
-          {showAvailableNow && selectedDate === TODAY && (
-            <span className="bg-white/30 text-white text-xs rounded-full px-1.5">
-              {availableNowIds.length}
+          {selectedDate === TODAY && (
+            <span
+              className={`text-xs rounded-full px-1.5 ${
+                showAvailableNow
+                  ? 'bg-white/30 text-white'
+                  : 'bg-green-100 text-green-700'
+              }`}
+            >
+              {activeTab === 'study'
+                ? stats.studyAvailable
+                : activeTab === 'meeting'
+                  ? stats.meetingAvailable
+                  : stats.availableNow}
+              개
             </span>
           )}
         </button>

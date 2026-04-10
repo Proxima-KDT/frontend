@@ -15,10 +15,12 @@ import {
   CalendarCheck,
   Calendar,
   MessageSquare,
+  GraduationCap,
+  Shield,
 } from 'lucide-react';
 
 const _now = new Date();
-const TODAY = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+const TODAY = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
 const TODAY_DATE = new Date(TODAY);
 
 const MONTH_NAMES = [
@@ -58,6 +60,35 @@ const TIME_SLOTS = [
   '17:30',
 ];
 
+const roleMeta = {
+  teacher: {
+    icon: GraduationCap,
+    bg: 'bg-blue-50',
+    iconColor: 'text-blue-500',
+    selectedBg: 'bg-blue-100',
+    selectedIconColor: 'text-blue-700',
+    border: 'border-blue-400',
+    badgeBg: 'bg-blue-100',
+    badgeText: 'text-blue-700',
+    nameColor: 'text-blue-900',
+    subColor: 'text-blue-600',
+  },
+  admin: {
+    icon: Shield,
+    bg: 'bg-purple-50',
+    iconColor: 'text-purple-500',
+    selectedBg: 'bg-purple-100',
+    selectedIconColor: 'text-purple-700',
+    border: 'border-purple-400',
+    badgeBg: 'bg-purple-100',
+    badgeText: 'text-purple-700',
+    nameColor: 'text-purple-900',
+    subColor: 'text-purple-600',
+  },
+};
+
+const defaultRoleMeta = roleMeta.teacher;
+
 const statusConfig = {
   confirmed: { label: '예약 확정', variant: 'success' },
   pending: { label: '검토 중', variant: 'warning' },
@@ -85,9 +116,15 @@ export default function CounselingBooking() {
   const [counselors, setCounselors] = useState([]);
   const [selectedCounselorId, setSelectedCounselorId] = useState(null);
   const [slots, setSlots] = useState({});
+  const [loadedMonths, setLoadedMonths] = useState(new Set());
   const now = new Date();
-  const [currentYear, setCurrentYear] = useState(now.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(now.getMonth());
+  const THIS_YEAR = now.getFullYear();
+  const THIS_MONTH = now.getMonth();
+  // 다음달까지만 예약 가능
+  const MAX_YEAR = THIS_MONTH === 11 ? THIS_YEAR + 1 : THIS_YEAR;
+  const MAX_MONTH = THIS_MONTH === 11 ? 0 : THIS_MONTH + 1;
+  const [currentYear, setCurrentYear] = useState(THIS_YEAR);
+  const [currentMonth, setCurrentMonth] = useState(THIS_MONTH);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [bookingReason, setBookingReason] = useState('');
@@ -95,18 +132,41 @@ export default function CounselingBooking() {
   const [cancelTargetId, setCancelTargetId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [myResTab, setMyResTab] = useState('upcoming');
+
+  // 슬롯을 특정 월단위로 가져와 누적하는 함수
+  const fetchMonthSlots = (counselorId, y, m) => {
+    const key = `${y}-${m}`;
+    counselingApi
+      .getSlots(counselorId, y, m + 1) // JS month 0-based → API 1-based
+      .then((data) => {
+        setSlots((prev) => ({ ...prev, ...data }));
+        setLoadedMonths((prev) => new Set([...prev, key]));
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
-    counselingApi.getCounselors().then((data) => {
-      setCounselors(data);
-      if (data.length > 0) setSelectedCounselorId(data[0].id);
-    }).catch(() => {});
-    counselingApi.getMyBookings().then(setBookings).catch(() => {});
+    counselingApi
+      .getCounselors()
+      .then((data) => {
+        setCounselors(data);
+        if (data.length > 0) setSelectedCounselorId(data[0].id);
+      })
+      .catch(() => {});
+    counselingApi
+      .getMyBookings()
+      .then(setBookings)
+      .catch(() => {});
   }, []);
 
+  // 상담사 변경 시: 현재월 + 다음달 슬롯 모두 로드
   useEffect(() => {
     if (!selectedCounselorId) return;
-    counselingApi.getSlots(selectedCounselorId).then((data) => setSlots(data)).catch(() => {});
+    setSlots({});
+    setLoadedMonths(new Set());
+    fetchMonthSlots(selectedCounselorId, THIS_YEAR, THIS_MONTH);
+    fetchMonthSlots(selectedCounselorId, MAX_YEAR, MAX_MONTH);
   }, [selectedCounselorId]);
 
   const calendarDays = useMemo(
@@ -136,21 +196,42 @@ export default function CounselingBooking() {
   }, [bookings, selectedCounselorId]);
 
   function prevMonth() {
+    // 현재월보다 이전으로 못 감
+    if (currentYear === THIS_YEAR && currentMonth === THIS_MONTH) return;
+    let newYear = currentYear;
+    let newMonth = currentMonth;
     if (currentMonth === 0) {
-      setCurrentYear((y) => y - 1);
-      setCurrentMonth(11);
-    } else setCurrentMonth((m) => m - 1);
+      newYear = currentYear - 1;
+      newMonth = 11;
+    } else {
+      newMonth = currentMonth - 1;
+    }
+    setCurrentYear(newYear);
+    setCurrentMonth(newMonth);
     setSelectedDate(null);
     setSelectedTime(null);
   }
 
   function nextMonth() {
+    // 다음달보다 이후로 못 감
+    if (currentYear === MAX_YEAR && currentMonth === MAX_MONTH) return;
+    let newYear = currentYear;
+    let newMonth = currentMonth;
     if (currentMonth === 11) {
-      setCurrentYear((y) => y + 1);
-      setCurrentMonth(0);
-    } else setCurrentMonth((m) => m + 1);
+      newYear = currentYear + 1;
+      newMonth = 0;
+    } else {
+      newMonth = currentMonth + 1;
+    }
+    setCurrentYear(newYear);
+    setCurrentMonth(newMonth);
     setSelectedDate(null);
     setSelectedTime(null);
+    // 해당 월이 캐시되지 않았으면 페치
+    const key = `${newYear}-${newMonth}`;
+    if (selectedCounselorId && !loadedMonths.has(key)) {
+      fetchMonthSlots(selectedCounselorId, newYear, newMonth);
+    }
   }
 
   function handleCounselorChange(id) {
@@ -183,7 +264,12 @@ export default function CounselingBooking() {
     if (!selectedDate || !selectedTime || !bookingReason.trim()) return;
     setBookingLoading(true);
     try {
-      const newBooking = await counselingApi.book(selectedCounselorId, selectedDate, selectedTime, bookingReason.trim());
+      const newBooking = await counselingApi.book(
+        selectedCounselorId,
+        selectedDate,
+        selectedTime,
+        bookingReason.trim(),
+      );
       setBookings((prev) => [...prev, newBooking]);
       showToast({ type: 'success', message: '상담 예약이 완료되었습니다.' });
     } catch {
@@ -216,7 +302,9 @@ export default function CounselingBooking() {
     setCancelTargetId(null);
   }
 
-  const selectedCounselor = counselors.find((c) => c.id === selectedCounselorId);
+  const selectedCounselor = counselors.find(
+    (c) => c.id === selectedCounselorId,
+  );
 
   const activeBookings = bookings
     .filter((b) => b.status !== 'cancelled' && b.date >= TODAY)
@@ -237,41 +325,70 @@ export default function CounselingBooking() {
       </div>
 
       {/* ── 상담사 선택 ── */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {counselors.map((counselor) => {
           const isSelected = selectedCounselorId === counselor.id;
+          const meta = roleMeta[counselor.role] || defaultRoleMeta;
+          const RoleIcon = meta.icon;
           return (
             <button
               key={counselor.id}
               onClick={() => handleCounselorChange(counselor.id)}
               className={`p-4 rounded-2xl border-2 text-left transition-all ${
                 isSelected
-                  ? 'border-student-500 bg-student-50'
+                  ? `${meta.border} bg-white shadow-sm`
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-student-200' : 'bg-gray-100'
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
+                    isSelected ? meta.selectedBg : meta.bg
                   }`}
                 >
-                  <User
-                    className={`w-5 h-5 ${isSelected ? 'text-student-700' : 'text-gray-500'}`}
+                  <RoleIcon
+                    className={`w-5 h-5 ${
+                      isSelected ? meta.selectedIconColor : meta.iconColor
+                    }`}
                   />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p
+                      className={`text-sm font-bold ${
+                        isSelected ? meta.nameColor : 'text-gray-800'
+                      }`}
+                    >
+                      {counselor.name}
+                    </p>
+                    <span
+                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                        isSelected
+                          ? `${meta.badgeBg} ${meta.badgeText}`
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {counselor.role_label}
+                    </span>
+                  </div>
                   <p
-                    className={`text-sm font-semibold ${isSelected ? 'text-student-800' : 'text-gray-800'}`}
+                    className={`text-xs mt-0.5 ${
+                      isSelected ? meta.subColor : 'text-gray-400'
+                    }`}
                   >
-                    {counselor.name}
-                  </p>
-                  <p
-                    className={`text-xs ${isSelected ? 'text-student-600' : 'text-gray-400'}`}
-                  >
-                    {counselor.roleLabel}
+                    {counselor.role === 'teacher'
+                      ? '학습 · 과제 상담'
+                      : '진로 · 취업 상담'}
                   </p>
                 </div>
+                {isSelected && (
+                  <div
+                    className={`w-2 h-2 rounded-full shrink-0 ${meta.iconColor.replace(
+                      'text-',
+                      'bg-',
+                    )}`}
+                  />
+                )}
               </div>
             </button>
           );
@@ -286,7 +403,10 @@ export default function CounselingBooking() {
           <div className="flex items-center justify-between mb-5">
             <button
               onClick={prevMonth}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              disabled={
+                currentYear === THIS_YEAR && currentMonth === THIS_MONTH
+              }
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-5 h-5 text-gray-500" />
             </button>
@@ -295,7 +415,8 @@ export default function CounselingBooking() {
             </h2>
             <button
               onClick={nextMonth}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              disabled={currentYear === MAX_YEAR && currentMonth === MAX_MONTH}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
@@ -441,114 +562,158 @@ export default function CounselingBooking() {
 
       {/* ── 내 면담 예약 내역 ── */}
       <Card>
-        <div className="flex items-center gap-2 mb-4">
-          <CalendarCheck className="w-5 h-5 text-student-500" />
-          <h2 className="text-body font-semibold text-gray-900">
-            내 면담 예약
-          </h2>
+        {/* 헤더 + 탭 */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <CalendarCheck className="w-5 h-5 text-student-500" />
+            <h2 className="text-body font-semibold text-gray-900">
+              내 면담 예약
+            </h2>
+          </div>
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
+            <button
+              onClick={() => setMyResTab('upcoming')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                myResTab === 'upcoming'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              예정
+              {activeBookings.length > 0 && (
+                <span
+                  className={`ml-1.5 text-[10px] rounded-full px-1.5 py-0.5 ${
+                    myResTab === 'upcoming'
+                      ? 'bg-student-100 text-student-700'
+                      : 'bg-gray-200 text-gray-500'
+                  }`}
+                >
+                  {activeBookings.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setMyResTab('past')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                myResTab === 'past'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              지난 면담
+              {pastBookings.length > 0 && (
+                <span
+                  className={`ml-1.5 text-[10px] rounded-full px-1.5 py-0.5 ${
+                    myResTab === 'past'
+                      ? 'bg-gray-200 text-gray-700'
+                      : 'bg-gray-200 text-gray-500'
+                  }`}
+                >
+                  {pastBookings.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
-        {activeBookings.length === 0 && pastBookings.length === 0 ? (
-          <EmptyState
-            icon={Calendar}
-            title="면담 예약 내역이 없습니다"
-            description="위의 캘린더에서 날짜를 선택해 면담을 예약해보세요."
-          />
-        ) : (
-          <div className="space-y-3">
-            {activeBookings.length > 0 && (
-              <>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  예정된 면담
-                </p>
-                {activeBookings.map((booking) => {
-                  const cfg =
-                    statusConfig[booking.status] ?? statusConfig.confirmed;
-                  return (
-                    <div
-                      key={booking.id}
-                      className="flex items-start justify-between gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100"
-                    >
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-gray-900">
-                            {booking.counselor_name}
-                          </span>
-                          <Badge variant="default" size="sm">
-                            {booking.counselor_role_label}
-                          </Badge>
-                          <Badge variant={cfg.variant} size="sm">
-                            {cfg.label}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-gray-500 flex items-center gap-1">
-                          <Clock className="w-3 h-3 shrink-0" />
-                          {booking.date.replace(/-/g, '.')} · {booking.time} (
-                          {booking.duration}분)
-                        </p>
-                        <p className="text-xs text-gray-600 flex items-start gap-1">
-                          <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
-                          <span className="truncate">{booking.reason}</span>
-                        </p>
+        {/* 탭 콘텐츠 — 고정 높이 스크롤 */}
+        <div className="overflow-y-auto max-h-72 space-y-2 pr-1">
+          {myResTab === 'upcoming' &&
+            (activeBookings.length === 0 ? (
+              <EmptyState
+                icon={Calendar}
+                title="예정된 면담이 없습니다"
+                description="캘린더에서 날짜를 선택해 면담을 예약해보세요."
+              />
+            ) : (
+              activeBookings.map((booking) => {
+                const cfg =
+                  statusConfig[booking.status] ?? statusConfig.confirmed;
+                return (
+                  <div
+                    key={booking.id}
+                    className="flex items-start justify-between gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100"
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-gray-900">
+                          {booking.counselor_name}
+                        </span>
+                        <Badge variant="default" size="sm">
+                          {booking.counselor_role_label}
+                        </Badge>
+                        <Badge variant={cfg.variant} size="sm">
+                          {cfg.label}
+                        </Badge>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCancelBooking(booking.id)}
-                        className="text-error-500 hover:text-error-600 hover:bg-error-50 shrink-0"
-                      >
-                        취소
-                      </Button>
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3 shrink-0" />
+                        {booking.date.replace(/-/g, '.')} · {booking.time} (
+                        {booking.duration}분)
+                      </p>
+                      <p className="text-xs text-gray-600 flex items-start gap-1">
+                        <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
+                        <span className="truncate">{booking.reason}</span>
+                      </p>
                     </div>
-                  );
-                })}
-              </>
-            )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCancelBooking(booking.id)}
+                      className="text-error-500 hover:text-error-600 hover:bg-error-50 shrink-0"
+                    >
+                      취소
+                    </Button>
+                  </div>
+                );
+              })
+            ))}
 
-            {pastBookings.length > 0 && (
-              <>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-4">
-                  지난 면담
-                </p>
-                {pastBookings.map((booking) => {
-                  const cfg =
-                    booking.status === 'cancelled'
-                      ? statusConfig.cancelled
-                      : statusConfig.completed;
-                  return (
-                    <div
-                      key={booking.id}
-                      className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 opacity-60"
-                    >
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-gray-900">
-                            {booking.counselor_name}
-                          </span>
-                          <Badge variant="default" size="sm">
-                            {booking.counselor_role_label}
-                          </Badge>
-                          <Badge variant={cfg.variant} size="sm">
-                            {cfg.label}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-gray-500 flex items-center gap-1">
-                          <Clock className="w-3 h-3 shrink-0" />
-                          {booking.date.replace(/-/g, '.')} · {booking.time} (
-                          {booking.duration}분)
-                        </p>
-                        <p className="text-xs text-gray-600 flex items-start gap-1">
-                          <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
-                          <span className="truncate">{booking.reason}</span>
-                        </p>
+          {myResTab === 'past' &&
+            (pastBookings.length === 0 ? (
+              <EmptyState
+                icon={Calendar}
+                title="지난 면담 기록이 없습니다"
+                description="완료된 면담 내역이 여기에 표시됩니다."
+              />
+            ) : (
+              pastBookings.map((booking) => {
+                const cfg =
+                  booking.status === 'cancelled'
+                    ? statusConfig.cancelled
+                    : statusConfig.completed;
+                return (
+                  <div
+                    key={booking.id}
+                    className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 opacity-60"
+                  >
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-gray-900">
+                          {booking.counselor_name}
+                        </span>
+                        <Badge variant="default" size="sm">
+                          {booking.counselor_role_label}
+                        </Badge>
+                        <Badge variant={cfg.variant} size="sm">
+                          {cfg.label}
+                        </Badge>
                       </div>
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3 shrink-0" />
+                        {booking.date.replace(/-/g, '.')} · {booking.time} (
+                        {booking.duration}분)
+                      </p>
+                      <p className="text-xs text-gray-600 flex items-start gap-1">
+                        <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
+                        <span className="truncate">{booking.reason}</span>
+                      </p>
                     </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        )}
+                  </div>
+                );
+              })
+            ))}
+        </div>
       </Card>
 
       {/* ── 취소 확인 모달 ── */}
@@ -598,7 +763,7 @@ export default function CounselingBooking() {
               <span className="text-sm font-semibold text-gray-900">
                 {selectedCounselor?.name}{' '}
                 <span className="font-normal text-gray-500">
-                  ({selectedCounselor?.roleLabel})
+                  ({selectedCounselor?.role_label})
                 </span>
               </span>
             </div>
