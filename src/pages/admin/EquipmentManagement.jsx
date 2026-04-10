@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Plus, CheckCircle } from 'lucide-react';
+import {
+  Plus,
+  CheckCircle,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Wrench,
+} from 'lucide-react';
 import { adminApi } from '@/api/admin';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -27,6 +33,63 @@ const statusLabel = {
   retired: '폐기',
 };
 
+const ACTION_CONFIG = {
+  borrow: {
+    label: '대여',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    Icon: ArrowDownCircle,
+  },
+  maintenance: {
+    label: '수리',
+    color: 'text-orange-500',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    Icon: Wrench,
+  },
+  status_change: {
+    label: '상태 변경',
+    color: 'text-gray-500',
+    bg: 'bg-gray-50',
+    border: 'border-gray-200',
+    Icon: null,
+  },
+};
+
+// Supabase created_at는 "2026-04-10 01:45:39.588932+00" 형식 — 정식 ISO 8601이 아니라
+// new Date()가 Invalid Date를 반환하므로 T와 +00:00으로 정규화
+function parseSupabaseDT(isoStr) {
+  if (!isoStr) return null;
+  const normalized = isoStr.replace(' ', 'T').replace(/\+00$/, '+00:00');
+  const d = new Date(normalized);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatDT(isoStr) {
+  const d = parseSupabaseDT(isoStr);
+  if (!d) return '—';
+  return d.toLocaleString('ko-KR', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function calcDuration(borrowAt, returnAt) {
+  const b = parseSupabaseDT(borrowAt);
+  const r = parseSupabaseDT(returnAt);
+  if (!b || !r) return null;
+  const diff = r - b;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return '1분 미만';
+  if (mins < 60) return `${mins}분`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
+}
+
 export default function EquipmentManagement() {
   const { showToast } = useToast();
   const [equipment, setEquipment] = useState([]);
@@ -34,8 +97,8 @@ export default function EquipmentManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     name: '',
-    serial: '',
-    category: 'laptop',
+    serial_no: '',
+    category: '노트북',
   });
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   const [equipHistory, setEquipHistory] = useState([]);
@@ -148,7 +211,7 @@ export default function EquipmentManagement() {
       label: '장비명',
       render: (val) => <span className="font-medium text-gray-900">{val}</span>,
     },
-    { key: 'serial', label: '시리얼' },
+    { key: 'serial_no', label: '시리얼' },
     {
       key: 'category',
       label: '분류',
@@ -165,46 +228,6 @@ export default function EquipmentManagement() {
       key: 'borrower',
       label: '사용자',
       render: (val) => val || <span className="text-gray-400">-</span>,
-    },
-    {
-      key: 'actions',
-      label: '',
-      render: (_, row) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedEquipment(row);
-          }}
-        >
-          이력
-        </Button>
-      ),
-    },
-  ];
-
-  const mockHistory = [
-    { date: '2026-04-01', action: '대여', user: '김민준', note: '' },
-    { date: '2026-03-20', action: '반납', user: '이서윤', note: '' },
-    { date: '2026-03-01', action: '대여', user: '이서윤', note: '' },
-    {
-      date: '2026-02-15',
-      action: '수리 완료',
-      user: '관리자',
-      note: '배터리 교체',
-    },
-    {
-      date: '2026-02-10',
-      action: '수리 접수',
-      user: '관리자',
-      note: '배터리 팽창',
-    },
-    {
-      date: '2026-01-05',
-      action: '등록',
-      user: '관리자',
-      note: '신규 장비 등록',
     },
   ];
 
@@ -277,18 +300,18 @@ export default function EquipmentManagement() {
           <Input
             label="시리얼 번호"
             placeholder="시리얼 번호를 입력하세요"
-            value={addForm.serial}
+            value={addForm.serial_no}
             onChange={(e) =>
-              setAddForm((p) => ({ ...p, serial: e.target.value }))
+              setAddForm((p) => ({ ...p, serial_no: e.target.value }))
             }
           />
           <Select
             label="분류"
             options={[
-              { value: 'laptop', label: '노트북' },
-              { value: 'monitor', label: '모니터' },
-              { value: 'tablet', label: '태블릿' },
-              { value: 'peripheral', label: '주변기기' },
+              { value: '노트북', label: '노트북' },
+              { value: '모니터', label: '모니터' },
+              { value: '태블릿', label: '태블릿' },
+              { value: '주변기기', label: '주변기기' },
             ]}
             value={addForm.category}
             onChange={(e) =>
@@ -305,19 +328,18 @@ export default function EquipmentManagement() {
                   .createEquipment(addForm)
                   .then((created) => {
                     setEquipment((prev) => [...prev, created]);
-                    setAddForm({ name: '', serial: '', category: 'laptop' });
+                    setAddForm({ name: '', serial_no: '', category: '노트북' });
                     setShowAddModal(false);
                     showToast({
                       type: 'success',
                       message: '장비가 등록되었습니다.',
                     });
                   })
-                  .catch(() =>
-                    showToast({
-                      message: '등록에 실패했습니다.',
-                      type: 'error',
-                    }),
-                  );
+                  .catch((err) => {
+                    const msg =
+                      err?.response?.data?.detail || '등록에 실패했습니다.';
+                    showToast({ message: msg, type: 'error' });
+                  });
               }}
             >
               등록
@@ -368,7 +390,7 @@ export default function EquipmentManagement() {
               <div className="flex justify-between text-body-sm">
                 <span className="text-gray-500">시리얼</span>
                 <span className="text-gray-900">
-                  {selectedEquipment.serial}
+                  {selectedEquipment.serial_no}
                 </span>
               </div>
               <div className="flex justify-between text-body-sm">
@@ -396,33 +418,103 @@ export default function EquipmentManagement() {
             <h3 className="text-body font-semibold text-gray-900 mb-3">
               사용 이력
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {equipHistory.length === 0 ? (
                 <p className="text-body-sm text-gray-400">이력이 없습니다.</p>
               ) : (
-                equipHistory.map((h, i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-admin-500 mt-1.5" />
-                      {i < equipHistory.length - 1 && (
-                        <div className="w-px flex-1 bg-gray-200 mt-1" />
+                equipHistory.map((session, i) => {
+                  const cfg =
+                    ACTION_CONFIG[session.action] ||
+                    ACTION_CONFIG.status_change;
+                  const duration =
+                    session.action === 'borrow'
+                      ? calcDuration(session.borrow_at, session.return_at)
+                      : null;
+                  return (
+                    <div
+                      key={i}
+                      className={`rounded-xl border p-3 ${cfg.bg} ${cfg.border}`}
+                    >
+                      {/* 헤더: 이름 + 상태 뱃지 */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span
+                          className={`text-body-sm font-semibold ${cfg.color}`}
+                        >
+                          {session.user_name || '알 수 없음'}
+                        </span>
+                        {session.action === 'borrow' &&
+                          (session.is_active ? (
+                            <span className="text-caption font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                              대여중
+                            </span>
+                          ) : (
+                            <span className="text-caption font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                              반납 완료
+                            </span>
+                          ))}
+                        {session.action !== 'borrow' && (
+                          <span className="text-caption font-medium text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full">
+                            {cfg.label}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 대여/반납 시간 */}
+                      {session.action === 'borrow' && (
+                        <div className="space-y-1 text-caption text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <ArrowDownCircle className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                            <span className="w-10 shrink-0 text-gray-400">
+                              대여
+                            </span>
+                            <span className="font-medium text-gray-700">
+                              {formatDT(session.borrow_at)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <ArrowUpCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                            <span className="w-10 shrink-0 text-gray-400">
+                              반납
+                            </span>
+                            <span
+                              className={`font-medium ${session.return_at ? 'text-gray-700' : 'text-blue-500'}`}
+                            >
+                              {session.return_at
+                                ? formatDT(session.return_at)
+                                : '반납 전'}
+                            </span>
+                          </div>
+                          {duration && (
+                            <div className="flex items-center gap-2 pt-0.5 border-t border-gray-200 mt-1">
+                              <span className="text-gray-400 ml-5">
+                                사용 시간
+                              </span>
+                              <span className="font-medium text-gray-700">
+                                {duration}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </div>
-                    <div className="pb-3">
-                      <p className="text-body-sm font-medium text-gray-900">
-                        {h.action}
-                      </p>
-                      <p className="text-caption text-gray-500">
-                        {h.user} · {h.date}
-                      </p>
-                      {h.note && (
-                        <p className="text-caption text-gray-400 mt-0.5">
-                          {h.note}
+
+                      {/* 수리/기타 단일 이벤트 */}
+                      {session.action !== 'borrow' && (
+                        <div className="text-caption text-gray-600 flex items-center gap-2">
+                          <span className="text-gray-400">일시</span>
+                          <span className="font-medium text-gray-700">
+                            {formatDT(session.borrow_at)}
+                          </span>
+                        </div>
+                      )}
+
+                      {session.note && (
+                        <p className="text-caption text-gray-500 mt-1.5 pl-1 border-l-2 border-gray-300">
+                          {session.note}
                         </p>
                       )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

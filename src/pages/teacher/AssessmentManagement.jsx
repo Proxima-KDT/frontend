@@ -25,6 +25,21 @@ const PHASE_COLORS = [
   { bg: 'bg-indigo-500', light: 'bg-indigo-100', text: 'text-indigo-700' },
 ];
 
+function formatSubmittedAt(raw) {
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (isNaN(d)) return null;
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const yesterdayStr = new Date(now - 86400000).toDateString();
+  const hhmm = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  if (d.toDateString() === todayStr) return `오늘 ${hhmm}`;
+  if (d.toDateString() === yesterdayStr) return `어제 ${hhmm}`;
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${month}월 ${day}일 ${hhmm}`;
+}
+
 const STATUS_CONFIG = {
   pending: {
     label: '미제출',
@@ -390,9 +405,9 @@ export default function AssessmentManagement() {
                       <p className="font-medium text-gray-900 text-sm">
                         {student.studentName}
                       </p>
-                      {student.submittedAt && (
-                        <p className="text-caption text-gray-500">
-                          {student.submittedAt}
+                      {formatSubmittedAt(student.submittedAt) && (
+                        <p className="text-caption text-gray-400 mt-0.5">
+                          제출 {formatSubmittedAt(student.submittedAt)}
                         </p>
                       )}
                     </div>
@@ -440,15 +455,25 @@ export default function AssessmentManagement() {
                         </>
                       )}
                       {student.status === 'graded' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            handleOpenManualModal(current, student)
-                          }
-                        >
-                          재채점
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleOpenManualModal(current, student)
+                            }
+                          >
+                            직접 재채점
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={Sparkles}
+                            onClick={() => handleOpenAiModal(current, student)}
+                          >
+                            AI 재채점
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -464,7 +489,7 @@ export default function AssessmentManagement() {
         <Modal
           isOpen={!!aiModal}
           onClose={handleCloseAiModal}
-          title={`${aiModal.mode === 'manual' ? '직접 채점' : 'AI 채점'} — ${aiModal.student.studentName}`}
+          title={`${aiModal.student.status === 'graded' ? '재채점' : '채점'} (${aiModal.mode === 'manual' ? '직접' : 'AI'}) — ${aiModal.student.studentName}`}
           maxWidth="max-w-[560px]"
           persistent
         >
