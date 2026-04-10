@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, Circle, BookOpen, Shuffle, ChevronRight } from 'lucide-react'
 import { subjectsApi } from '@/api/subjects'
 import Card from '@/components/common/Card'
@@ -10,15 +10,21 @@ import Skeleton from '@/components/common/Skeleton'
 export default function SubjectDetail() {
   const { subjectId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [subject, setSubject] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
+
+    setLoading(true)
     subjectsApi.getDetail(subjectId)
-      .then((data) => setSubject(data))
-      .catch(() => setSubject(null))
-      .finally(() => setLoading(false))
-  }, [subjectId])
+      .then((data) => { if (!cancelled) setSubject(data) })
+      .catch(() => { if (!cancelled) setSubject(null) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+
+    return () => { cancelled = true }
+  }, [subjectId, location.key])
 
   if (loading) {
     return (
@@ -38,7 +44,7 @@ export default function SubjectDetail() {
     )
   }
 
-  const totalProblems = subject.concepts?.reduce((sum, c) => sum + (c.total_problems ?? c.problems?.length ?? 0), 0) ?? 0
+  const totalProblems = subject.concepts?.reduce((sum, c) => sum + (c.problems_count ?? 0), 0) ?? 0
 
   return (
     <div className="space-y-6">
@@ -66,7 +72,7 @@ export default function SubjectDetail() {
       {/* 개념 카드 목록 */}
       <div className="space-y-3">
         {(subject.concepts ?? []).map((concept) => {
-          const progress = concept.progress ?? { solved: 0, total: concept.total_problems ?? concept.problems?.length ?? 0, percent: 0 }
+          const progress = concept.progress ?? { solved: 0, total: concept.problems_count ?? 0, percent: 0 }
           const isCompleted = progress.percent >= 100
           const isStarted = progress.percent > 0
 

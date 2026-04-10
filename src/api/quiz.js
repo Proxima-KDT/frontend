@@ -8,4 +8,9 @@ export const quizApi = {
         answers,
       })
       .then((r) => r.data),
+
+  getPreviousSubmissions: (conceptId) =>
+    axiosInstance
+      .get(`/api/submissions/concept/${conceptId}`)
+      .then((r) => r.data),
 };

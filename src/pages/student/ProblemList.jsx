@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Code2, Globe, Database, GitBranch, Users, Brain, ChevronRight, BookOpen } from 'lucide-react'
 import { subjectsApi } from '@/api/subjects'
 import Card from '@/components/common/Card'
@@ -31,15 +31,19 @@ function getSubjectStatus(progress) {
 
 export default function ProblemList() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [subjects, setSubjects] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
     subjectsApi.getList()
-      .then((data) => setSubjects(data))
-      .catch(() => setSubjects([]))
-      .finally(() => setLoading(false))
-  }, [])
+      .then((data) => { if (!cancelled) setSubjects(data) })
+      .catch(() => { if (!cancelled) setSubjects([]) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [location.key])
 
   if (loading) {
     return (

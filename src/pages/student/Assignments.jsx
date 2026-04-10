@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { assignmentsApi } from '@/api/assignments';
 import Skeleton from '@/components/common/Skeleton';
+import { useToast } from '@/context/ToastContext';
 
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -80,9 +81,7 @@ function DueDateBadge({ dueDate, status }) {
   if (dday === 0)
     return <span className="text-xs font-bold text-red-600">오늘 마감</span>;
   if (dday <= 3)
-    return (
-      <span className="text-xs font-semibold text-red-500">D-{dday}</span>
-    );
+    return <span className="text-xs font-semibold text-red-500">D-{dday}</span>;
   return (
     <span className="text-xs text-gray-500">
       D-{dday} · {new Date(dueDate).toLocaleDateString('ko-KR')}
@@ -92,8 +91,8 @@ function DueDateBadge({ dueDate, status }) {
 
 function RubricTable({ rubric }) {
   if (!rubric) return null;
-  const total = rubric.reduce((s, r) => s + r.score, 0);
-  const max = rubric.reduce((s, r) => s + r.maxScore, 0);
+  const total = rubric.reduce((s, r) => s + (r.score ?? 0), 0);
+  const max = rubric.reduce((s, r) => s + (r.maxScore ?? 0), 0);
   return (
     <div className="mt-4">
       <p className="text-body-sm font-semibold text-gray-700 mb-2">
@@ -119,10 +118,14 @@ function RubricTable({ rubric }) {
               <tr key={i} className="border-t border-gray-100">
                 <td className="px-4 py-2.5 text-gray-700">{r.item}</td>
                 <td className="px-4 py-2.5 text-right text-gray-500">
-                  {r.maxScore}점
+                  {r.maxScore ?? '-'}점
                 </td>
                 <td className="px-4 py-2.5 text-right font-semibold text-student-600">
-                  {r.score}점
+                  {r.score != null ? (
+                    `${r.score}점`
+                  ) : (
+                    <span className="text-gray-400 font-normal">미채점</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -169,7 +172,9 @@ function FileUploadArea({ files, onFilesChange }) {
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
         <p className="text-body-sm text-gray-600">
           파일을 드래그하거나{' '}
-          <span className="text-student-600 font-semibold">클릭하여 업로드</span>
+          <span className="text-student-600 font-semibold">
+            클릭하여 업로드
+          </span>
         </p>
         <p className="text-caption text-gray-400 mt-1">
           PDF, ZIP, PY, SQL 등 최대 50MB
@@ -210,23 +215,33 @@ function FileUploadArea({ files, onFilesChange }) {
   );
 }
 
-function AssignmentCard({ assignment }) {
+function AssignmentCard({ assignment, onSubmitted }) {
+  const { showToast } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const canSubmit =
-    assignment.status === 'pending' || assignment.status === 'resubmit_required';
+    assignment.status === 'pending' ||
+    assignment.status === 'resubmit_required';
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) return;
+    setSubmitting(true);
     const formData = new FormData();
     uploadedFiles.forEach((f) => formData.append('files', f));
     try {
       await assignmentsApi.submit(assignment.id, formData);
-      setSubmitted(true);
+      setUploadedFiles([]);
+      showToast({
+        type: 'success',
+        message: '과제가 성공적으로 제출되었습니다!',
+      });
+      onSubmitted?.(assignment.id);
     } catch {
-      // 업로드 실패 시 아무 동작 없이 유지 (Toast는 전역 에러 핸들러에서 처리)
+      showToast({ type: 'error', message: '과제 제출에 실패했습니다.' });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -246,7 +261,7 @@ function AssignmentCard({ assignment }) {
               <StatusBadge status={assignment.status} />
               {assignment.status !== 'graded' && (
                 <DueDateBadge
-                  dueDate={assignment.dueDate}
+                  dueDate={assignment.due_date}
                   status={assignment.status}
                 />
               )}
@@ -260,7 +275,7 @@ function AssignmentCard({ assignment }) {
                   {assignment.score}점
                 </span>
                 <span className="text-caption text-gray-400">
-                  / {assignment.maxScore}점
+                  / {assignment.max_score}점
                 </span>
               </div>
             )}
@@ -289,7 +304,7 @@ function AssignmentCard({ assignment }) {
           </div>
 
           {/* 참고 자료 */}
-          {assignment.attachments.length > 0 && (
+          {(assignment.attachments?.length ?? 0) > 0 && (
             <div>
               <p className="text-body-sm font-semibold text-gray-700 mb-2">
                 참고 자료
@@ -313,13 +328,13 @@ function AssignmentCard({ assignment }) {
           )}
 
           {/* 제출된 파일 (이미 제출한 경우) */}
-          {assignment.submittedFiles.length > 0 && (
+          {(assignment.submitted_files?.length ?? 0) > 0 && (
             <div>
               <p className="text-body-sm font-semibold text-gray-700 mb-2">
                 제출한 파일
               </p>
               <div className="space-y-2">
-                {assignment.submittedFiles.map((file, i) => (
+                {assignment.submitted_files.map((file, i) => (
                   <div
                     key={i}
                     className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-body-sm text-blue-700"
@@ -331,9 +346,9 @@ function AssignmentCard({ assignment }) {
                     </span>
                   </div>
                 ))}
-                {assignment.submittedAt && (
+                {assignment.submitted_at && (
                   <p className="text-caption text-gray-400">
-                    제출일시: {assignment.submittedAt}
+                    제출일시: {assignment.submitted_at}
                   </p>
                 )}
               </div>
@@ -370,7 +385,7 @@ function AssignmentCard({ assignment }) {
           )}
 
           {/* 파일 업로드 (제출 가능한 경우) */}
-          {canSubmit && !submitted && (
+          {canSubmit && (
             <div>
               <p className="text-body-sm font-semibold text-gray-700 mb-2">
                 파일 제출
@@ -386,23 +401,13 @@ function AssignmentCard({ assignment }) {
               />
               <button
                 onClick={handleSubmit}
-                disabled={uploadedFiles.length === 0}
+                disabled={uploadedFiles.length === 0 || submitting}
                 className="mt-3 w-full py-2.5 rounded-xl bg-student-600 text-white font-semibold text-body-sm
                   hover:bg-student-700 active:bg-student-800 transition-colors
                   disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
-                제출하기
+                {submitting ? '제출 중...' : '제출하기'}
               </button>
-            </div>
-          )}
-
-          {/* 제출 성공 메시지 */}
-          {submitted && (
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
-              <p className="text-body-sm text-blue-700 font-medium">
-                과제가 성공적으로 제출되었습니다!
-              </p>
             </div>
           )}
         </div>
@@ -418,7 +423,8 @@ export default function Assignments() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    assignmentsApi.getList()
+    assignmentsApi
+      .getList()
       .then((data) => setAssignments(data))
       .catch(() => setAssignments([]))
       .finally(() => setLoading(false));
@@ -496,7 +502,19 @@ export default function Assignments() {
       ) : filtered.length > 0 ? (
         <div className="space-y-3">
           {filtered.map((assignment) => (
-            <AssignmentCard key={assignment.id} assignment={assignment} />
+            <AssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              onSubmitted={(id) =>
+                setAssignments((prev) =>
+                  prev.map((a) =>
+                    String(a.id) === String(id)
+                      ? { ...a, status: 'submitted' }
+                      : a,
+                  ),
+                )
+              }
+            />
           ))}
         </div>
       ) : (

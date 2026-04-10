@@ -93,7 +93,15 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                       />
                     )}
                     <Icon className="w-5 h-5 shrink-0" />
-                    {!collapsed && <span>{item.label}</span>}
+                    {!collapsed && <span className="flex-1">{item.label}</span>}
+                    {!collapsed && item.ai && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-gradient-to-r from-violet-500 to-blue-500 text-white shadow-sm shadow-violet-500/40 animate-pulse">
+                        AI
+                      </span>
+                    )}
+                    {collapsed && item.ai && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-violet-400 shadow-sm shadow-violet-400/60 animate-pulse" />
+                    )}
                   </>
                 )}
               </NavLink>
