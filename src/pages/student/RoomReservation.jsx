@@ -296,11 +296,8 @@ export default function RoomReservation() {
   const handleConfirmCancel = async () => {
     try {
       await roomsApi.cancelReservation(cancelTarget.id);
-      setMyReservations((prev) =>
-        prev.map((r) =>
-          r.id === cancelTarget.id ? { ...r, status: 'cancelled' } : r,
-        ),
-      );
+      // 취소된 예약은 목록에서 즉시 제거
+      setMyReservations((prev) => prev.filter((r) => r.id !== cancelTarget.id));
       // 타임테이블에서 해당 슬롯 즉시 제거
       setBookedSlots((prev) =>
         prev.filter(
@@ -321,7 +318,7 @@ export default function RoomReservation() {
     }
   };
 
-  // 내 예약 탭 필터
+  // 내 예약 탭 필터 (오늘/예정만 - 지난 예약 탭 제거)
   const myResFiltered = useMemo(() => {
     if (myResTab === 'today')
       return myReservations.filter(
@@ -331,14 +328,7 @@ export default function RoomReservation() {
       return myReservations.filter(
         (r) => r.date > TODAY && r.status === 'confirmed',
       );
-    if (myResTab === 'past')
-      return myReservations.filter(
-        (r) =>
-          r.date < TODAY ||
-          r.status === 'completed' ||
-          r.status === 'cancelled',
-      );
-    return myReservations;
+    return myReservations.filter((r) => r.status !== 'cancelled');
   }, [myResTab, myReservations]);
 
   // ─── 셀 스타일 ────────────────────────────────────────────────────────────
@@ -410,7 +400,6 @@ export default function RoomReservation() {
   const myResTabItems = [
     { key: 'today', label: '오늘' },
     { key: 'upcoming', label: '예정' },
-    { key: 'past', label: '지난 예약' },
   ];
 
   const statusBadge = (status) => {
@@ -883,7 +872,7 @@ export default function RoomReservation() {
                         )}
                       </div>
                     </div>
-                    {res.status === 'confirmed' && (
+                    {res.status === 'confirmed' && res.date >= TODAY && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -989,7 +978,7 @@ export default function RoomReservation() {
                 fullWidth
                 onClick={() => setShowCancelModal(false)}
               >
-                닫기
+                아니요
               </Button>
               <Button
                 fullWidth
