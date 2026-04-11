@@ -61,6 +61,9 @@ const RoomReservationManagement = lazy(
 const AdminCounselingSchedule = lazy(
   () => import('@/pages/admin/CounselingSchedule'),
 );
+const AdminRoomReservation = lazy(
+  () => import('@/pages/admin/AdminRoomReservation'),
+);
 
 // 로그인 상태면 role 대시보드로, 아니면 랜딩페이지 표시
 function HomeRoute() {
@@ -334,6 +337,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <AdminCounselingSchedule />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/room-use"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminRoomReservation />
             </ProtectedRoute>
           }
         />

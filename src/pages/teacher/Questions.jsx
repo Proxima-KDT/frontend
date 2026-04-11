@@ -12,9 +12,19 @@ import { useToast } from '@/context/ToastContext';
 
 const PAGE_SIZE = 10;
 
+// Supabase created_at는 "2026-04-10 11:00:00+00" 형식일 수 있으므로 정규화
+function parseKoreanDT(isoStr) {
+  if (!isoStr) return null;
+  const normalized = isoStr.replace(' ', 'T').replace(/\+00$/, '+00:00');
+  const d = new Date(normalized);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// 목록용: 상대 시간 (방금 전, N분 전, ...)
 function formatDate(iso) {
   if (!iso) return '-';
-  const date = new Date(iso);
+  const date = parseKoreanDT(iso);
+  if (!date) return '-';
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
@@ -24,11 +34,27 @@ function formatDate(iso) {
   if (diffMins < 60) return `${diffMins}분 전`;
   if (diffHours < 24) return `${diffHours}시간 전`;
   if (diffDays < 7) return `${diffDays}일 전`;
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
+  return date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+}
+
+// 상세용: 절대 날짜+시간 (4월 10일 오후 8:32)
+function formatAbsolute(iso) {
+  if (!iso) return null;
+  const date = parseKoreanDT(iso);
+  if (!date) return null;
+  const now = new Date();
+  const isThisYear = date.getFullYear() === now.getFullYear();
+  const datePart = date.toLocaleDateString('ko-KR', {
+    ...(!isThisYear && { year: 'numeric' }),
     month: 'long',
     day: 'numeric',
   });
+  const timePart = date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return `${datePart} ${timePart}`;
 }
 
 export default function TeacherQuestions() {
@@ -154,7 +180,7 @@ export default function TeacherQuestions() {
     questionsApi
       .answer(selectedQuestion.id, answerDraft.trim())
       .then(() => {
-        const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+        const now = new Date().toISOString(); // UTC ISO 문자열 그대로 유지 (타임존 포함)
         setQuestions((prev) =>
           prev.map((q) =>
             q.id === selectedQuestion.id
@@ -303,25 +329,30 @@ export default function TeacherQuestions() {
           <div className="space-y-6">
             {/* 질문 내용 */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-body-sm font-medium text-gray-500">
-                  작성자
-                </span>
-                {selectedQuestion.is_anonymous ? (
-                  <span className="text-body-sm text-gray-400 italic">
-                    익명
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-body-sm font-medium text-gray-500">
+                    작성자
                   </span>
-                ) : (
-                  <span className="text-body-sm text-gray-700">
-                    {selectedQuestion.author || '이름 없음'}
-                  </span>
-                )}
-                <span
-                  className="text-caption text-gray-400 ml-auto"
-                  title={selectedQuestion.created_at}
-                >
-                  {formatDate(selectedQuestion.created_at)}
-                </span>
+                  {selectedQuestion.is_anonymous ? (
+                    <span className="text-body-sm text-gray-400 italic">
+                      익명
+                    </span>
+                  ) : (
+                    <span className="text-body-sm text-gray-700">
+                      {selectedQuestion.author || '이름 없음'}
+                    </span>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-caption text-gray-400">
+                    {formatAbsolute(selectedQuestion.created_at) ??
+                      formatDate(selectedQuestion.created_at)}
+                  </p>
+                  <p className="text-[11px] text-gray-300">
+                    {formatDate(selectedQuestion.created_at)}
+                  </p>
+                </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-body text-gray-800 whitespace-pre-wrap">
@@ -333,12 +364,22 @@ export default function TeacherQuestions() {
             {/* 기존 답변 (있을 때만) */}
             {selectedQuestion.answer && (
               <div>
-                <p className="text-body-sm font-medium text-gray-500 mb-1">
-                  이전 답변{' '}
-                  <span className="text-caption text-gray-400 font-normal">
-                    ({selectedQuestion.answered_at})
-                  </span>
-                </p>
+                <div className="flex items-baseline justify-between mb-1.5">
+                  <p className="text-body-sm font-medium text-gray-500">
+                    이전 답변
+                  </p>
+                  {selectedQuestion.answered_at && (
+                    <div className="text-right">
+                      <p className="text-caption text-gray-400">
+                        {formatAbsolute(selectedQuestion.answered_at) ??
+                          selectedQuestion.answered_at}
+                      </p>
+                      <p className="text-[11px] text-gray-300">
+                        {formatDate(selectedQuestion.answered_at)}
+                      </p>
+                    </div>
+                  )}
+                </div>
                 <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
                   <p className="text-body-sm text-gray-700 whitespace-pre-wrap">
                     {selectedQuestion.answer}

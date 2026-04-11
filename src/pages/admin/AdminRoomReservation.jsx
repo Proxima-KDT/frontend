@@ -80,7 +80,6 @@ function AmenityTag({ label }) {
   );
 }
 
-// 방 정보 카드 (타입별 그룹 섹션과 단독 탭 뷰 양쪽에서 공유)
 function RoomInfoCard({ room, isAvailableNow }) {
   const meta = roomTypeMeta[room.type];
   const Icon = meta.icon;
@@ -150,7 +149,7 @@ function generateWeekDates(todayStr) {
 
 const WEEK_DATES = generateWeekDates(TODAY);
 
-export default function RoomReservation() {
+export default function AdminRoomReservation() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [rooms, setRooms] = useState([]);
@@ -181,7 +180,6 @@ export default function RoomReservation() {
   }, []);
 
   // 날짜 변경 시 슬롯 새로 로드
-  // DB에서 TIME 컬럼이 "HH:MM:SS" 형식으로 오기 때문에 "HH:MM"으로 정규화
   const loadSlots = useCallback(async (date, roomList) => {
     if (!roomList.length) return;
     setSlotsLoading(true);
@@ -218,17 +216,13 @@ export default function RoomReservation() {
     if (date !== TODAY) setShowAvailableNow(false);
   };
 
-  // 슬롯 상태 결정: available | mine | reserved | closed | past
   const getSlotStatus = (roomId, timeSlot) => {
     const room = rooms.find((r) => r.id === roomId);
     if (room.status === 'closed') return 'closed';
-
-    // past는 오늘 기준으로만 적용 — 미래 날짜는 모든 슬롯 예약 가능
     if (selectedDate === TODAY) {
       const slotHour = parseInt(timeSlot.split(':')[0], 10);
       if (slotHour < CURRENT_HOUR) return 'past';
     }
-
     const slot = bookedSlots.find(
       (s) =>
         s.room_id === roomId &&
@@ -240,7 +234,6 @@ export default function RoomReservation() {
     return 'reserved';
   };
 
-  // 지금 이용 가능한 방 id 목록 (현재 시간 슬롯 기준)
   const currentTimeSlot = `${String(CURRENT_HOUR).padStart(2, '0')}:00`;
   const availableNowIds = useMemo(() => {
     return rooms
@@ -256,7 +249,6 @@ export default function RoomReservation() {
       .map((r) => r.id);
   }, [bookedSlots, currentTimeSlot]);
 
-  // 탭 + 빠른 필터로 표시할 방 목록
   const filteredRooms = useMemo(() => {
     let list = rooms;
     if (activeTab === 'study') list = list.filter((r) => r.type === 'study');
@@ -264,20 +256,18 @@ export default function RoomReservation() {
       list = list.filter((r) => r.type === 'meeting');
     if (showAvailableNow)
       list = list.filter((r) => availableNowIds.includes(r.id));
-    // 자습실 먼저, 회의실 뒤 순으로 항상 정렬
     return [...list].sort((a, b) => {
       if (a.type === b.type) return 0;
       return a.type === 'study' ? -1 : 1;
     });
   }, [rooms, activeTab, showAvailableNow, availableNowIds]);
 
-  // 통계 요약
   const stats = useMemo(() => {
     const openRooms = rooms.filter((r) => r.status !== 'closed');
     const studyRooms = openRooms.filter((r) => r.type === 'study');
     const meetingRooms = openRooms.filter((r) => r.type === 'meeting');
-    const countAvailableNow = (rooms) =>
-      rooms.filter((r) => availableNowIds.includes(r.id)).length;
+    const countAvailableNow = (list) =>
+      list.filter((r) => availableNowIds.includes(r.id)).length;
     return {
       total: openRooms.length,
       availableNow: countAvailableNow(openRooms),
@@ -288,7 +278,6 @@ export default function RoomReservation() {
     };
   }, [availableNowIds]);
 
-  // 셀 클릭 → 예약 모달
   const handleCellClick = (room, timeSlot) => {
     const status = getSlotStatus(room.id, timeSlot);
     if (status !== 'available') return;
@@ -297,9 +286,7 @@ export default function RoomReservation() {
     setShowReserveModal(true);
   };
 
-  // 예약 확정
   const handleConfirmReserve = async () => {
-    // 선택한 날짜의 기존 예약 건수 프론트 선제 검증
     const todayReservations = myReservations.filter(
       (r) => r.date === selectedDate && r.status !== 'cancelled',
     );
@@ -320,11 +307,9 @@ export default function RoomReservation() {
         date: selectedDate,
         start_time: selectedCell.timeSlot,
         end_time: endTime,
-        purpose: purpose || '개인 사용',
+        purpose: purpose || '멘토 사용',
       });
-      // 내 예약 목록 업데이트
       setMyReservations((prev) => [newReservation, ...prev]);
-      // 타임테이블 즉시 반영 (새 슬롯을 낙관적으로 추가)
       setBookedSlots((prev) => [
         ...prev,
         {
@@ -334,7 +319,7 @@ export default function RoomReservation() {
           end_time: endTime,
           is_mine: true,
           reserved_by: user?.id,
-          purpose: purpose || '개인 사용',
+          purpose: purpose || '멘토 사용',
         },
       ]);
       showToast({
@@ -352,7 +337,6 @@ export default function RoomReservation() {
     }
   };
 
-  // 예약 취소 클릭
   const openCancelModal = (reservation) => {
     setCancelTarget(reservation);
     setShowCancelModal(true);
@@ -361,9 +345,7 @@ export default function RoomReservation() {
   const handleConfirmCancel = async () => {
     try {
       await roomsApi.cancelReservation(cancelTarget.id);
-      // 취소된 예약은 목록에서 즉시 제거
       setMyReservations((prev) => prev.filter((r) => r.id !== cancelTarget.id));
-      // 타임테이블에서 해당 슬롯 즉시 제거
       setBookedSlots((prev) =>
         prev.filter(
           (s) =>
@@ -383,7 +365,6 @@ export default function RoomReservation() {
     }
   };
 
-  // 내 예약 탭 필터 (오늘/예정만 - 지난 예약 탭 제거)
   const myResFiltered = useMemo(() => {
     if (myResTab === 'today')
       return myReservations.filter(
@@ -396,13 +377,12 @@ export default function RoomReservation() {
     return myReservations.filter((r) => r.status !== 'cancelled');
   }, [myResTab, myReservations]);
 
-  // ─── 셀 스타일 ────────────────────────────────────────────────────────────
   const getCellStyle = (status) => {
     switch (status) {
       case 'available':
         return 'bg-green-50 hover:bg-green-100 border border-green-200 cursor-pointer text-green-700';
       case 'mine':
-        return 'bg-blue-100 border border-blue-300 cursor-pointer text-blue-800';
+        return 'bg-admin-100 border border-admin-300 cursor-pointer text-admin-800';
       case 'reserved':
         return 'bg-gray-100 border border-gray-200 cursor-not-allowed text-gray-400';
       case 'closed':
@@ -498,19 +478,19 @@ export default function RoomReservation() {
       <h1 className="text-h2 font-bold text-gray-900">자습실/회의실 예약</h1>
 
       {/* ── 이용 규칙 배너 ──────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-blue-200 bg-blue-50 overflow-hidden">
+      <div className="rounded-xl border border-admin-200 bg-admin-50 overflow-hidden">
         <button
           onClick={() => setShowRules((v) => !v)}
           className="w-full flex items-center justify-between px-4 py-3 text-left"
         >
-          <div className="flex items-center gap-2 text-blue-700 font-semibold text-sm">
+          <div className="flex items-center gap-2 text-admin-700 font-semibold text-sm">
             <Info size={16} />
             시설 이용 규칙 안내
           </div>
           {showRules ? (
-            <ChevronUp size={16} className="text-blue-500" />
+            <ChevronUp size={16} className="text-admin-500" />
           ) : (
-            <ChevronDown size={16} className="text-blue-500" />
+            <ChevronDown size={16} className="text-admin-500" />
           )}
         </button>
         {showRules && (
@@ -533,9 +513,9 @@ export default function RoomReservation() {
               return (
                 <div
                   key={i}
-                  className="flex items-center gap-2 text-sm text-blue-700"
+                  className="flex items-center gap-2 text-sm text-admin-700"
                 >
-                  <RuleIcon size={14} className="shrink-0 text-blue-500" />
+                  <RuleIcon size={14} className="shrink-0 text-admin-500" />
                   {text}
                 </div>
               );
@@ -608,10 +588,10 @@ export default function RoomReservation() {
                   onClick={() => handleDateSelect(date)}
                   className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all text-sm font-medium shrink-0 ${
                     isSelected
-                      ? 'bg-student-600 text-white border-student-600 shadow-sm'
+                      ? 'bg-admin-600 text-white border-admin-600 shadow-sm'
                       : isWeekend
                         ? 'bg-white text-red-500 border-gray-200 hover:border-red-300'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-student-300 hover:text-student-600'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-admin-300 hover:text-admin-600'
                   }`}
                 >
                   <span
@@ -644,7 +624,7 @@ export default function RoomReservation() {
             >
               {tab.label}
               <span
-                className={`ml-1.5 text-xs ${activeTab === tab.key ? 'text-student-600' : 'text-gray-400'}`}
+                className={`ml-1.5 text-xs ${activeTab === tab.key ? 'text-admin-600' : 'text-gray-400'}`}
               >
                 {tab.count}
               </span>
@@ -726,7 +706,7 @@ export default function RoomReservation() {
               <span className="text-xs text-gray-500 font-medium">범례:</span>
               {[
                 { color: 'bg-green-100 border-green-200', label: '예약 가능' },
-                { color: 'bg-blue-100 border-blue-300', label: '내 예약' },
+                { color: 'bg-admin-100 border-admin-300', label: '내 예약' },
                 { color: 'bg-gray-100 border-gray-200', label: '예약됨' },
                 { color: 'bg-gray-50 border-gray-100', label: '종료' },
               ].map(({ color, label }) => (
@@ -792,14 +772,12 @@ export default function RoomReservation() {
                   </tr>
                 )}
                 <tr className="bg-gray-50">
-                  {/* 시간 열 헤더 */}
                   <th className="sticky left-0 z-10 bg-gray-50 w-20 min-w-20 px-3 py-3 text-left text-gray-500 font-medium border-b border-r border-gray-200">
                     시간
                   </th>
                   {filteredRooms.map((room) => {
                     const meta = roomTypeMeta[room.type];
                     const Icon = meta.icon;
-                    // 자습실→회의실 경계에 구분선 추가
                     const isFirstMeeting =
                       activeTab === 'all' &&
                       room.type === 'meeting' &&
@@ -849,7 +827,6 @@ export default function RoomReservation() {
                         isCurrent ? 'bg-yellow-50' : 'hover:bg-gray-50/50'
                       }
                     >
-                      {/* 시간 레이블 */}
                       <td className="sticky left-0 z-10 bg-inherit px-3 py-2 text-gray-500 font-medium border-b border-r border-gray-200 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           {slot}
@@ -860,7 +837,6 @@ export default function RoomReservation() {
                           )}
                         </div>
                       </td>
-                      {/* 방별 셀 */}
                       {filteredRooms.map((room) => {
                         const status = getSlotStatus(room.id, slot);
                         const isFirstMeeting =
@@ -887,11 +863,10 @@ export default function RoomReservation() {
         </Card>
       )}
 
-      {/* ── 방 정보 카드 (편의시설 확인) ────────────────────────────────── */}
+      {/* ── 방 정보 카드 ────────────────────────────────── */}
       <div>
         <h2 className="text-base font-semibold text-gray-800 mb-3">방 정보</h2>
         {activeTab === 'all' ? (
-          /* 전체 탭: 자습실 / 회의실 그룹 분리 */
           <div className="space-y-5">
             {['study', 'meeting'].map((type) => {
               const typeRooms = filteredRooms.filter((r) => r.type === type);
@@ -927,7 +902,6 @@ export default function RoomReservation() {
             })}
           </div>
         ) : (
-          /* 단일 탭(자습실/회의실): 기존 플랫 그리드 */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredRooms.map((room) => (
               <RoomInfoCard
@@ -943,8 +917,6 @@ export default function RoomReservation() {
       {/* ── 내 예약 목록 ─────────────────────────────────────────────────── */}
       <div>
         <h2 className="text-base font-semibold text-gray-800 mb-3">내 예약</h2>
-
-        {/* 내 예약 탭 */}
         <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit mb-4">
           {myResTabItems.map((tab) => (
             <button
@@ -1066,9 +1038,9 @@ export default function RoomReservation() {
               <textarea
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
-                placeholder="예: 개인 공부, 팀 프로젝트 회의, 면접 준비 등"
+                placeholder="예: 멘토링 준비, 팀 미팅, 면접 연습 등"
                 rows={3}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-student-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-admin-500 focus:border-transparent"
               />
             </div>
 

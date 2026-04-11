@@ -139,4 +139,9 @@ export const teacherApi = {
 
   getCounselingRecords: () =>
     axiosInstance.get('/api/teacher/counseling-records').then((r) => r.data),
+
+  updateCounselingNote: (recordId, note) =>
+    axiosInstance
+      .patch(`/api/teacher/counseling-records/${recordId}/note`, { note })
+      .then((r) => r.data),
 };

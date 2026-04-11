@@ -7,6 +7,12 @@ import {
   MessageSquare,
   Sparkles,
   User,
+  Users,
+  Play,
+  ChevronDown,
+  ChevronUp,
+  NotebookPen,
+  Save,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import { useToast } from '@/context/ToastContext';
@@ -16,8 +22,8 @@ import Button from '@/components/common/Button';
 
 const steps = [
   { key: 'upload', label: '파일 업로드', icon: Upload },
-  { key: 'separation', label: '화자 분리', icon: Headphones },
-  { key: 'stt', label: '음성 변환', icon: MessageSquare },
+  { key: 'separation', label: '음성 변환', icon: Headphones },
+  { key: 'stt', label: 'STT 처리', icon: MessageSquare },
   { key: 'summary', label: 'AI 요약', icon: Sparkles },
 ];
 
@@ -31,13 +37,20 @@ export default function Counseling() {
   const [recordsLoading, setRecordsLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
+  // 아코디언: recordId → 열림 여부
+  const [openNotes, setOpenNotes] = useState({});
+  // 메모 편집 중 텍스트: recordId → string
+  const [noteTexts, setNoteTexts] = useState({});
+  // 저장 중 상태: recordId → bool
+  const [noteSaving, setNoteSaving] = useState({});
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     teacherApi
       .getCounselingRecords()
       .then((data) => setRecords(data))
-      .catch(() => showToast('상담 이력을 불러오지 못했습니다.', 'error'))
+      .catch(() => showToast({ message: '상담 이력을 불러오지 못했습니다.', type: 'error' }))
       .finally(() => setRecordsLoading(false));
 
     teacherApi
@@ -48,16 +61,53 @@ export default function Counseling() {
 
   const selectedStudent = students.find((s) => s.id === selectedStudentId);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
+  const validateAndStart = (file) => {
     if (!file) return;
     if (!selectedStudentId) {
-      showToast('먼저 학생을 선택해주세요.', 'error');
-      e.target.value = '';
+      showToast({ message: '먼저 학생을 선택해주세요.', type: 'error' });
+      return;
+    }
+    const allowed = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'audio/webm'];
+    const isAudio = allowed.includes(file.type) || file.name.match(/\.(mp3|wav|m4a|webm|ogg)$/i);
+    if (!isAudio) {
+      showToast({ message: 'MP3, WAV, M4A 형식의 오디오 파일만 업로드 가능합니다.', type: 'error' });
+      return;
+    }
+    if (file.size > 100 * 1024 * 1024) {
+      showToast({ message: '파일 크기는 최대 100MB까지 업로드 가능합니다.', type: 'error' });
       return;
     }
     startUpload(file);
+  };
+
+  const handleFileChange = (e) => {
+    validateAndStart(e.target.files?.[0]);
     e.target.value = '';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!selectedStudentId) return;
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    if (!selectedStudentId) {
+      showToast({ message: '먼저 학생을 선택해주세요.', type: 'error' });
+      return;
+    }
+    const file = e.dataTransfer.files?.[0];
+    validateAndStart(file);
   };
 
   const startUpload = (file) => {
@@ -65,7 +115,6 @@ export default function Counseling() {
     setUploadResult(null);
     setCurrentStep(0);
     let step = 0;
-    // 진행 단계 애니메이션 (최대 3단계까지만, API 완료 전 멈춤)
     const interval = setInterval(() => {
       step++;
       setCurrentStep(step);
@@ -84,22 +133,47 @@ export default function Counseling() {
           setProcessing(false);
           setShowResult(true);
         }, 500);
-        showToast('상담 기록이 저장되었습니다.', 'success');
+        showToast({ message: '상담 기록이 저장되었습니다.', type: 'success' });
       })
       .catch(() => {
         clearInterval(interval);
         setProcessing(false);
         setCurrentStep(-1);
-        showToast('업로드 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+        showToast({ message: '업로드 중 오류가 발생했습니다. 다시 시도해주세요.', type: 'error' });
       });
   };
 
   const handleDropzoneClick = () => {
     if (!selectedStudentId) {
-      showToast('먼저 학생을 선택해주세요.', 'error');
+      showToast({ message: '먼저 학생을 선택해주세요.', type: 'error' });
       return;
     }
     fileInputRef.current?.click();
+  };
+
+  const toggleNote = (id, currentNote) => {
+    setOpenNotes((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      // 처음 열 때 기존 메모를 textarea에 채워둠
+      if (next[id] && noteTexts[id] === undefined) {
+        setNoteTexts((t) => ({ ...t, [id]: currentNote || '' }));
+      }
+      return next;
+    });
+  };
+
+  const handleSaveNote = (id) => {
+    setNoteSaving((prev) => ({ ...prev, [id]: true }));
+    teacherApi
+      .updateCounselingNote(id, noteTexts[id] ?? '')
+      .then(() => {
+        setRecords((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, note: noteTexts[id] } : r))
+        );
+        showToast({ message: '메모가 저장되었습니다.', type: 'success' });
+      })
+      .catch(() => showToast({ message: '메모 저장에 실패했습니다.', type: 'error' }))
+      .finally(() => setNoteSaving((prev) => ({ ...prev, [id]: false })));
   };
 
   const handleReset = () => {
@@ -144,29 +218,44 @@ export default function Counseling() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".mp3,.wav,.m4a,audio/*"
+              accept=".mp3,.wav,.m4a,.webm,.ogg,audio/*"
               className="hidden"
               onChange={handleFileChange}
             />
             <div
               onClick={handleDropzoneClick}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
               className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                selectedStudentId
-                  ? 'border-gray-300 cursor-pointer hover:border-teacher-400 hover:bg-teacher-50/30'
-                  : 'border-gray-200 cursor-not-allowed bg-gray-50'
+                !selectedStudentId
+                  ? 'border-gray-200 cursor-not-allowed bg-gray-50'
+                  : isDragOver
+                  ? 'border-teacher-500 bg-teacher-50 cursor-copy'
+                  : 'border-gray-300 cursor-pointer hover:border-teacher-400 hover:bg-teacher-50/30'
               }`}
             >
               <FileAudio
                 className={`w-12 h-12 mx-auto mb-3 ${
-                  selectedStudentId ? 'text-gray-300' : 'text-gray-200'
+                  isDragOver
+                    ? 'text-teacher-500'
+                    : selectedStudentId
+                    ? 'text-gray-300'
+                    : 'text-gray-200'
                 }`}
               />
               <p
                 className={`text-body font-medium mb-1 ${
-                  selectedStudentId ? 'text-gray-700' : 'text-gray-400'
+                  isDragOver
+                    ? 'text-teacher-600'
+                    : selectedStudentId
+                    ? 'text-gray-700'
+                    : 'text-gray-400'
                 }`}
               >
-                {selectedStudentId
+                {isDragOver
+                  ? '파일을 여기에 놓으세요'
+                  : selectedStudentId
                   ? '음성 파일을 드래그하거나 클릭하세요'
                   : '학생을 먼저 선택하세요'}
               </p>
@@ -245,6 +334,21 @@ export default function Counseling() {
                 </>
               )}
             </div>
+
+            {/* 화자 정보 */}
+            {uploadResult?.speakers?.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-gray-400 shrink-0" />
+                <div className="flex flex-wrap gap-1.5">
+                  {uploadResult.speakers.map((s, i) => (
+                    <Badge key={i} variant="default">
+                      {s}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <h3 className="text-body font-semibold text-gray-900 mb-2">
                 대화 요약
@@ -255,10 +359,11 @@ export default function Counseling() {
                 </p>
               </div>
             </div>
+
             {uploadResult?.action_items?.length > 0 && (
               <div>
                 <h3 className="text-body font-semibold text-gray-900 mb-2">
-                  실행 항목
+                  후속 조치
                 </h3>
                 <div className="space-y-2">
                   {uploadResult.action_items.map((item, i) => (
@@ -275,6 +380,21 @@ export default function Counseling() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* 원본 오디오 재생 */}
+            {uploadResult?.audio_url && (
+              <div>
+                <h3 className="text-body font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+                  <Play className="w-4 h-4" />
+                  원본 녹음
+                </h3>
+                <audio
+                  controls
+                  src={uploadResult.audio_url}
+                  className="w-full h-10 rounded-lg"
+                />
               </div>
             )}
 
@@ -307,11 +427,27 @@ export default function Counseling() {
                 </div>
                 <Badge variant="default">완료</Badge>
               </div>
+
+              {/* 화자 */}
+              {record.speakers?.length > 0 && (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Users className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  <div className="flex flex-wrap gap-1">
+                    {record.speakers.map((s, i) => (
+                      <span key={i} className="text-caption text-gray-500">
+                        {s}{i < record.speakers.length - 1 ? ' ·' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <p className="text-body-sm text-gray-700 mb-3">
                 {record.summary || '요약 없음'}
               </p>
+
               {record.action_items?.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {record.action_items.map((item, i) => (
                     <Badge key={i} variant="info">
                       {item}
@@ -319,6 +455,62 @@ export default function Counseling() {
                   ))}
                 </div>
               )}
+
+              {/* 오디오 재생 */}
+              {record.audio_url && (
+                <audio
+                  controls
+                  src={record.audio_url}
+                  className="w-full h-10 rounded-lg mt-1"
+                />
+              )}
+
+              {/* 강사 메모 아코디언 */}
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <button
+                  onClick={() => toggleNote(record.id, record.note)}
+                  className="flex items-center gap-1.5 text-body-sm font-medium text-gray-500 hover:text-teacher-600 transition-colors w-full text-left"
+                >
+                  <NotebookPen className="w-4 h-4 shrink-0" />
+                  <span className="flex-1">
+                    {record.note ? '강사 메모 보기/수정' : '강사 메모 추가'}
+                  </span>
+                  {openNotes[record.id] ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </button>
+
+                {openNotes[record.id] && (
+                  <div className="mt-2 space-y-2">
+                    <textarea
+                      value={noteTexts[record.id] ?? record.note ?? ''}
+                      onChange={(e) =>
+                        setNoteTexts((prev) => ({
+                          ...prev,
+                          [record.id]: e.target.value,
+                        }))
+                      }
+                      rows={4}
+                      placeholder="이 상담에 대한 개인 메모를 입력하세요..."
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-body-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-teacher-400 bg-gray-50"
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => handleSaveNote(record.id)}
+                        loading={noteSaving[record.id]}
+                        className="flex items-center gap-1.5"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        저장
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </Card>
           ))
         )}

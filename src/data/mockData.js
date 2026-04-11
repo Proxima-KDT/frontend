@@ -3880,6 +3880,7 @@ export const teacherMenuItems = [
     icon: 'ClipboardList',
     path: '/teacher/assignments',
     group: '수업 관리',
+    ai: true,
   },
   {
     key: 'assessments',
@@ -3887,6 +3888,7 @@ export const teacherMenuItems = [
     icon: 'BookOpen',
     path: '/teacher/assessments',
     group: '수업 관리',
+    ai: true,
   },
   {
     key: 'questions',
@@ -3908,6 +3910,7 @@ export const teacherMenuItems = [
     icon: 'Headphones',
     path: '/teacher/counseling',
     group: '수강생 면담',
+    ai: true,
   },
 ];
 
@@ -3939,6 +3942,13 @@ export const adminMenuItems = [
     icon: 'CalendarClock',
     path: '/admin/counseling-schedule',
     group: '수강생 관리',
+  },
+  {
+    key: 'room-use',
+    label: '자습실/회의실 예약',
+    icon: 'DoorOpen',
+    path: '/admin/room-use',
+    group: '시설물 이용',
   },
 ];
 
