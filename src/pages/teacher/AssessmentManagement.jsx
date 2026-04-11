@@ -9,6 +9,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
+import { useCourse } from '@/context/CourseContext';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import Modal from '@/components/common/Modal';
@@ -96,13 +97,21 @@ function normalizeAssessments(data) {
 
 export default function AssessmentManagement() {
   const { showToast } = useToast();
+  const { selectedCourseId, selectedCourse } = useCourse();
+  const isSubCourse = selectedCourse?.track_type === 'sub';
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePhase, setActivePhase] = useState(null);
 
   useEffect(() => {
+    if (!selectedCourseId || isSubCourse) {
+      setAssessments([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     teacherApi
-      .getAssessments()
+      .getAssessments(selectedCourseId)
       .then((data) => {
         const normalized = normalizeAssessments(data);
         setAssessments(normalized);
@@ -115,7 +124,7 @@ export default function AssessmentManagement() {
         }),
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedCourseId, isSubCourse, showToast]);
   const [aiModal, setAiModal] = useState(null); // { assessment, student, mode: 'ai'|'manual' }
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
@@ -253,6 +262,35 @@ export default function AssessmentManagement() {
         showToast({ message: '채점 확정에 실패했습니다.', type: 'error' }),
       );
   };
+
+  // 서브 과정은 능력단위평가가 없어 안내 카드만 렌더링
+  if (isSubCourse) {
+    return (
+      <div>
+        <h1 className="text-h1 font-bold text-gray-900 mb-6">
+          능력단위평가 관리
+        </h1>
+        <Card>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+              <AlertTriangle className="w-7 h-7 text-gray-400" />
+            </div>
+            <h2 className="text-h3 font-bold text-gray-800 mb-2">
+              서브 과정은 능력단위평가가 없습니다
+            </h2>
+            <p className="text-body-sm text-gray-500 max-w-sm">
+              현재 선택된{' '}
+              <span className="font-semibold text-gray-700">
+                {selectedCourse?.name}
+              </span>
+              은(는) 단기 과정으로 능력단위평가 대상이 아닙니다. 사이드바에서
+              메인 과정을 선택하면 평가 관리가 가능합니다.
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>

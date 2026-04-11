@@ -3,6 +3,19 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
 import { useAuth } from '@/context/AuthContext';
+import { CourseProvider } from '@/context/CourseContext';
+
+// 강사 라우트용 래퍼 — Sidebar가 드롭다운을 렌더링하려면 DashboardLayout 바깥에
+// CourseProvider가 있어야 한다. ProtectedRoute가 내부적으로 DashboardLayout을 렌더링하므로
+// CourseProvider를 ProtectedRoute 바깥에 둔다. 인증 전/role 불일치 상태에선 useCourse()의
+// 로드 로직이 role !== 'teacher'이면 no-op이라 안전.
+function TeacherRoute({ children }) {
+  return (
+    <CourseProvider>
+      <ProtectedRoute role="teacher">{children}</ProtectedRoute>
+    </CourseProvider>
+  );
+}
 
 // Auth 페이지
 const LandingPage = lazy(() => import('@/pages/auth/LandingPage'));
@@ -64,6 +77,8 @@ const AdminCounselingSchedule = lazy(
 const AdminRoomReservation = lazy(
   () => import('@/pages/admin/AdminRoomReservation'),
 );
+const RegisterStudent = lazy(() => import('@/pages/admin/RegisterStudent'));
+const RegisterTeacher = lazy(() => import('@/pages/admin/RegisterTeacher'));
 
 // 로그인 상태면 role 대시보드로, 아니면 랜딩페이지 표시
 function HomeRoute() {
@@ -229,73 +244,73 @@ export default function AppRouter() {
         <Route
           path="/teacher"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <TeacherDashboard />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/students/:id"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <StudentDetail />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/questions"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <TeacherQuestions />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/counseling"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <Counseling />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/counseling-schedule"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <CounselingSchedule />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/attendance-check"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <AttendanceCheck />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/assignments"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <AssignmentManagement />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/assessments"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <AssessmentManagement />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
         <Route
           path="/teacher/problems"
           element={
-            <ProtectedRoute role="teacher">
+            <TeacherRoute>
               <ProblemManagement />
-            </ProtectedRoute>
+            </TeacherRoute>
           }
         />
 
@@ -345,6 +360,22 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <AdminRoomReservation />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/register/student"
+          element={
+            <ProtectedRoute role="admin">
+              <RegisterStudent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/register/teacher"
+          element={
+            <ProtectedRoute role="admin">
+              <RegisterTeacher />
             </ProtectedRoute>
           }
         />

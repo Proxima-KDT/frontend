@@ -17,6 +17,7 @@ import {
   CalendarDays,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
+import { useCourse } from '@/context/CourseContext';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
@@ -430,6 +431,7 @@ function SeatGrid({
 
 export default function AttendanceCheck() {
   const { showToast } = useToast();
+  const { selectedCourseId, selectedCourse } = useCourse();
   const [selectedDate, setSelectedDate] = useState(TODAY);
   const [seats, setSeats] = useState([]);
   const [attendanceData, setAttendanceData] = useState({});
@@ -451,9 +453,10 @@ export default function AttendanceCheck() {
   const pendingChangesRef = useRef({}); // { seatId: studentId | null }
 
   const loadSeats = useCallback(() => {
+    if (!selectedCourseId) return;
     setSeatsLoading(true);
     teacherApi
-      .getClassroomSeats()
+      .getClassroomSeats(selectedCourseId)
       .then((data) => {
         setSeats(data);
         setLocalSeats(data);
@@ -465,17 +468,24 @@ export default function AttendanceCheck() {
         }),
       )
       .finally(() => setSeatsLoading(false));
-  }, []);
+  }, [selectedCourseId, showToast]);
 
   useEffect(() => {
-    // 좌석이 없으면 10개 자동 초기화 후 로드
+    // 과정이 바뀌면 좌석 재로드. 좌석이 없으면 10개 자동 초기화 후 로드.
+    if (!selectedCourseId) {
+      setSeats([]);
+      setLocalSeats([]);
+      setSeatsLoading(false);
+      return;
+    }
+    setSeatsLoading(true);
     teacherApi
-      .getClassroomSeats()
+      .getClassroomSeats(selectedCourseId)
       .then((data) => {
         if (data.length === 0) {
           return teacherApi
-            .initClassroomSeats()
-            .then(() => teacherApi.getClassroomSeats());
+            .initClassroomSeats(selectedCourseId)
+            .then(() => teacherApi.getClassroomSeats(selectedCourseId));
         }
         return data;
       })
@@ -490,14 +500,20 @@ export default function AttendanceCheck() {
         }),
       )
       .finally(() => setSeatsLoading(false));
-  }, []);
+  }, [selectedCourseId, showToast]);
+
+  // 과정 변경 시 출결 캐시 초기화 → 이전 과정 데이터가 남지 않게
+  useEffect(() => {
+    setAttendanceData({});
+  }, [selectedCourseId]);
 
   useEffect(() => {
     if (selectedDate > TODAY) return; // 미래 날짜는 API 호출 불필요
+    if (!selectedCourseId) return;
     if (attendanceData[selectedDate] !== undefined) return;
     setAttendanceLoading(true);
     teacherApi
-      .getAttendanceByDate(selectedDate)
+      .getAttendanceByDate(selectedDate, selectedCourseId)
       .then((records) =>
         setAttendanceData((prev) => ({ ...prev, [selectedDate]: records })),
       )
@@ -509,7 +525,7 @@ export default function AttendanceCheck() {
         setAttendanceData((prev) => ({ ...prev, [selectedDate]: [] }));
       })
       .finally(() => setAttendanceLoading(false));
-  }, [selectedDate]);
+  }, [selectedDate, selectedCourseId, attendanceData, showToast]);
 
   // 편집 모드 진입 — localSeats를 현재 seats로 초기화
   function enterEditMode() {
@@ -536,10 +552,10 @@ export default function AttendanceCheck() {
     setSeatSaving(true);
     try {
       for (const [seatId, studentId] of changes) {
-        await teacherApi.assignSeat(seatId, studentId);
+        await teacherApi.assignSeat(seatId, studentId, selectedCourseId);
       }
       // 저장 후 최신 데이터 다시 로드
-      const fresh = await teacherApi.getClassroomSeats();
+      const fresh = await teacherApi.getClassroomSeats(selectedCourseId);
       setSeats(fresh);
       setLocalSeats(fresh);
       pendingChangesRef.current = {};

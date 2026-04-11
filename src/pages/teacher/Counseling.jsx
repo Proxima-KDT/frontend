@@ -417,9 +417,16 @@ export default function Counseling() {
             <Card key={record.id}>
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="text-body font-semibold text-gray-900">
-                    {record.student_name || '—'}
-                  </h3>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h3 className="text-body font-semibold text-gray-900">
+                      {record.student_name || '—'}
+                    </h3>
+                    {record.course_name && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                        {record.course_name}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 text-caption text-gray-500 mt-0.5">
                     <span>{record.date}</span>
                     {record.duration && <span>{record.duration}</span>}

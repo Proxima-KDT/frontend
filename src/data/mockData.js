@@ -3950,6 +3950,20 @@ export const adminMenuItems = [
     path: '/admin/room-use',
     group: '시설물 이용',
   },
+  {
+    key: 'register-student',
+    label: '학생 등록',
+    icon: 'UserPlus',
+    path: '/admin/register/student',
+    group: '계정 관리',
+  },
+  {
+    key: 'register-teacher',
+    label: '강사 등록',
+    icon: 'UserCog',
+    path: '/admin/register/teacher',
+    group: '계정 관리',
+  },
 ];
 
 // ─── 면담 예약 ───────────────────────────────────────────────────────────────

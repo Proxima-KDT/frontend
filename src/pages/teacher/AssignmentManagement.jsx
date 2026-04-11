@@ -15,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
+import { useCourse } from '@/context/CourseContext';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import Modal from '@/components/common/Modal';
@@ -131,6 +132,7 @@ function normalizeAssignments(data) {
 
 export default function AssignmentManagement() {
   const { showToast } = useToast();
+  const { selectedCourseId, selectedCourse } = useCourse();
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -147,8 +149,14 @@ export default function AssignmentManagement() {
   const [deleteConfirm, setDeleteConfirm] = useState(null); // assignment
 
   useEffect(() => {
+    if (!selectedCourseId) {
+      setAssignments([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     teacherApi
-      .getAssignments()
+      .getAssignments(selectedCourseId)
       .then((data) => setAssignments(normalizeAssignments(data)))
       .catch(() =>
         showToast({
@@ -157,7 +165,7 @@ export default function AssignmentManagement() {
         }),
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedCourseId, showToast]);
 
   const rubricTotal = newAssignment.rubric.reduce(
     (sum, r) => sum + (Number(r.maxScore) || 0),
