@@ -221,10 +221,20 @@ export default function AssignmentManagement() {
       });
       return;
     }
+    if (!selectedCourseId) {
+      showToast({
+        message: '사이드바에서 과정을 먼저 선택하세요.',
+        type: 'error',
+      });
+      return;
+    }
     const payload = {
       title: title.trim(),
+      // subject는 백엔드가 (course_id, phase) → curriculum.title로 자동 도출.
+      // 프론트의 PHASE_OPTIONS 기반 fallback은 course-langchain 전용이라 서브 과정엔 잘못됨.
       subject: phaseOption?.subject ?? '',
       phase: Number(phase),
+      courseId: selectedCourseId,
       description: description.trim(),
       openDate,
       dueDate,
