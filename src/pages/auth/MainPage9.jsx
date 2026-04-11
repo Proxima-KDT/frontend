@@ -84,13 +84,6 @@ function MagneticGlowText({ as: Tag = 'span', children, className = '', intensit
 
 export default function MainPage9() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const dashboardHref =
-    user?.role === 'teacher'
-      ? '/teacher'
-      : user?.role === 'admin'
-        ? '/admin'
-        : '/student';
   const mainRef = useRef(null);
   const targetRef = useRef({ x: 0, y: 0 });
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
