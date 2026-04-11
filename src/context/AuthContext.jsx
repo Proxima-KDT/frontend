@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { supabase } from '@/lib/supabase';
 import axiosInstance from '@/api/axiosInstance';
+import { clearSelectedCourseStorage } from '@/context/CourseContext';
 
 const AuthContext = createContext(null);
 
@@ -82,6 +83,8 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
+    // 다른 강사로 재로그인할 때 이전 선택 과정이 섞이지 않도록 정리
+    clearSelectedCourseStorage();
   }, []);
 
   return (

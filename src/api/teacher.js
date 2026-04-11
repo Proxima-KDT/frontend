@@ -1,9 +1,19 @@
 import axiosInstance from './axiosInstance';
 
+// course_id를 쿼리 파라미터로 넘겨야 하는 헬퍼 — 선택값이 없으면 전체 담당 과정 유지
+const withCourse = (courseId) =>
+  courseId ? { params: { course_id: courseId } } : undefined;
+
 export const teacherApi = {
+  // ── 강사 담당 과정 ────────────────────────────────
+  getMyCourses: () =>
+    axiosInstance.get('/api/teacher/courses').then((r) => r.data),
+
   // ── 학생 관리 ─────────────────────────────────────
-  getStudents: () =>
-    axiosInstance.get('/api/teacher/students').then((r) => r.data),
+  getStudents: (courseId) =>
+    axiosInstance
+      .get('/api/teacher/students', withCourse(courseId))
+      .then((r) => r.data),
 
   getStudent: (studentId) =>
     axiosInstance.get(`/api/teacher/students/${studentId}`).then((r) => r.data),
@@ -21,21 +31,32 @@ export const teacherApi = {
       .then((r) => r.data),
 
   // ── 출결 관리 ─────────────────────────────────────
-  getClassroomSeats: () =>
-    axiosInstance.get('/api/teacher/classroom/seats').then((r) => r.data),
+  getClassroomSeats: (courseId) =>
+    axiosInstance
+      .get('/api/teacher/classroom/seats', { params: { course_id: courseId } })
+      .then((r) => r.data),
 
-  assignSeat: (seatId, studentId) =>
+  assignSeat: (seatId, studentId, courseId) =>
     axiosInstance
       .patch(`/api/teacher/classroom/seats/${seatId}/assign`, {
         student_id: studentId ?? null,
+        course_id: courseId ?? null,
       })
       .then((r) => r.data),
 
-  initClassroomSeats: () =>
-    axiosInstance.post('/api/teacher/classroom/seats/init').then((r) => r.data),
+  initClassroomSeats: (courseId, rows = 5, cols = 2) =>
+    axiosInstance
+      .post('/api/teacher/classroom/seats/init', {
+        course_id: courseId,
+        rows,
+        cols,
+      })
+      .then((r) => r.data),
 
-  getAttendanceByDate: (dateStr) =>
-    axiosInstance.get(`/api/teacher/attendance/${dateStr}`).then((r) => r.data),
+  getAttendanceByDate: (dateStr, courseId) =>
+    axiosInstance
+      .get(`/api/teacher/attendance/${dateStr}`, withCourse(courseId))
+      .then((r) => r.data),
 
   updateAttendanceStatus: (dateStr, studentId, status) =>
     axiosInstance
@@ -43,12 +64,14 @@ export const teacherApi = {
       .then((r) => r.data),
 
   // ── 과제 관리 ─────────────────────────────────────
-  getAssignments: () =>
-    axiosInstance.get('/api/teacher/assignments').then((r) => r.data),
-
-  getAssignment: (assignmentId) =>
+  getAssignments: (courseId) =>
     axiosInstance
-      .get(`/api/teacher/assignments/${assignmentId}`)
+      .get('/api/teacher/assignments', withCourse(courseId))
+      .then((r) => r.data),
+
+  getAssignment: (assignmentId, courseId) =>
+    axiosInstance
+      .get(`/api/teacher/assignments/${assignmentId}`, withCourse(courseId))
       .then((r) => r.data),
 
   createAssignment: (data) =>
@@ -81,8 +104,10 @@ export const teacherApi = {
       )
       .then((r) => r.data),
 
-  getAssessments: () =>
-    axiosInstance.get('/api/teacher/assessments').then((r) => r.data),
+  getAssessments: (courseId) =>
+    axiosInstance
+      .get('/api/teacher/assessments', withCourse(courseId))
+      .then((r) => r.data),
 
   getAssessmentFiles: (assessmentId, studentId) =>
     axiosInstance

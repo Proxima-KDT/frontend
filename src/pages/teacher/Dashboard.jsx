@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Users, Calendar } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
+import { useCourse } from '@/context/CourseContext';
 import Card from '@/components/common/Card';
 import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
@@ -17,15 +18,22 @@ const SKILL_COLORS = [
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
+  const { selectedCourseId, selectedCourse } = useCourse();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!selectedCourseId) {
+      setStudents([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     teacherApi
-      .getStudents()
+      .getStudents(selectedCourseId)
       .then(setStudents)
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedCourseId]);
 
   const avgAttendance = students.length
     ? Math.round(
@@ -52,7 +60,16 @@ export default function TeacherDashboard() {
 
   return (
     <div>
-      <h1 className="text-h1 font-bold text-gray-900 mb-6">수강생 현황</h1>
+      <div className="mb-6">
+        <h1 className="text-h1 font-bold text-gray-900">수강생 현황</h1>
+        {selectedCourse && (
+          <p className="text-body-sm text-gray-500 mt-1">
+            {selectedCourse.track_type === 'main' ? '[메인] ' : '[서브] '}
+            {selectedCourse.name}
+            {selectedCourse.classroom ? ` · ${selectedCourse.classroom}` : ''}
+          </p>
+        )}
+      </div>
 
       {/* 요약 카드 */}
       <div className="grid grid-cols-3 gap-4 mb-6">

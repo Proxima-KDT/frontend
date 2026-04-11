@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import AuthLayout from '@/components/layout/AuthLayout'
@@ -85,11 +85,8 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-center text-body-sm text-gray-500 mt-4">
-          계정이 없으신가요?{' '}
-          <Link to="/signup" className="text-primary-500 font-medium hover:underline">
-            회원가입
-          </Link>
+        <p className="text-center text-caption text-gray-400 mt-4">
+          계정이 필요하신가요? 담당 관리자(멘토)에게 문의해 주세요.
         </p>
       </Card>
     </AuthLayout>

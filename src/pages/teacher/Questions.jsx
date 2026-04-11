@@ -138,8 +138,15 @@ export default function TeacherQuestions() {
         row.is_anonymous ? (
           <span className="text-body-sm text-gray-400 italic">익명</span>
         ) : (
-          <span className="text-body-sm text-gray-700">
-            {val || '이름 없음'}
+          <span className="inline-flex items-center gap-1.5 flex-wrap">
+            <span className="text-body-sm text-gray-700">
+              {val || '이름 없음'}
+            </span>
+            {row.course_name && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                {row.course_name}
+              </span>
+            )}
           </span>
         ),
     },
@@ -330,7 +337,7 @@ export default function TeacherQuestions() {
             {/* 질문 내용 */}
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-body-sm font-medium text-gray-500">
                     작성자
                   </span>
@@ -343,6 +350,12 @@ export default function TeacherQuestions() {
                       {selectedQuestion.author || '이름 없음'}
                     </span>
                   )}
+                  {!selectedQuestion.is_anonymous &&
+                    selectedQuestion.course_name && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                        {selectedQuestion.course_name}
+                      </span>
+                    )}
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-caption text-gray-400">

@@ -36,6 +36,22 @@ export const adminApi = {
       .put(`/api/admin/users/${userId}/role`, { role })
       .then((r) => r.data),
 
+  createStudent: (data) =>
+    axiosInstance.post('/api/admin/users/students', data).then((r) => r.data),
+
+  createTeacher: (data) =>
+    axiosInstance.post('/api/admin/users/teachers', data).then((r) => r.data),
+
+  // 과정(course) + 기수(cohort) 목록
+  getCourses: () =>
+    axiosInstance.get('/api/admin/courses').then((r) => r.data),
+
+  // 관리자 비밀번호 재발급
+  updateUserPassword: (userId, newPassword) =>
+    axiosInstance
+      .post(`/api/admin/users/${userId}/password`, { new_password: newPassword })
+      .then((r) => r.data),
+
   // ── 장비 관리 ─────────────────────────────────────
   getEquipment: (params) =>
     axiosInstance.get('/api/admin/equipment', { params }).then((r) => r.data),

@@ -281,8 +281,15 @@ export default function CounselingSchedule() {
     {
       key: 'student_name',
       label: '학생명',
-      render: (val) => (
-        <span className="text-body-sm font-medium text-gray-800">{val}</span>
+      render: (val, row) => (
+        <span className="inline-flex items-center gap-1.5 flex-wrap">
+          <span className="text-body-sm font-medium text-gray-800">{val}</span>
+          {row.course_name && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+              {row.course_name}
+            </span>
+          )}
+        </span>
       ),
     },
     {
@@ -622,7 +629,9 @@ export default function CounselingSchedule() {
                 <p className="text-h3 font-bold text-gray-900 mb-1">
                   {selectedBooking.student_name}
                 </p>
-                <p className="text-body-sm text-gray-400">수강생</p>
+                <p className="text-body-sm text-gray-400">
+                  {selectedBooking.course_name || '수강생'}
+                </p>
               </div>
               <Badge
                 variant={
