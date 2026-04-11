@@ -33,7 +33,7 @@ export default function Input({
             transition-colors duration-150 outline-none
             ${error
               ? 'border-error-500 ring-2 ring-error-100'
-              : 'border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100'
+              : 'border-gray-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200'
             }
             ${disabled ? 'bg-gray-50 cursor-not-allowed' : ''}
           `}

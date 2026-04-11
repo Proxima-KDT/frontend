@@ -1,77 +1,74 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useToast } from '@/context/ToastContext';
-import { useAuth } from '@/context/AuthContext';
-import AuthLayout from '@/components/layout/AuthLayout';
-import Card from '@/components/common/Card';
-import Input from '@/components/common/Input';
-import Select from '@/components/common/Select';
-import Button from '@/components/common/Button';
-import { Mail, Lock, User } from 'lucide-react';
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useToast } from '@/context/ToastContext'
+import { useAuth } from '@/context/AuthContext'
+import AuthLayout from '@/components/layout/AuthLayout'
+import Card from '@/components/common/Card'
+import Input from '@/components/common/Input'
+import Select from '@/components/common/Select'
+import Button from '@/components/common/Button'
+import { Mail, Lock, User } from 'lucide-react'
 
 export default function SignupPage() {
-  const navigate = useNavigate();
-  const { showToast } = useToast();
-  const { signUp } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+  const { showToast } = useToast()
+  const { signUp } = useAuth()
+  const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     email: '',
     password: '',
     passwordConfirm: '',
     name: '',
     role: '',
-  });
-  const [errors, setErrors] = useState({});
+  })
+  const [errors, setErrors] = useState({})
 
   const validate = () => {
-    const newErrors = {};
-    if (!form.email) newErrors.email = '이메일을 입력하세요';
-    if (form.password.length < 8) newErrors.password = '8자 이상 입력하세요';
+    const newErrors = {}
+    if (!form.email) newErrors.email = '이메일을 입력하세요'
+    if (form.password.length < 8) newErrors.password = '8자 이상 입력하세요'
     else if (!/(?=.*[a-zA-Z])(?=.*[0-9])/.test(form.password))
-      newErrors.password = '영문과 숫자를 포함해야 합니다';
+      newErrors.password = '영문과 숫자를 포함해야 합니다'
     if (form.password !== form.passwordConfirm)
-      newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다';
-    if (!form.name) newErrors.name = '이름을 입력하세요';
-    if (!form.role) newErrors.role = '역할을 선택하세요';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+      newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다'
+    if (!form.name) newErrors.name = '이름을 입력하세요'
+    if (!form.role) newErrors.role = '역할을 선택하세요'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+    e.preventDefault()
+    if (!validate()) return
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await signUp(form.email, form.password, form.name, form.role);
+      await signUp(form.email, form.password, form.name, form.role)
       showToast({
         type: 'success',
         message: '회원가입이 완료되었습니다! 로그인해주세요.',
-      });
-      navigate('/login');
+      })
+      navigate('/login')
     } catch (err) {
       showToast({
         type: 'error',
         message: err.message || '회원가입에 실패했습니다.',
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const updateField = (field) => (e) => {
-    setForm({ ...form, [field]: e.target.value });
-    if (errors[field]) setErrors({ ...errors, [field]: null });
-  };
+    setForm({ ...form, [field]: e.target.value })
+    if (errors[field]) setErrors({ ...errors, [field]: null })
+  }
 
   return (
     <AuthLayout>
-      <Card>
+      <Card className="border-neutral-200/80 bg-white/88 shadow-[0_12px_32px_rgba(30,30,35,0.08),0_0_34px_rgba(255,244,222,0.45)] backdrop-blur-[2px]">
         <div className="text-center mb-6">
           <h1 className="text-h2 font-bold text-gray-900">회원가입</h1>
-          <p className="text-body-sm text-gray-500 mt-1">
-            EduPilot에 가입하세요
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -116,13 +113,19 @@ export default function SignupPage() {
             onChange={updateField('role')}
             error={errors.role}
             options={[
-              { value: 'student', label: '학생' },
+              { value: 'student', label: '수강생' },
               { value: 'teacher', label: '강사' },
               { value: 'admin', label: '관리자(멘토)' },
             ]}
           />
 
-          <Button type="submit" fullWidth size="lg" loading={loading}>
+          <Button
+            type="submit"
+            fullWidth
+            size="lg"
+            loading={loading}
+            className="border border-[#d2bfa3] bg-gradient-to-b from-[#eadcc6] to-[#d7c0a0] !text-[#4b4337] shadow-[0_12px_28px_rgba(128,102,72,0.24),0_0_24px_rgba(255,238,208,0.45)] hover:from-[#efe1cc] hover:to-[#ddc6a7] hover:shadow-[0_14px_30px_rgba(128,102,72,0.28),0_0_30px_rgba(255,242,216,0.6)]"
+          >
             회원가입
           </Button>
         </form>
@@ -131,12 +134,12 @@ export default function SignupPage() {
           이미 계정이 있으신가요?{' '}
           <Link
             to="/login"
-            className="text-student-600 font-semibold hover:underline"
+            className="font-semibold text-gray-700 hover:text-gray-900 hover:underline"
           >
             로그인
           </Link>
         </p>
       </Card>
     </AuthLayout>
-  );
+  )
 }

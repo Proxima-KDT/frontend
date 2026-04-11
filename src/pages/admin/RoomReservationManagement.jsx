@@ -67,6 +67,26 @@ function generateWeekDates(todayStr) {
 
 const WEEK_DATES = generateWeekDates(TODAY);
 
+const roomImageByName = {
+  'Study Room A':
+    'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80',
+  'Study Room B':
+    'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80',
+  'Meeting Room 1':
+    'https://images.unsplash.com/photo-1568992687947-868a62a9f521?auto=format&fit=crop&w=900&q=80',
+  'Meeting Room 2':
+    'https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=900&q=80',
+  'Meeting Room 3':
+    'https://images.unsplash.com/photo-1497366412874-3415097a27e7?auto=format&fit=crop&w=900&q=80',
+};
+
+function getRoomImage(room) {
+  if (roomImageByName[room.name]) return roomImageByName[room.name];
+  return room.type === 'meeting'
+    ? roomImageByName['Meeting Room 1']
+    : roomImageByName['Study Room A'];
+}
+
 const amenityIcons = {
   WiFi: Wifi,
   대형모니터: Monitor,
@@ -123,12 +143,12 @@ export default function RoomReservationManagement() {
 
   // ── 예약 현황 탭 상태 ─────────────────────────────────────────────────
   const [selectedDate, setSelectedDate] = useState(TODAY);
-  const [bookedSlots, setBookedSlots] = useState(mockBookedSlots);
+  const [bookedSlots, setBookedSlots] = useState([]);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [activeRoomTab, setActiveRoomTab] = useState('all');
 
   // ── 방 관리 탭 상태 ───────────────────────────────────────────────────
-  const [rooms, setRooms] = useState(mockRooms);
+  const [rooms, setRooms] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [roomForm, setRoomForm] = useState({
@@ -138,6 +158,24 @@ export default function RoomReservationManagement() {
     floor: 3,
     amenities: [],
   });
+
+  useEffect(() => {
+    adminApi
+      .getRooms()
+      .then((data) => setRooms(Array.isArray(data) ? data : []))
+      .catch(() =>
+        showToast({ message: '방 목록을 불러오지 못했습니다.', type: 'error' }),
+      );
+  }, [showToast]);
+
+  useEffect(() => {
+    adminApi
+      .getRoomSlots({ date: selectedDate })
+      .then((data) => setBookedSlots(Array.isArray(data) ? data : []))
+      .catch(() =>
+        showToast({ message: '예약 현황을 불러오지 못했습니다.', type: 'error' }),
+      );
+  }, [selectedDate, showToast]);
 
   // ── 예약 현황 로직 ────────────────────────────────────────────────────
   const filteredRoomsForStatus = useMemo(() => {
@@ -185,12 +223,7 @@ export default function RoomReservationManagement() {
     adminApi
       .deleteReservation(cancelTarget.id)
       .then(() => {
-        setSlotsByDate((prev) => ({
-          ...prev,
-          [selectedDate]: (prev[selectedDate] || []).filter(
-            (s) => s.id !== cancelTarget.id,
-          ),
-        }));
+        setBookedSlots((prev) => prev.filter((s) => s.id !== cancelTarget.id));
         setCancelTarget(null);
         showToast({
           type: 'success',
@@ -260,12 +293,10 @@ export default function RoomReservationManagement() {
       adminApi
         .updateRoom(editTarget.id, roomForm)
         .then(() => {
-          setRooms((prev) =>
-            prev.map((r) =>
-              r.id === editTarget.id ? { ...r, ...roomForm } : r,
-            ),
-          );
-          showToast({ type: 'success', message: '방 정보가 수정되었습니다.' });
+          return adminApi.getRooms().then((data) => {
+            setRooms(Array.isArray(data) ? data : []);
+            showToast({ type: 'success', message: '방 정보가 수정되었습니다.' });
+          });
         })
         .catch(() =>
           showToast({ message: '수정에 실패했습니다.', type: 'error' }),
@@ -273,9 +304,11 @@ export default function RoomReservationManagement() {
     } else {
       adminApi
         .createRoom(roomForm)
-        .then((newRoom) => {
-          setRooms((prev) => [...prev, newRoom]);
-          showToast({ type: 'success', message: '새 방이 추가되었습니다.' });
+        .then(() => {
+          return adminApi.getRooms().then((data) => {
+            setRooms(Array.isArray(data) ? data : []);
+            showToast({ type: 'success', message: '새 방이 추가되었습니다.' });
+          });
         })
         .catch(() =>
           showToast({ message: '방 추가에 실패했습니다.', type: 'error' }),
@@ -300,7 +333,7 @@ export default function RoomReservationManagement() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       {/* 페이지 헤더 */}
       <h1 className="text-h2 font-bold text-gray-900">시설 예약 관리</h1>
 
@@ -577,6 +610,12 @@ export default function RoomReservationManagement() {
                   padding="p-4"
                   className={isClosed ? 'opacity-60' : ''}
                 >
+                  <img
+                    src={getRoomImage(room)}
+                    alt={room.name}
+                    className="mb-3 h-28 w-full rounded-xl object-cover"
+                    loading="lazy"
+                  />
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2.5">
                       <div className={`p-2 rounded-xl ${meta.bg}`}>

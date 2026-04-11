@@ -8,7 +8,7 @@ export default function DashboardLayout({ children }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[radial-gradient(980px_circle_at_20%_18%,rgba(255,188,120,0.24)_0%,rgba(255,156,96,0.08)_36%,rgba(255,156,96,0)_72%),radial-gradient(900px_520px_at_68%_12%,rgba(255,255,255,0.48),rgba(255,255,255,0)_70%),linear-gradient(180deg,#f3f1ea_0%,#efe8de_100%)]">
       {/* 모바일 사이드바 오버레이 */}
       {mobileSidebarOpen && (
         <div

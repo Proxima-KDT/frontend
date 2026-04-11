@@ -1,4 +1,4 @@
-﻿import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import {
   ArrowLeft,
@@ -135,254 +135,214 @@ export default function StudentDetail() {
     fullMark: 100,
   }));
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const overallScore = skillData.length
+    ? (
+        skillData.reduce((sum, item) => sum + item.score, 0) / skillData.length
+      ).toFixed(1)
+    : '0.0';
+  const weekColumns = ['W1', 'W2', 'W3', 'W4', 'W5', 'TODAY'];
+  const statusPalette = {
+    present: 'bg-[#5d666c]',
+    late: 'bg-[#e0be4f]',
+    absent: 'bg-[#cfa5a2]',
+    empty: 'bg-[#d9d6cf]',
+  };
 
   return (
-    <div className="space-y-5">
-      {/* 뒤로가기 */}
+    <div className="space-y-5 rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <button
         onClick={() => navigate('/teacher')}
-        className="flex items-center gap-1.5 text-body-sm text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 text-body-sm text-[#7c766d] hover:text-[#2f333a] transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         수강생 현황으로 돌아가기
       </button>
 
-      {/* ── 학생 정보 헤더 ────────────────────────────── */}
-      <Card>
-        <div className="flex items-start gap-5">
-          {/* 아바타 */}
-          <div className="shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+      <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
+        <div className="flex items-start gap-4">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#ddd8cf] bg-[#d8e1e7]">
             {student.avatar_url ? (
               <img
                 src={student.avatar_url}
                 alt={student.name}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">
-                  {student.name?.charAt(0) ?? '?'}
-                </span>
+              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[#4f6070]">
+                {student.name?.charAt(0) ?? '?'}
               </div>
             )}
           </div>
-
-          {/* 이름 + 메타 + 지표 */}
-          <div className="flex-1 min-w-0">
-            {/* 이름 */}
-            <div className="flex items-center gap-2 mb-1.5">
-              <h1 className="text-h2 font-bold text-gray-900">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <h2 className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2f333a]">
                 {student.name}
-              </h1>
+              </h2>
+              <Badge variant="soft-info">수강생</Badge>
             </div>
-
-            {/* 이메일 · 등록일 · 최근 활동 */}
-            <div className="flex flex-wrap gap-x-5 gap-y-1 text-body-sm text-gray-500 mb-4">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[#6f6a61]">
               {student.email && (
-                <span className="flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-gray-400" />
+                <span className="inline-flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-[#9b968d]" />
                   {student.email}
                 </span>
               )}
               {student.enrolled_at && (
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-[#9b968d]" />
                   등록일 {student.enrolled_at}
                 </span>
               )}
               {student.last_active && (
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-[#9b968d]" />
                   최근 활동 {student.last_active}
                 </span>
               )}
             </div>
-
-            {/* 핵심 지표 칩 */}
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
-                <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
-                <span className="text-body-sm font-semibold text-blue-700">
-                  출석률 {student.attendance_rate ?? 0}%
-                </span>
-              </div>
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#e8eef5] px-3 py-1.5 text-sm font-semibold text-[#3d5a6e]">
+              <TrendingUp className="h-3.5 w-3.5" />
+              출석률 {student.attendance_rate ?? 0}%
             </div>
           </div>
         </div>
       </Card>
 
-      {/* ── 스킬 분석 ─────────────────────────────────── */}
-      <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-5">스킬 분석</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-          <div className="flex justify-center">
-            <SkillRadarChart data={radarData} color="#3B82F6" />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr]">
+        <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
+          <p className="font-['Playfair_Display',Georgia,serif] text-[1.9rem] text-[#2f333a]">
+            Competency Hexagon
+          </p>
+          <div className="mt-3">
+            <SkillRadarChart data={radarData} color="#636e76" size="sm" />
           </div>
-          <div className="flex flex-col gap-3">
-            {skillData.map((skill, idx) => (
-              <ProgressBar
-                key={skill.key}
-                value={skill.score}
-                label={skill.label}
-                color={SKILL_COLORS[idx]}
-                size="md"
-              />
-            ))}
+          <div className="mt-4 border-t border-[#e3dfd8] pt-3">
+            <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#8b8478]">
+              종합 점수
+            </p>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-[2rem] font-semibold text-[#303742]">{overallScore}</span>
+              <span className="text-sm text-[#7a756c]">/100</span>
+              <Badge variant="soft-amber">High Potential</Badge>
+            </div>
           </div>
-        </div>
-      </Card>
-
-      {/* ── 상담 노트 + 이번 주 출석 ──────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* 상담 노트 */}
-        <Card className="flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-h3 font-semibold text-gray-900">상담 노트</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSaveNotes}
-              disabled={notesSaving}
-            >
-              {notesSaving ? '저장 중...' : '저장'}
-            </Button>
-          </div>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={7}
-            placeholder="학생에 대한 메모를 작성하세요..."
-          />
         </Card>
 
-        {/* 이번 주 출석 */}
-        <Card className="flex flex-col">
-          <h2 className="text-h3 font-semibold text-gray-900 mb-5">
-            이번 주 출석
-          </h2>
-          <div className="grid grid-cols-7 gap-2 flex-1">
-            {DAY_NAMES.map((dayName, idx) => {
-              const record = weekAttendance.find(
-                (a) => new Date(a.date).getDay() === idx,
-              );
-              const isToday = record?.date === todayStr;
-              const statusCfg = record?.status
-                ? STATUS_CONFIG[record.status]
-                : null;
-
-              return (
-                <div
-                  key={dayName}
-                  className="flex flex-col items-center gap-1.5"
-                >
-                  <span
-                    className={`text-caption font-medium ${
-                      isToday ? 'text-blue-600' : 'text-gray-400'
-                    }`}
-                  >
-                    {dayName}
-                  </span>
-                  <span
-                    className={`text-body-sm font-semibold ${
-                      isToday ? 'text-blue-600' : 'text-gray-700'
-                    }`}
-                  >
-                    {record ? new Date(record.date).getDate() : '-'}
-                  </span>
-                  <div
-                    title={statusCfg?.label ?? '기록 없음'}
-                    className={`w-5 h-5 rounded-full transition-all ${
-                      statusCfg
-                        ? statusCfg.color
-                        : 'bg-gray-100 border border-gray-200'
-                    } ${isToday ? 'ring-2 ring-blue-300 ring-offset-1' : ''}`}
-                  />
-                  {statusCfg && (
-                    <span className="hidden md:block text-caption text-gray-400 leading-none">
-                      {statusCfg.label}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-gray-100">
-            {Object.entries(STATUS_CONFIG).map(([, cfg]) => (
-              <span
-                key={cfg.label}
-                className="flex items-center gap-1.5 text-caption text-gray-500"
-              >
-                <div className={`w-2.5 h-2.5 rounded-full ${cfg.color}`} />
-                {cfg.label}
-              </span>
-            ))}
+        <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_300px]">
+            <div>
+              <p className="font-['Playfair_Display',Georgia,serif] text-[1.9rem] text-[#2f333a]">
+                AI 관찰 인사이트 (AI Observation Insights)
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-[#5f5a53]">
+                {student.name} 수강생은 과제 완성도는 높지만 출석 변동이 있어 단기 루틴 코칭과 주간 피드백 체크를 병행하면 학습 지속성이 좋아집니다.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge variant="soft-info">Analytical Learner</Badge>
+                <Badge variant="soft-success">Visual Maven</Badge>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-[#e1ddd6] bg-white/80 p-4">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8b8478]">
+                추천 경로 (Recommended Trajectory)
+              </p>
+              <ul className="mt-3 space-y-2 text-sm text-[#4f4a43]">
+                <li>• 고난도 과제 중심 주간 실습 확대</li>
+                <li>• 1:1 피드백 세션으로 발표/면접 간극 보완</li>
+                <li>• 포트폴리오 문서화 흐름 개선</li>
+              </ul>
+            </div>
           </div>
         </Card>
       </div>
 
-      {/* ── 이력서 / 포트폴리오 ───────────────────────── */}
-      <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-4">
-          이력서 / 포트폴리오
-        </h2>
-        {student.files && student.files.length > 0 ? (
-          <div className="space-y-2.5">
-            {student.files.map((file, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between p-3.5 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                      file.type === 'resume' ? 'bg-blue-50' : 'bg-purple-50'
-                    }`}
-                  >
-                    {file.type === 'resume' ? (
-                      <FileText className="w-4 h-4 text-blue-500" />
-                    ) : (
-                      <FolderOpen className="w-4 h-4 text-purple-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-body-sm font-medium text-gray-900">
-                      {file.name}
-                    </p>
-                    <p className="text-caption text-gray-400">
-                      {file.type === 'resume' ? '이력서' : '포트폴리오'} ·{' '}
-                      {file.uploaded_at} 업로드
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-body-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                  >
-                    보기
-                  </a>
-                  <a
-                    href={file.url}
-                    download
-                    className="text-body-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
-                  >
-                    다운로드
-                  </a>
-                </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+        <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-['Playfair_Display',Georgia,serif] text-[1.8rem] text-[#2f333a]">
+              Weekly Attendance Pulse
+            </p>
+            <div className="flex gap-3 text-[11px] text-[#7a756c]">
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#5d666c]" />출석</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#e0be4f]" />지각</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#cfa5a2]" />결석</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-6 gap-4">
+            {weekColumns.map((label, idx) => (
+              <div key={label} className="space-y-2 text-center">
+                <p className="text-[11px] font-semibold text-[#7b766c]">{label}</p>
+                {[0, 1, 2, 3, 4].map((row) => {
+                  const record = weekAttendance[idx + row];
+                  const status = record?.status ?? 'empty';
+                  return (
+                    <div
+                      key={`${label}-${row}`}
+                      className={`mx-auto h-6 w-6 rounded-md ${statusPalette[status] || statusPalette.empty} ${label === 'TODAY' ? 'ring-1 ring-[#727b84]' : ''}`}
+                    />
+                  );
+                })}
               </div>
             ))}
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-10 text-gray-300">
-            <FolderOpen className="w-10 h-10 mb-2" />
-            <p className="text-body-sm text-gray-400">
-              등록된 파일이 없습니다.
-            </p>
+        </Card>
+
+        <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
+          <p className="font-['Playfair_Display',Georgia,serif] text-[1.8rem] text-[#2f333a]">
+            Archive & Artifacts
+          </p>
+          <div className="mt-4 space-y-2.5">
+            {(student.files || []).slice(0, 4).map((file, i) => (
+              <div key={i} className="flex items-center justify-between rounded-xl border border-[#e5e1da] bg-white/85 px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef0f2] text-[#57626d]">
+                    {file.type === 'resume' ? <FileText className="h-4 w-4" /> : <FolderOpen className="h-4 w-4" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#353a42]">{file.name}</p>
+                    <p className="text-[11px] text-[#7f7a72]">{file.uploaded_at}</p>
+                  </div>
+                </div>
+                <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#5b6674]">
+                  보기
+                </a>
+              </div>
+            ))}
+            <button className="w-full rounded-xl border border-dashed border-[#cfc9bf] py-2 text-sm font-semibold text-[#7a756c]">
+              + 새 문서 추가
+            </button>
           </div>
-        )}
+        </Card>
+      </div>
+
+      <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2f333a]">
+            Instructor Consultation Notes
+          </p>
+          <Button
+            size="sm"
+            onClick={handleSaveNotes}
+            loading={notesSaving}
+            className="!rounded-full !bg-[#5f6972] !px-4 !text-white hover:!bg-[#4f5961]"
+          >
+            저장 (Save Entry)
+          </Button>
+        </div>
+        <Textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={5}
+          placeholder="상담 관찰 내용, 행동 특성, 다음 목표를 기록하세요."
+        />
+        <div className="mt-4 border-t border-[#e0ddd6] pt-3">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8b8478]">
+            Session History
+          </p>
+          <p className="mt-2 text-sm text-[#58534c]">
+            • 최근 면담 메모와 저장된 노트는 학생 지도 이력으로 누적됩니다.
+          </p>
+        </div>
       </Card>
     </div>
   );

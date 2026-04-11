@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Code2, Globe, Database, GitBranch, Users, Brain, ChevronRight, BookOpen } from 'lucide-react'
 import { subjectsApi } from '@/api/subjects'
 import Card from '@/components/common/Card'
-import Badge from '@/components/common/Badge'
 import ProgressBar from '@/components/common/ProgressBar'
 import Skeleton from '@/components/common/Skeleton'
 
@@ -17,9 +16,9 @@ const iconMap = {
 }
 
 const statusMap = {
-  completed: { label: '학습 완료', variant: 'success' },
-  in_progress: { label: '학습 중', variant: 'warning' },
-  upcoming: { label: '예정', variant: 'info' },
+  completed: { label: '학습 완료', className: 'bg-[#e9eff3] text-[#4f6475]' },
+  in_progress: { label: '학습 중', className: 'bg-[#f4ecd7] text-[#7a6330]' },
+  upcoming: { label: '예정', className: 'bg-[#efede7] text-[#8d877e]' },
 }
 
 function getSubjectStatus(progress) {
@@ -47,7 +46,10 @@ export default function ProblemList() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div
+        className="space-y-6 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
+        style={{ backgroundColor: '#F7F5F0' }}
+      >
         <div>
           <h1 className="text-h1 font-bold text-gray-900">개념 학습 & 문제풀이</h1>
           <p className="text-body-sm text-gray-500 mt-1">커리큘럼에 맞는 개념을 학습하고 문제를 풀어보세요</p>
@@ -60,7 +62,10 @@ export default function ProblemList() {
   }
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
+      style={{ backgroundColor: '#F7F5F0' }}
+    >
       <div>
         <h1 className="text-h1 font-bold text-gray-900">개념 학습 & 문제풀이</h1>
         <p className="text-body-sm text-gray-500 mt-1">
@@ -88,15 +93,17 @@ export default function ProblemList() {
                 onClick={() => navigate(`/student/problems/${subject.id}`)}
               >
                 <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${subject.color ?? 'from-student-400 to-student-600'} flex items-center justify-center shrink-0`}>
-                    {Icon ? <Icon className="w-6 h-6 text-white" /> : <BookOpen className="w-6 h-6 text-white" />}
+                  <div className="w-12 h-12 rounded-xl bg-[#eef2f4] flex items-center justify-center shrink-0">
+                    {Icon ? <Icon className="w-6 h-6 text-[#4e5a61]" /> : <BookOpen className="w-6 h-6 text-[#4e5a61]" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-body font-semibold text-gray-900 truncate">
                         {subject.title}
                       </h3>
-                      <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${statusInfo.className}`}>
+                        {statusInfo.label}
+                      </span>
                     </div>
                     <p className="text-caption text-gray-500 mb-3 line-clamp-1">
                       {subject.description}
@@ -104,7 +111,7 @@ export default function ProblemList() {
 
                     <ProgressBar
                       value={progress.percent ?? 0}
-                      color={status === 'completed' ? 'bg-green-500' : status === 'in_progress' ? 'bg-amber-500' : 'bg-gray-300'}
+                      color={status === 'completed' ? 'bg-[#6f8391]' : status === 'in_progress' ? 'bg-[#b79b5d]' : 'bg-[#c8c2b7]'}
                       size="sm"
                       showValue={false}
                     />

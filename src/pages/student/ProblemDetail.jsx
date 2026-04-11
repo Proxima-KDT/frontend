@@ -90,7 +90,7 @@ export default function ProblemDetail() {
                 key={idx}
                 className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                   selectedChoice === idx
-                    ? 'border-student-500 bg-student-50'
+                    ? 'border-[#4e5a61] bg-[#f4f8fb]'
                     : 'border-gray-200 hover:border-gray-300'
                 } ${isSubmitted ? 'pointer-events-none' : ''}`}
               >
@@ -101,7 +101,7 @@ export default function ProblemDetail() {
                   checked={selectedChoice === idx}
                   onChange={() => setSelectedChoice(idx)}
                   disabled={isSubmitted}
-                  className="mt-0.5 accent-student-500"
+                  className="mt-0.5 accent-[#4e5a61]"
                 />
                 <span className="text-body-sm text-gray-700">{choice}</span>
               </label>
@@ -189,7 +189,7 @@ export default function ProblemDetail() {
                   fullWidth
                   loading={submitting}
                   onClick={handleSubmit}
-                  className="bg-student-500 hover:bg-student-600 active:bg-student-700"
+                  className="bg-[#4e5a61] hover:bg-[#424d53] active:bg-[#384248]"
                 >
                   제출하기
                 </Button>
@@ -231,7 +231,7 @@ export default function ProblemDetail() {
                 <dt className="text-body-sm text-gray-500">제출 상태</dt>
                 <dd className="text-body-sm font-medium">
                   {isSubmitted ? (
-                    <span className="text-green-600">제출완료</span>
+                    <span className="text-[#4f6475]">제출완료</span>
                   ) : (
                     <span className="text-gray-400">미제출</span>
                   )}
@@ -247,7 +247,7 @@ export default function ProblemDetail() {
                 <div
                   className={`w-20 h-20 rounded-full flex items-center justify-center text-h2 font-bold text-white ${
                     score >= 90
-                      ? 'bg-green-500'
+                      ? 'bg-[#6f8391]'
                       : score >= 70
                       ? 'bg-amber-500'
                       : 'bg-red-500'

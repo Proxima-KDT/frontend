@@ -6,7 +6,6 @@ import AuthLayout from '@/components/layout/AuthLayout'
 import Card from '@/components/common/Card'
 import Input from '@/components/common/Input'
 import Button from '@/components/common/Button'
-import Badge from '@/components/common/Badge'
 import { Mail, Lock } from 'lucide-react'
 
 function toKoreanAuthError(message = '') {
@@ -17,7 +16,7 @@ function toKoreanAuthError(message = '') {
 }
 
 const roleLabels = {
-  student: { label: '학생', variant: 'student' },
+  student: { label: '수강생', variant: 'student' },
   teacher: { label: '강사', variant: 'teacher' },
   admin: { label: '관리자', variant: 'admin' },
 }
@@ -41,11 +40,19 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await login(email, password)
+      const { role: userRole } = await login(email, password)
+      if (role && userRole !== role) {
+        throw new Error('ROLE_MISMATCH')
+      }
       showToast({ type: 'success', message: '로그인되었습니다.' })
-      // role은 AuthContext에서 profile API로 자동 조회 → onAuthStateChange 후 리다이렉트
-      navigate('/')
+      if (userRole === 'teacher') navigate('/teacher')
+      else if (userRole === 'admin') navigate('/admin')
+      else navigate('/student')
     } catch (err) {
+      if (err?.message === 'ROLE_MISMATCH') {
+        showToast({ type: 'error', message: '선택한 권한과 계정 권한이 다릅니다.' })
+        return
+      }
       const msg = toKoreanAuthError(err.message)
       showToast({ type: 'error', message: msg })
     } finally {
@@ -55,12 +62,9 @@ export default function LoginPage() {
 
   return (
     <AuthLayout>
-      <Card>
+      <Card className="border-neutral-200/80 bg-white/88 shadow-[0_12px_32px_rgba(30,30,35,0.08),0_0_34px_rgba(255,244,222,0.45)] backdrop-blur-[2px]">
         <div className="text-center mb-6">
-          <Badge variant={roleInfo.variant} className="mb-3">
-            {roleInfo.label} 로그인
-          </Badge>
-          <h1 className="text-h2 font-bold text-gray-900">로그인</h1>
+          <h1 className="text-h2 font-bold text-gray-900">{roleInfo.label} 로그인</h1>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -80,14 +84,20 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             icon={Lock}
           />
-          <Button type="submit" fullWidth size="lg" loading={loading}>
+          <Button
+            type="submit"
+            fullWidth
+            size="lg"
+            loading={loading}
+            className="border border-gray-300/90 bg-gradient-to-b from-[#f3f4f6] to-[#d1d5db] !text-gray-800 shadow-[0_10px_24px_rgba(107,114,128,0.24),0_0_18px_rgba(255,255,255,0.6)] hover:from-[#f8f9fb] hover:to-[#dbe0e8] hover:shadow-[0_12px_26px_rgba(107,114,128,0.28),0_0_24px_rgba(255,255,255,0.75)]"
+          >
             로그인
           </Button>
         </form>
 
         <p className="text-center text-body-sm text-gray-500 mt-4">
           계정이 없으신가요?{' '}
-          <Link to="/signup" className="text-primary-500 font-medium hover:underline">
+          <Link to="/signup" className="font-medium text-gray-700 hover:text-gray-900 hover:underline">
             회원가입
           </Link>
         </p>

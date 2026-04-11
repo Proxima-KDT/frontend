@@ -82,9 +82,9 @@ export const adminApi = {
   updateRoom: (roomId, data) =>
     axiosInstance.put(`/api/admin/rooms/${roomId}`, data).then((r) => r.data),
 
-  updateRoomStatus: (roomId, isActive) =>
+  updateRoomStatus: (roomId, status) =>
     axiosInstance
-      .put(`/api/admin/rooms/${roomId}/status`, { is_active: isActive })
+      .put(`/api/admin/rooms/${roomId}/status`, { status })
       .then((r) => r.data),
 
   deleteReservation: (reservationId) =>

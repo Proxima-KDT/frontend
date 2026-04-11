@@ -209,7 +209,7 @@ export default function EquipmentManagement() {
   ];
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-h1 font-bold text-gray-900">장비 관리</h1>
         <Button icon={Plus} size="sm" onClick={() => setShowAddModal(true)}>
