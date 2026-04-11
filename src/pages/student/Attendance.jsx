@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { attendanceApi } from '@/api/attendance';
 import { profileApi } from '@/api/profile';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Table from '@/components/common/Table';
 import Modal from '@/components/common/Modal';
@@ -16,10 +16,55 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Lightbulb,
+  FileSignature,
 } from 'lucide-react';
 
 const CHECKOUT_HOUR = 17;
 const CHECKOUT_MINUTE = 50;
+
+const editorial = "font-['Playfair_Display',Georgia,serif]";
+
+function AttendanceDonut({ percent }) {
+  const p = Math.min(100, Math.max(0, percent));
+  const r = 36;
+  const c = 2 * Math.PI * r;
+  const dash = c * (1 - p / 100);
+  return (
+    <div className="relative mx-auto h-[140px] w-[140px]">
+      <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+        <circle
+          cx="50"
+          cy="50"
+          r={r}
+          fill="none"
+          stroke="#ebe8e3"
+          strokeWidth="9"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r={r}
+          fill="none"
+          stroke="#3d3d3d"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={`${c} ${c}`}
+          strokeDashoffset={dash}
+          className="transition-[stroke-dashoffset] duration-700"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className={`${editorial} text-2xl font-semibold text-[#1f1e1c]`}>
+          {Math.round(p)}%
+        </span>
+        <span className="text-[0.6rem] font-bold tracking-[0.12em] text-[#8a847a]">
+          RATE
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function Attendance() {
   const [name, setName] = useState('');
@@ -245,20 +290,39 @@ export default function Attendance() {
   const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
 
   const getStatusDot = (status) => {
-    if (status === 'present') return 'bg-green-500';
-    if (status === 'late') return 'bg-yellow-500';
-    if (status === 'absent') return 'bg-red-500';
-    if (status === 'early_leave') return 'bg-amber-500';
-    if (status === 'checked_in') return 'bg-blue-500';
+    if (status === 'present') return 'bg-[#5cbf7a]';
+    if (status === 'late') return 'bg-[#e8943a]';
+    if (status === 'absent') return 'bg-[#e05d5d]';
+    if (status === 'early_leave') return 'bg-[#d4b03d]';
+    if (status === 'checked_in') return 'bg-[#7eb8e8]';
     return '';
   };
 
+  const calendarWeeks = useMemo(() => {
+    const rows = [];
+    for (let i = 0; i < calendarData.length; i += 7) {
+      rows.push(calendarData.slice(i, i + 7));
+    }
+    return rows;
+  }, [calendarData]);
+
+  const forecastText = useMemo(() => {
+    const r = monthStats.rate;
+    if (r >= 90)
+      return '지금 출석 패턴을 유지하면 학기 말까지 우수한 출석률을 기대할 수 있어요.';
+    if (r >= 70)
+      return '현재 추세를 유지하면 이번 달 출석률은 약 90% 전후로 마감될 수 있어요. 지각·결석만 줄여도 체감이 커집니다.';
+    return '출석률을 조금만 끌어올려도 전체 평가에 도움이 됩니다. 이번 주부터 규칙적인 입실을 권장해요.';
+  }, [monthStats.rate]);
+
+  const logRef = useRef(null);
+
   const getStatusBadge = (status) => {
-    if (status === 'present') return { label: '출석', variant: 'success' };
-    if (status === 'late') return { label: '지각', variant: 'warning' };
-    if (status === 'absent') return { label: '결석', variant: 'error' };
-    if (status === 'early_leave') return { label: '조퇴', variant: 'warning' };
-    if (status === 'checked_in') return { label: '입실', variant: 'info' };
+    if (status === 'present') return { label: '출석', variant: 'soft-success' };
+    if (status === 'late') return { label: '지각', variant: 'soft-warning' };
+    if (status === 'absent') return { label: '결석', variant: 'soft-error' };
+    if (status === 'early_leave') return { label: '조퇴', variant: 'soft-amber' };
+    if (status === 'checked_in') return { label: '입실', variant: 'soft-info' };
     return { label: '-', variant: 'default' };
   };
 
@@ -285,283 +349,366 @@ export default function Attendance() {
     .filter((a) => a.status)
     .map((a, idx) => ({ ...a, id: idx }));
 
+  const monthTitleEn = new Date(viewYear, viewMonth - 1, 1).toLocaleDateString(
+    'en-US',
+    { month: 'long', year: 'numeric' },
+  );
+
+  const courseCompletion =
+    summary?.rate != null ? Math.round(Number(summary.rate)) : Math.round(monthStats.rate);
+  const attendedDays = summary?.attended ?? '—';
+  const totalCourseDays = summary?.total_weekdays ?? '—';
+
+  const signatureStatusLine =
+    checkoutDone || earlyLeaveDone
+      ? earlyLeaveDone
+        ? '오늘 조퇴 처리가 완료되었습니다.'
+        : '출석·퇴실이 모두 완료되었습니다.'
+      : signatureSubmitted
+        ? '입실 완료 · 17:50 이후 퇴실 가능'
+        : '입실 전 · 아래에서 서명을 완료해 주세요';
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-h2 font-bold text-gray-900">출석</h1>
+    <div className="space-y-8 rounded-3xl bg-[#F9F8F6] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8">
+      <header>
+        <h1
+          className={`${editorial} text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
+        >
+          출결 현황
+        </h1>
+        <p className="mt-1 text-[0.875rem] text-[#6b6560]">
+          Academic Presence · 월별 출석과 서명을 한곳에서 관리합니다.
+        </p>
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        {/* Left: Signature */}
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-h3 font-semibold text-gray-900">출석 서명</h2>
-            {checkoutDone || earlyLeaveDone ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-full">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-caption font-medium text-green-700">
-                  {earlyLeaveDone ? '조퇴 완료' : '출석 완료'}
-                </span>
-              </div>
-            ) : signatureSubmitted ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 rounded-full">
-                <CheckCircle className="w-4 h-4 text-blue-500" />
-                <span className="text-caption font-medium text-blue-700">
-                  입실 완료 · 퇴실 대기
-                </span>
-              </div>
-            ) : null}
-          </div>
-
-          {/* 안내 규칙 - 2열 그리드 */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-gray-100">
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-              <span>09:00 이전 → 출석</span>
-            </div>
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
-              <span>09:00~09:30 → 지각</span>
-            </div>
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <XCircle className="w-4 h-4 text-red-500 shrink-0" />
-              <span>09:30 이후 → 결석</span>
-            </div>
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <LogOut className="w-4 h-4 text-student-500 shrink-0" />
-              <span>17:50 이후 → 퇴실</span>
-            </div>
-          </div>
-
-          {/* 이름 입력 + 확인 버튼 */}
-          <div className="mb-3">
-            <label className="block text-body-sm font-medium text-gray-700 mb-1">
-              이름 <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setNameMismatch(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && name.trim() && !nameConfirmed) {
-                    handleConfirmName();
-                  }
-                }}
-                placeholder="이름을 입력하세요"
-                disabled={nameConfirmed}
-                className={`flex-1 px-3 py-2 rounded-lg border text-body-sm transition-colors outline-none
-                  ${
-                    nameConfirmed
-                      ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
-                      : nameMismatch
-                        ? 'border-red-400 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100'
-                        : 'border-gray-300 bg-white focus:border-primary-400 focus:ring-2 focus:ring-primary-100'
-                  }`}
-              />
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_minmax(300px,360px)] xl:items-start">
+        {/* 좌측: 캘린더 + 서명 */}
+        <div className="min-w-0 space-y-5">
+          <div className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_8px_32px_rgba(45,42,38,0.05)] sm:p-6">
+            <div className="mb-5 flex items-center justify-between">
               <button
-                onClick={handleConfirmName}
-                disabled={!name.trim() || nameConfirmed}
-                className={`px-4 py-2 rounded-lg text-body-sm font-medium transition-colors whitespace-nowrap
-                  ${
-                    !name.trim() || nameConfirmed
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-student-500 hover:bg-student-600 text-white cursor-pointer'
-                  }`}
-              >
-                {nameConfirmed ? '확인됨' : '확인'}
-              </button>
-            </div>
-            {nameMismatch && (
-              <p className="flex items-center gap-1.5 mt-1.5 text-caption text-red-500">
-                <XCircle className="w-3.5 h-3.5 shrink-0" />
-                등록된 이름({profileName})과 다릅니다. 다시 확인해주세요.
-              </p>
-            )}
-          </div>
-
-          <SignatureCanvas
-            onSave={handleSignatureSave}
-            disabled={!nameConfirmed}
-            submitted={signatureSubmitted}
-            guideName={nameConfirmed ? name : ''}
-            onCheckout={() => setShowConfirm(true)}
-            checkoutDisabled={!isAfterCheckoutTime}
-            checkoutDone={checkoutDone}
-            onEarlyLeave={() => setShowEarlyLeaveConfirm(true)}
-            earlyLeaveDone={earlyLeaveDone}
-          />
-        </Card>
-
-        {/* Right: Calendar & Stats */}
-        <div className="space-y-4">
-          <Card>
-            {/* 달력 헤더 + 월 탐색 */}
-            <div className="flex items-center justify-between mb-3">
-              <button
+                type="button"
                 onClick={goPrevMonth}
-                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                className="rounded-xl p-2 text-[#6b6560] transition hover:bg-[#f3f1ed]"
+                aria-label="이전 달"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-h3 font-semibold text-gray-900">
-                {viewYear}년 {viewMonth}월
-              </h2>
+              <div className="text-center">
+                <p className={`${editorial} text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}>
+                  {monthTitleEn}
+                </p>
+                <p className="text-[0.75rem] text-[#8a847a]">
+                  {viewYear}년 {viewMonth}월
+                </p>
+              </div>
               <button
+                type="button"
                 onClick={goNextMonth}
-                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                className="rounded-xl p-2 text-[#6b6560] transition hover:bg-[#f3f1ed]"
+                aria-label="다음 달"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 mb-1">
+            <div className="mb-2 grid grid-cols-7 gap-1.5">
               {dayLabels.map((d) => (
                 <div
                   key={d}
-                  className={`text-center text-caption font-medium py-1 ${
-                    d === '일'
-                      ? 'text-red-400'
-                      : d === '토'
-                        ? 'text-blue-400'
-                        : 'text-gray-500'
+                  className={`pb-1 text-center text-[0.65rem] font-bold tracking-wider text-[#8a847a] ${
+                    d === '일' ? 'text-[#c97a7a]' : d === '토' ? 'text-[#7a9eb8]' : ''
                   }`}
                 >
                   {d}
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1">
-              {calendarData.map((cell, idx) => (
-                <div
-                  key={idx}
-                  className="relative flex flex-col items-center justify-center h-10 rounded-lg text-body-sm"
-                >
-                  {cell.day && (
-                    <>
-                      <span className="text-body-sm text-gray-700">
-                        {cell.day}
-                      </span>
-                      {cell.status && (
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full mt-0.5 ${getStatusDot(cell.status)}`}
-                        />
+
+            <div className="space-y-2">
+              {calendarWeeks.map((week, wi) => (
+                <div key={wi} className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                  {week.map((cell, ci) => (
+                    <div
+                      key={ci}
+                      className={`flex min-h-[4.5rem] flex-col items-center justify-between rounded-2xl border px-0.5 py-2 sm:min-h-[5.25rem] sm:py-2.5 ${
+                        cell.day
+                          ? 'border-[#e8e4dc] bg-[#faf9f7]'
+                          : 'border-transparent bg-transparent'
+                      }`}
+                    >
+                      {cell.day ? (
+                        <>
+                          <span className="text-[0.8rem] font-semibold text-[#3d3a36] sm:text-[0.875rem]">
+                            {cell.day}
+                          </span>
+                          <span
+                            className={`mb-0.5 h-2 w-2 shrink-0 rounded-full ${
+                              cell.status
+                                ? getStatusDot(cell.status)
+                                : 'bg-[#e5e2dc]'
+                            }`}
+                            title={cell.status || '기록 없음'}
+                          />
+                        </>
+                      ) : (
+                        <span className="text-transparent">.</span>
                       )}
-                    </>
-                  )}
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 flex-wrap">
-              <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-green-500" />
+
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#ebe8e3] pt-4 text-[0.65rem] text-[#6b6560]">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="h-2 w-2 rounded-full bg-[#5cbf7a]" />
                 출석
-              </div>
-              <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-yellow-500" />
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="h-2 w-2 rounded-full bg-[#e8943a]" />
                 지각
-              </div>
-              <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-red-500" />
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="h-2 w-2 rounded-full bg-[#e05d5d]" />
                 결석
-              </div>
-              <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="h-2 w-2 rounded-full bg-[#d4b03d]" />
                 조퇴
-              </div>
-              <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="h-2 w-2 rounded-full bg-[#7eb8e8]" />
                 입실
+              </span>
+            </div>
+          </div>
+
+          {/* 서명 제출 바 */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#e8e4dc] bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f0ede6] text-[#4a4640]">
+                <FileSignature className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[0.7rem] font-bold tracking-wide text-[#8a847a] uppercase">
+                  Signature
+                </p>
+                <p className="truncate text-[0.8125rem] text-[#3d3a36]">
+                  {signatureStatusLine}
+                </p>
               </div>
             </div>
-          </Card>
+            <button
+              type="button"
+              onClick={() => logRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="shrink-0 rounded-xl border border-[#d4cfc4] bg-[#faf9f7] px-4 py-2 text-[0.8125rem] font-semibold text-[#3d3a36] transition hover:bg-[#f3f1ed]"
+            >
+              기록 보기
+            </button>
+          </div>
 
-          <Card>
-            <h2 className="text-h3 font-semibold text-gray-900 mb-3">
-              {viewMonth}월 통계
+          <div className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_8px_32px_rgba(45,42,38,0.05)] sm:p-6">
+            <h2 className="text-[1rem] font-bold text-[#1f1e1c]">출석 서명</h2>
+            <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+              {checkoutDone || earlyLeaveDone ? (
+                <div className="flex items-center gap-1.5 rounded-full bg-[#e8f5eb] px-3 py-1">
+                  <CheckCircle className="h-4 w-4 text-[#5cbf7a]" />
+                  <span className="text-[0.75rem] font-semibold text-[#2d5a3a]">
+                    {earlyLeaveDone ? '조퇴 완료' : '출석 완료'}
+                  </span>
+                </div>
+              ) : signatureSubmitted ? (
+                <div className="flex items-center gap-1.5 rounded-full bg-[#e8f0fa] px-3 py-1">
+                  <CheckCircle className="h-4 w-4 text-[#7eb8e8]" />
+                  <span className="text-[0.75rem] font-semibold text-[#2d4a6e]">
+                    입실 완료 · 퇴실 대기
+                  </span>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-4">
+              <label className="mb-1 block text-[0.8125rem] font-medium text-[#4a4640]">
+                이름 <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setNameMismatch(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && name.trim() && !nameConfirmed) {
+                      handleConfirmName();
+                    }
+                  }}
+                  placeholder="이름을 입력하세요"
+                  disabled={nameConfirmed}
+                  className={`min-w-0 flex-1 rounded-xl border px-3 py-2.5 text-[0.875rem] outline-none transition ${
+                    nameConfirmed
+                      ? 'cursor-not-allowed border-[#ebe8e3] bg-[#f5f4f1] text-[#8a847a]'
+                      : nameMismatch
+                        ? 'border-[#e05d5d] bg-[#fdf4f4] focus:border-[#e05d5d] focus:ring-2 focus:ring-[#f5d0d0]'
+                        : 'border-[#d4cfc4] bg-white focus:border-[#b8b3ab] focus:ring-2 focus:ring-[#ebe8e3]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={handleConfirmName}
+                  disabled={!name.trim() || nameConfirmed}
+                  className={`shrink-0 rounded-xl px-4 py-2.5 text-[0.875rem] font-semibold transition ${
+                    !name.trim() || nameConfirmed
+                      ? 'cursor-not-allowed bg-[#ebe8e3] text-[#a8a29e]'
+                      : 'bg-[#2d2a26] text-white hover:bg-[#1a1918]'
+                  }`}
+                >
+                  {nameConfirmed ? '확인됨' : '확인'}
+                </button>
+              </div>
+              {nameMismatch && (
+                <p className="mt-2 flex items-center gap-1.5 text-caption text-[#c54a4a]">
+                  <XCircle className="h-3.5 w-3.5 shrink-0" />
+                  등록된 이름({profileName})과 다릅니다. 다시 확인해주세요.
+                </p>
+              )}
+            </div>
+
+            <SignatureCanvas
+              onSave={handleSignatureSave}
+              disabled={!nameConfirmed}
+              submitted={signatureSubmitted}
+              guideName={nameConfirmed ? name : ''}
+              onCheckout={() => setShowConfirm(true)}
+              checkoutDisabled={!isAfterCheckoutTime}
+              checkoutDone={checkoutDone}
+              onEarlyLeave={() => setShowEarlyLeaveConfirm(true)}
+              earlyLeaveDone={earlyLeaveDone}
+            />
+
+            <div className="mt-4 grid grid-cols-1 gap-2 border-t border-[#ebe8e3] pt-4 sm:grid-cols-2">
+              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                <CheckCircle className="h-4 w-4 shrink-0 text-[#5cbf7a]" />
+                09:00 이전 → 출석
+              </div>
+              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-[#e8943a]" />
+                09:00~09:30 → 지각
+              </div>
+              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                <XCircle className="h-4 w-4 shrink-0 text-[#e05d5d]" />
+                09:30 이후 → 결석
+              </div>
+              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                <LogOut className="h-4 w-4 shrink-0 text-[#7eb8e8]" />
+                17:50 이후 → 퇴실
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 우측: 요약 + 마일스톤 + 예측 */}
+        <div className="space-y-5">
+          <div className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_8px_32px_rgba(45,42,38,0.05)] sm:p-6">
+            <h2 className="text-[0.7rem] font-bold tracking-[0.14em] text-[#8a847a] uppercase">
+              {viewMonth}월 Summary
             </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col items-center p-3 bg-green-50 rounded-xl">
-                <span className="text-h3 font-bold text-green-600">
-                  {monthStats.present}
-                </span>
-                <span className="text-caption text-gray-500">출석</span>
+            <AttendanceDonut percent={monthStats.rate} />
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
+                <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
+                  PRESENT
+                </p>
+                <p className="mt-1 text-xl font-bold text-[#3d8f5a]">{monthStats.present}</p>
               </div>
-              <div className="flex flex-col items-center p-3 bg-yellow-50 rounded-xl">
-                <span className="text-h3 font-bold text-yellow-600">
-                  {monthStats.late}
-                </span>
-                <span className="text-caption text-gray-500">지각</span>
+              <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
+                <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">LATE</p>
+                <p className="mt-1 text-xl font-bold text-[#d9782c]">{monthStats.late}</p>
               </div>
-              <div className="flex flex-col items-center p-3 bg-red-50 rounded-xl">
-                <span className="text-h3 font-bold text-red-600">
-                  {monthStats.absent}
-                </span>
-                <span className="text-caption text-gray-500">결석</span>
+              <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
+                <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
+                  ABSENT
+                </p>
+                <p className="mt-1 text-xl font-bold text-[#d14b4b]">{monthStats.absent}</p>
               </div>
-              <div className="flex flex-col items-center p-3 bg-amber-50 rounded-xl">
-                <span className="text-h3 font-bold text-amber-600">
-                  {monthStats.earlyLeave}
-                </span>
-                <span className="text-caption text-gray-500">조퇴</span>
-              </div>
-              <div className="col-span-2 flex flex-col items-center p-3 bg-primary-50 rounded-xl">
-                <span className="text-h3 font-bold text-primary-600">
-                  {monthStats.rate}%
-                </span>
-                <span className="text-caption text-gray-500">출석률</span>
+              <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
+                <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
+                  조퇴
+                </p>
+                <p className="mt-1 text-xl font-bold text-[#c9a227]">{monthStats.earlyLeave}</p>
               </div>
             </div>
-          </Card>
+          </div>
 
-          {summary && (
-            <Card>
-              <h2 className="text-h3 font-semibold text-gray-900 mb-3">
-                전체 훈련 출석 현황
-              </h2>
-              <p className="text-caption text-gray-400 mb-3">
+          <div className="rounded-3xl border border-[#2d2a26] bg-[#2d2a26] p-5 text-white shadow-[0_12px_32px_rgba(0,0,0,0.18)] sm:p-6">
+            <p className="text-[0.65rem] font-semibold tracking-[0.15em] text-white/60">
+              COURSE MILESTONE
+            </p>
+            <p className={`${editorial} mt-1 text-2xl font-semibold`}>
+              {courseCompletion}% Completion
+            </p>
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
+              <div
+                className="h-full rounded-full bg-[#c9a227] transition-all duration-500"
+                style={{ width: `${Math.min(100, courseCompletion)}%` }}
+              />
+            </div>
+            <ul className="mt-4 space-y-2 text-[0.875rem] text-white/85">
+              <li className="flex justify-between gap-4 border-b border-white/10 pb-2">
+                <span>출석일</span>
+                <span className="font-semibold tabular-nums">{attendedDays}</span>
+              </li>
+              <li className="flex justify-between gap-4">
+                <span>전체 수업일</span>
+                <span className="font-semibold tabular-nums">{totalCourseDays}</span>
+              </li>
+            </ul>
+            {summary?.training_start && (
+              <p className="mt-2 text-[0.7rem] text-white/45">
                 {summary.training_start} ~ {summary.today}
               </p>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col items-center p-3 bg-student-50 rounded-xl">
-                  <span className="text-h3 font-bold text-student-600">
-                    {summary.rate}%
-                  </span>
-                  <span className="text-caption text-gray-500">출석률</span>
-                </div>
-                <div className="flex flex-col items-center p-3 bg-green-50 rounded-xl">
-                  <span className="text-h3 font-bold text-green-600">
-                    {summary.attended}
-                  </span>
-                  <span className="text-caption text-gray-500">출석일</span>
-                </div>
-                <div className="flex flex-col items-center p-3 bg-gray-50 rounded-xl">
-                  <span className="text-h3 font-bold text-gray-600">
-                    {summary.total_weekdays}
-                  </span>
-                  <span className="text-caption text-gray-500">수업일</span>
-                </div>
+            )}
+            <Link
+              to="/student/dashboard"
+              className="mt-5 block w-full rounded-xl bg-[#c9a227] py-3 text-center text-[0.8125rem] font-bold tracking-wide text-[#1f1e1c] transition hover:bg-[#ddb52e]"
+            >
+              전체 커리큘럼 보기
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-[#ebe5cf] bg-[#faf6e8] px-4 py-4 sm:px-5">
+            <div className="flex gap-3">
+              <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-[#c9a227]" />
+              <div>
+                <p className="text-[0.65rem] font-bold tracking-wide text-[#8a847a] uppercase">
+                  Attendance Insight
+                </p>
+                <p className="mt-1 text-[0.8125rem] leading-relaxed text-[#4d5a38]">
+                  {forecastText}
+                </p>
               </div>
-            </Card>
-          )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 출석 이력 */}
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-h3 font-semibold text-gray-900">
+      <div
+        ref={logRef}
+        id="attendance-log"
+        className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_8px_32px_rgba(45,42,38,0.05)] sm:p-6"
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className={`${editorial} text-lg font-semibold text-[#1f1e1c] sm:text-xl`}>
             {viewYear}년 {viewMonth}월 출석 이력
           </h2>
-          <span className="text-caption text-gray-400">
-            총 {tableData.length}건
-          </span>
+          <span className="text-[0.75rem] text-[#8a847a]">총 {tableData.length}건</span>
         </div>
-        <div className="overflow-y-auto max-h-64">
+        <div className="max-h-64 overflow-y-auto rounded-xl border border-[#ebe8e3]">
           <Table columns={columns} data={tableData} />
         </div>
-      </Card>
+      </div>
 
       {/* 퇴실 확인 모달 */}
       <Modal

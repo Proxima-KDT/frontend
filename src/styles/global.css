@@ -1,74 +1,72 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /* ===== 디자인 시스템 토큰 (EduPilot_디자인시스템_v1.0 기반) ===== */
 @theme {
   /* Primary (Brand) - Purple */
-  --color-primary-50: #f5f3ff;
-  --color-primary-100: #ede9fe;
-  --color-primary-200: #ddd6fe;
-  --color-primary-300: #c4b5fd;
-  --color-primary-400: #a78bfa;
-  --color-primary-500: #7c3aed;
-  --color-primary-600: #6d28d9;
-  --color-primary-700: #5b21b6;
-  --color-primary-800: #4c1d95;
-  --color-primary-900: #4c1d95;
+  --color-primary-50: #F5F3FF;
+  --color-primary-100: #EDE9FE;
+  --color-primary-200: #DDD6FE;
+  --color-primary-300: #C4B5FD;
+  --color-primary-400: #A78BFA;
+  --color-primary-500: #7C3AED;
+  --color-primary-600: #6D28D9;
+  --color-primary-700: #5B21B6;
+  --color-primary-800: #4C1D95;
+  --color-primary-900: #4C1D95;
 
   /* Role Accent - Student (Warm Blue) */
-  --color-student-50: #eff6ff;
-  --color-student-100: #dbeafe;
-  --color-student-400: #60a5fa;
-  --color-student-500: #3b82f6;
-  --color-student-600: #2563eb;
-  --color-student-900: #1e3a8a;
+  --color-student-50: #EFF6FF;
+  --color-student-100: #DBEAFE;
+  --color-student-400: #60A5FA;
+  --color-student-500: #3B82F6;
+  --color-student-600: #2563EB;
+  --color-student-900: #1E3A8A;
 
   /* Role Accent - Teacher (Teal) */
-  --color-teacher-50: #f0fdfa;
-  --color-teacher-100: #ccfbf1;
-  --color-teacher-400: #2dd4bf;
-  --color-teacher-500: #14b8a6;
-  --color-teacher-600: #0d9488;
-  --color-teacher-900: #134e4a;
+  --color-teacher-50: #F0FDFA;
+  --color-teacher-100: #CCFBF1;
+  --color-teacher-400: #2DD4BF;
+  --color-teacher-500: #14B8A6;
+  --color-teacher-600: #0D9488;
+  --color-teacher-900: #134E4A;
 
   /* Role Accent - Admin (Deep Purple) */
-  --color-admin-50: #f5f3ff;
-  --color-admin-100: #ede9fe;
-  --color-admin-400: #a78bfa;
-  --color-admin-500: #8b5cf6;
-  --color-admin-600: #7c3aed;
-  --color-admin-900: #2e1065;
+  --color-admin-50: #F5F3FF;
+  --color-admin-100: #EDE9FE;
+  --color-admin-400: #A78BFA;
+  --color-admin-500: #8B5CF6;
+  --color-admin-600: #7C3AED;
+  --color-admin-900: #2E1065;
 
   /* Semantic Colors */
-  --color-success-50: #f0fdf4;
-  --color-success-100: #dcfce7;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
-  --color-success-700: #15803d;
+  --color-success-50: #F0FDF4;
+  --color-success-100: #DCFCE7;
+  --color-success-500: #22C55E;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
 
-  --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-300: #fcd34d;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
 
-  --color-error-50: #fef2f2;
-  --color-error-100: #fee2e2;
-  --color-error-500: #ef4444;
-  --color-error-600: #dc2626;
-  --color-error-700: #b91c1c;
+  --color-error-50: #FEF2F2;
+  --color-error-100: #FEE2E2;
+  --color-error-500: #EF4444;
+  --color-error-600: #DC2626;
+  --color-error-700: #B91C1C;
 
-  --color-info-50: #eff6ff;
-  --color-info-100: #dbeafe;
-  --color-info-500: #3b82f6;
+  --color-info-50: #EFF6FF;
+  --color-info-100: #DBEAFE;
+  --color-info-500: #3B82F6;
 
   /* Font Family */
-  --font-sans:
-    'Pretendard Variable', 'Pretendard', 'Inter', -apple-system,
-    BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans: 'Pretendard Variable', 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* Font Size (name: size lineHeight) */
@@ -108,85 +106,36 @@
   --animate-pulse-recording: pulse-recording 1.5s ease-in-out infinite;
 
   @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes slide-in-right {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
   }
 
   @keyframes slide-out-right {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(100%);
-    }
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
   }
 
   @keyframes scale-up {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 
   @keyframes pulse-recording {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
-
-  @keyframes modal-shake {
-    0%,
-    100% {
-      transform: translateX(0);
-    }
-    15% {
-      transform: translateX(-6px);
-    }
-    30% {
-      transform: translateX(6px);
-    }
-    45% {
-      transform: translateX(-4px);
-    }
-    60% {
-      transform: translateX(4px);
-    }
-    75% {
-      transform: translateX(-2px);
-    }
-    90% {
-      transform: translateX(2px);
-    }
-  }
-  --animate-modal-shake: modal-shake 400ms ease-in-out;
 }
 
 /* 기본 body 스타일 */
 body {
   font-family: var(--font-sans);
   color: #111827;
-  background-color: #f9fafb;
+  background-color: #F9FAFB;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -201,10 +150,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #D1D5DB;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #9CA3AF;
 }

@@ -184,7 +184,7 @@ export default function Counseling() {
   };
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <h1 className="text-h1 font-bold text-gray-900 mb-6">상담 기록</h1>
 
       {/* 업로드 영역 */}

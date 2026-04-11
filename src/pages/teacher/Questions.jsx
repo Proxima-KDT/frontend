@@ -199,24 +199,24 @@ export default function TeacherQuestions() {
   };
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <h1 className="text-h1 font-bold text-gray-900 mb-6">수강생 질문</h1>
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <Card>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
           <p className="text-caption text-gray-500 mb-1">전체 질문</p>
-          <p className="text-h2 font-bold text-gray-900">{totalCount}건</p>
+          <p className="text-h2 font-bold text-[#2f3f54]">{totalCount}건</p>
         </Card>
-        <Card>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
           <p className="text-caption text-gray-500 mb-1">미답변</p>
-          <p className="text-h2 font-bold text-warning-600">
+          <p className="text-h2 font-bold text-[#9a7a2b]">
             {unansweredCount}건
           </p>
         </Card>
-        <Card>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
           <p className="text-caption text-gray-500 mb-1">답변완료</p>
-          <p className="text-h2 font-bold text-success-600">
+          <p className="text-h2 font-bold text-[#3f7a57]">
             {answeredCount}건
           </p>
         </Card>
@@ -296,7 +296,7 @@ export default function TeacherQuestions() {
                       onClick={() => setCurrentPage(p)}
                       className={`min-w-8 h-8 rounded-lg text-body-sm font-medium transition-colors ${
                         p === safePage
-                          ? 'bg-primary-600 text-white'
+                          ? 'bg-[#5f6972] text-white'
                           : 'hover:bg-gray-100 text-gray-600'
                       }`}
                     >
