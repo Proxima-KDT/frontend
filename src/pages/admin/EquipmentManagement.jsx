@@ -1,18 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
   CheckCircle,
   ArrowDownCircle,
   ArrowUpCircle,
   Wrench,
+  History,
+  Bell,
+  HelpCircle,
+  Download,
+  Search,
+  Package,
+  Activity,
+  AlertTriangle,
+  Globe,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { adminApi } from '@/api/admin';
-import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
-import Tabs from '@/components/common/Tabs';
 import Table from '@/components/common/Table';
 import Modal from '@/components/common/Modal';
 import Drawer from '@/components/common/Drawer';
@@ -31,6 +41,13 @@ const statusLabel = {
   borrowed: '대여중',
   maintenance: '수리중',
   retired: '폐기',
+};
+
+const statusLabelEn = {
+  available: 'Available',
+  borrowed: 'In use',
+  maintenance: 'Maintenance',
+  retired: 'Retired',
 };
 
 const ACTION_CONFIG = {
@@ -57,8 +74,76 @@ const ACTION_CONFIG = {
   },
 };
 
-// Supabase created_at는 "2026-04-10 01:45:39.588932+00" 형식 — 정식 ISO 8601이 아니라
-// new Date()가 Invalid Date를 반환하므로 T와 +00:00으로 정규화
+const FILTER_TABS = [
+  { key: 'all', labelKo: '전체', labelEn: 'All' },
+  { key: 'available', labelKo: '대여 가능', labelEn: 'Available' },
+  { key: 'borrowed', labelKo: '대여중', labelEn: 'In use' },
+  { key: 'maintenance', labelKo: '수리중', labelEn: 'Maintenance' },
+  { key: 'retired', labelKo: '폐기', labelEn: 'Retired' },
+  { key: 'pending', labelKo: '승인 대기', labelEn: 'Pending' },
+];
+
+/** 분류별 기본 썸네일 (API에 image_url 없을 때) */
+const CATEGORY_THUMB = {
+  노트북:
+    'https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400',
+  모니터:
+    'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=400&q=80',
+  태블릿:
+    'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=400&q=80',
+  주변기기:
+    'https://images.unsplash.com/photo-1613141412501-9012977f1969?auto=format&fit=crop&w=400&q=80',
+};
+
+const equipmentThumbs = [
+  { key: 'macbook', src: CATEGORY_THUMB.노트북 },
+  { key: '맥북', src: CATEGORY_THUMB.노트북 },
+  { key: 'monitor', src: CATEGORY_THUMB.모니터 },
+  { key: '모니터', src: CATEGORY_THUMB.모니터 },
+  { key: 'ipad', src: CATEGORY_THUMB.태블릿 },
+  { key: 'tablet', src: CATEGORY_THUMB.태블릿 },
+  { key: 'mouse', src: CATEGORY_THUMB.주변기기 },
+  { key: '마우스', src: CATEGORY_THUMB.주변기기 },
+  {
+    key: '키보드',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Computer_keyboard.svg/640px-Computer_keyboard.svg.png',
+  },
+  {
+    key: 'wacom',
+    src: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=400&q=80',
+  },
+];
+
+const categoryPillClass = {
+  노트북: 'bg-[#e8f1fa] text-[#3d5a7a]',
+  모니터: 'bg-[#e4f0ee] text-[#2d5c55]',
+  태블릿: 'bg-[#e8eef5] text-[#4a6282]',
+  주변기기: 'bg-[#f5f0e4] text-[#7a6120]',
+};
+
+function getEquipmentThumb(item) {
+  if (!item) return CATEGORY_THUMB.노트북;
+  if (item.image_url) return item.image_url;
+  const cat = item.category;
+  if (cat && CATEGORY_THUMB[cat]) return CATEGORY_THUMB[cat];
+  const txt = `${item.name || ''} ${item.serial_no || ''}`.toLowerCase();
+  for (const t of equipmentThumbs) {
+    if (txt.includes(t.key.toLowerCase())) return t.src;
+  }
+  return 'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=400&q=80';
+}
+
+function handleThumbError(e) {
+  const fallbackSrc = e.currentTarget.dataset.fallback;
+  if (fallbackSrc && e.currentTarget.src !== fallbackSrc) {
+    e.currentTarget.src = fallbackSrc;
+    return;
+  }
+  e.currentTarget.onerror = null;
+  e.currentTarget.src =
+    'https://dummyimage.com/400x400/efede7/9c988e&text=No+Image';
+}
+
 function parseSupabaseDT(isoStr) {
   if (!isoStr) return null;
   const normalized = isoStr.replace(' ', 'T').replace(/\+00$/, '+00:00');
@@ -90,10 +175,56 @@ function calcDuration(borrowAt, returnAt) {
   return m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
 }
 
+function exportEquipmentCsv(rows) {
+  const headers = [
+    'name',
+    'serial_no',
+    'category',
+    'status_ko',
+    'borrower',
+  ];
+  const lines = [
+    headers.join(','),
+    ...rows.map((r) =>
+      [
+        `"${(r.name || '').replace(/"/g, '""')}"`,
+        `"${(r.serial_no || '').replace(/"/g, '""')}"`,
+        `"${(r.category || '').replace(/"/g, '""')}"`,
+        r.status,
+        `"${(r.borrower || '').replace(/"/g, '""')}"`,
+      ].join(','),
+    ),
+  ];
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], {
+    type: 'text/csv;charset=utf-8;',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `equipment-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function ThBilingual({ en, ko }) {
+  return (
+    <span className="block leading-tight">
+      <span className="block text-[0.62rem] font-bold uppercase tracking-[0.08em] text-[#9a9ca3]">
+        {en}
+      </span>
+      <span className="block text-[0.72rem] font-semibold text-[#5c5e66]">{ko}</span>
+    </span>
+  );
+}
+
 export default function EquipmentManagement() {
   const { showToast } = useToast();
   const [equipment, setEquipment] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [inventoryMainTab, setInventoryMainTab] = useState('status');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     name: '',
@@ -107,6 +238,12 @@ export default function EquipmentManagement() {
   const [rejectReason, setRejectReason] = useState('');
 
   useEffect(() => {
+    const openAdd = () => setShowAddModal(true);
+    window.addEventListener('admin-equipment-open-add', openAdd);
+    return () => window.removeEventListener('admin-equipment-open-add', openAdd);
+  }, []);
+
+  useEffect(() => {
     adminApi
       .getEquipment()
       .then((data) => setEquipment(data))
@@ -116,6 +253,10 @@ export default function EquipmentManagement() {
       .then((data) => setRequests(data))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, searchQuery]);
 
   const handleApprove = (id) => {
     adminApi
@@ -153,17 +294,57 @@ export default function EquipmentManagement() {
       .catch(() => setEquipHistory([]));
   };
 
+  const counts = useMemo(
+    () => ({
+      all: equipment.length,
+      available: equipment.filter((e) => e.status === 'available').length,
+      borrowed: equipment.filter((e) => e.status === 'borrowed').length,
+      maintenance: equipment.filter((e) => e.status === 'maintenance').length,
+      retired: equipment.filter((e) => e.status === 'retired').length,
+    }),
+    [equipment],
+  );
+
+  const filteredByStatus =
+    filter === 'all'
+      ? equipment
+      : filter === 'pending'
+        ? []
+        : equipment.filter((e) => e.status === filter);
+
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return filteredByStatus;
+    return filteredByStatus.filter(
+      (e) =>
+        (e.name || '').toLowerCase().includes(q) ||
+        (e.serial_no || '').toLowerCase().includes(q),
+    );
+  }, [filteredByStatus, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page],
+  );
+
   const requestColumns = [
     {
       key: 'student_name',
-      label: '학생',
+      label: <ThBilingual en="Student" ko="학생" />,
       render: (val) => <span className="font-medium text-gray-900">{val}</span>,
     },
-    { key: 'equipment_name', label: '장비' },
-    { key: 'request_date', label: '신청일' },
+    {
+      key: 'equipment_name',
+      label: <ThBilingual en="Equipment" ko="장비" />,
+    },
+    {
+      key: 'request_date',
+      label: <ThBilingual en="Requested" ko="신청일" />,
+    },
     {
       key: 'reason',
-      label: '사유',
+      label: <ThBilingual en="Reason" ko="사유" />,
       render: (val) => (
         <span className="text-gray-500 max-w-[200px] truncate block">
           {val}
@@ -172,7 +353,7 @@ export default function EquipmentManagement() {
     },
     {
       key: 'actions',
-      label: '처리',
+      label: <ThBilingual en="Actions" ko="처리" />,
       render: (_, row) => (
         <div className="flex gap-2">
           <Button
@@ -180,117 +361,485 @@ export default function EquipmentManagement() {
             variant="primary"
             onClick={() => handleApprove(row.id)}
           >
-            승인
+            승인 · Approve
           </Button>
           <Button
             size="sm"
             variant="danger"
             onClick={() => setRejectModal(row)}
           >
-            반려
+            반려 · Reject
           </Button>
         </div>
       ),
     },
   ];
 
-  const filtered =
-    filter === 'all' ? equipment : equipment.filter((e) => e.status === filter);
-
-  const counts = {
-    all: equipment.length,
-    available: equipment.filter((e) => e.status === 'available').length,
-    borrowed: equipment.filter((e) => e.status === 'borrowed').length,
-    maintenance: equipment.filter((e) => e.status === 'maintenance').length,
-    retired: equipment.filter((e) => e.status === 'retired').length,
-  };
-
   const columns = [
     {
       key: 'name',
-      label: '장비명',
-      render: (val) => <span className="font-medium text-gray-900">{val}</span>,
+      label: <ThBilingual en="Equipment name" ko="장비명" />,
+      render: (val, row) => {
+        const thumb = getEquipmentThumb(row);
+        const fallback =
+          (row.category && CATEGORY_THUMB[row.category]) ||
+          'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=400&q=80';
+        return (
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-[#e2e4e8] bg-[#f4f5f7]">
+              <img
+                src={thumb}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={handleThumbError}
+                data-fallback={fallback}
+              />
+            </div>
+            <span
+              className={`min-w-0 truncate font-semibold text-[#1a1c21]`}
+            >
+              {val}
+            </span>
+          </div>
+        );
+      },
     },
-    { key: 'serial_no', label: '시리얼' },
     {
-      key: 'category',
-      label: '분류',
-      render: (val) => <Badge variant="default">{val}</Badge>,
-    },
-    {
-      key: 'status',
-      label: '상태',
+      key: 'serial_no',
+      label: <ThBilingual en="Serial number" ko="시리얼" />,
       render: (val) => (
-        <Badge variant={statusVariant[val]}>{statusLabel[val]}</Badge>
+        <span className="font-mono text-[0.8rem] text-[#4b5563]">{val}</span>
       ),
     },
     {
+      key: 'category',
+      label: <ThBilingual en="Category" ko="분류" />,
+      render: (val) => (
+        <span
+          className={`inline-block rounded-full px-2.5 py-0.5 text-[0.65rem] font-bold tracking-wide ${
+            categoryPillClass[val] || 'bg-[#f0f1f4] text-[#5c5f6a]'
+          }`}
+        >
+          {(val || '—').toUpperCase()}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: <ThBilingual en="Status" ko="상태" />,
+      render: (val) => {
+        const dot =
+          val === 'available'
+            ? 'bg-emerald-500'
+            : val === 'borrowed'
+              ? 'bg-amber-500'
+              : val === 'maintenance'
+                ? 'bg-red-500'
+                : 'bg-gray-400';
+        return (
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+            <span className="text-body-sm text-[#374151]">
+              {statusLabel[val]} · {statusLabelEn[val]}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       key: 'borrower',
-      label: '사용자',
-      render: (val) => val || <span className="text-gray-400">-</span>,
+      label: <ThBilingual en="Primary user" ko="사용자" />,
+      render: (val) => val || <span className="text-gray-400">— · Internal</span>,
+    },
+    {
+      key: 'actions',
+      label: <ThBilingual en="Actions" ko="작업" />,
+      width: '72px',
+      render: (_, row) => (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpenHistory(row);
+          }}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#6b7280] transition-colors hover:border-[#d1d5db] hover:bg-[#f9fafb]"
+          title="이력 · History"
+        >
+          <History className="h-4 w-4" />
+        </button>
+      ),
+    },
+  ];
+
+  const kpiCards = [
+    {
+      key: 'total',
+      tag: 'GLOBAL',
+      tagClass: 'bg-[#eef0f3] text-[#6b7280]',
+      value: counts.all,
+      labelKo: '전체 장비',
+      labelEn: 'Total equipment',
+      icon: Package,
+      iconBg: 'bg-[#eef0f3]',
+      iconColor: 'text-[#5c6470]',
+    },
+    {
+      key: 'avail',
+      tag: 'HEALTHY',
+      tagClass: 'bg-emerald-50 text-emerald-700',
+      value: counts.available,
+      labelKo: '대여 가능',
+      labelEn: 'Available',
+      icon: CheckCircle,
+      iconBg: 'bg-emerald-50',
+      iconColor: 'text-emerald-600',
+    },
+    {
+      key: 'use',
+      tag: 'ACTIVE',
+      tagClass: 'bg-amber-50 text-amber-800',
+      value: counts.borrowed,
+      labelKo: '대여중',
+      labelEn: 'In use',
+      icon: Activity,
+      iconBg: 'bg-amber-50',
+      iconColor: 'text-amber-600',
+    },
+    {
+      key: 'maint',
+      tag: 'URGENT',
+      tagClass: 'bg-red-50 text-red-700',
+      value: counts.maintenance,
+      labelKo: '수리중',
+      labelEn: 'Maintenance',
+      icon: AlertTriangle,
+      iconBg: 'bg-red-50',
+      iconColor: 'text-red-600',
     },
   ];
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-h1 font-bold text-gray-900">장비 관리</h1>
-        <Button icon={Plus} size="sm" onClick={() => setShowAddModal(true)}>
-          장비 등록
-        </Button>
+    <div className="rounded-3xl border border-[#ebe4d8]/80 bg-[#fdfbf7] px-4 py-6 shadow-[0_1px_0_rgba(255,255,255,0.85)_inset] sm:px-6 md:-mx-2 md:px-8 md:py-8">
+      <div className="min-h-0 text-[#1a1c21]">
+      {/* 상단 툴바 (검색 · 알림 영역) */}
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative mx-auto w-full max-w-xl sm:mx-0">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="장비 검색 · Search equipment…"
+            className="w-full rounded-full border border-[#e5e7eb] bg-white py-2.5 pl-10 pr-4 text-sm text-[#374151] shadow-sm outline-none transition focus:border-[#2d2d2d] focus:ring-1 focus:ring-[#2d2d2d]"
+          />
+        </div>
+        <div className="flex items-center justify-center gap-2 sm:justify-end">
+          <span
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#9ca3af]"
+            title="알림 · Notifications"
+            aria-hidden
+          >
+            <Bell className="h-4 w-4" />
+          </span>
+          <span
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#9ca3af]"
+            title="도움말 · Help"
+            aria-hidden
+          >
+            <HelpCircle className="h-4 w-4" />
+          </span>
+        </div>
       </div>
 
-      <Tabs
-        tabs={[
-          { key: 'all', label: '전체', count: counts.all },
-          { key: 'available', label: '대여 가능', count: counts.available },
-          { key: 'borrowed', label: '대여중', count: counts.borrowed },
-          { key: 'maintenance', label: '수리중', count: counts.maintenance },
-          { key: 'retired', label: '폐기', count: counts.retired },
-          { key: 'pending', label: '승인 대기', count: requests.length },
-        ]}
-        activeTab={filter}
-        onChange={setFilter}
-        className="mb-4"
-      />
-
-      {filter === 'pending' ? (
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-h3 font-semibold text-gray-900">승인 대기</h2>
-            <Badge variant="warning">{requests.length}건</Badge>
-          </div>
-          {requests.length > 0 ? (
-            <Table columns={requestColumns} data={requests} />
-          ) : (
-            <div className="text-center py-8">
-              <CheckCircle className="w-12 h-12 text-success-500 mx-auto mb-2" />
-              <p className="text-body-sm text-gray-500">
-                처리 대기 중인 요청이 없습니다
-              </p>
-            </div>
+      <div className="mb-6 flex gap-8 border-b border-[#e5e0d6]">
+        <button
+          type="button"
+          onClick={() => setInventoryMainTab('status')}
+          className={`relative pb-3 text-sm font-semibold transition-colors ${
+            inventoryMainTab === 'status'
+              ? 'text-[#121926]'
+              : 'text-[#9a968e] hover:text-[#5c5852]'
+          }`}
+        >
+          상태 · Status
+          {inventoryMainTab === 'status' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#121926]" />
           )}
-        </Card>
-      ) : (
-        <Card padding="p-0">
-          <Table
-            columns={columns}
-            data={filtered}
-            onRowClick={handleOpenHistory}
-          />
-        </Card>
-      )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setInventoryMainTab('reports')}
+          className={`relative pb-3 text-sm font-semibold transition-colors ${
+            inventoryMainTab === 'reports'
+              ? 'text-[#121926]'
+              : 'text-[#9a968e] hover:text-[#5c5852]'
+          }`}
+        >
+          리포트 · Reports
+          {inventoryMainTab === 'reports' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#121926]" />
+          )}
+        </button>
+      </div>
+
+      {/* 히어로 */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1
+            className={`text-[1.75rem] font-bold tracking-tight text-[#121926] sm:text-[2rem]`}
+          >
+            Inventory Command
+          </h1>
+          <p className="mt-1 text-[0.95rem] text-[#6b7280]">
+            장비 재고와 대여 상태를 한곳에서 관리합니다. · Central inventory for
+            your campus fleet.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-3 sm:flex-row sm:items-center">
+          <div
+            className="flex -space-x-2"
+            title="활성 운영자 · Active operators"
+            aria-hidden
+          >
+            {['from-[#dbe4f0] to-[#9fb3d9]', 'from-[#e8dfd8] to-[#c4a99f]', 'from-[#dde8e4] to-[#8fb0a6]'].map(
+              (g, i) => (
+                <div
+                  key={i}
+                  className={`h-9 w-9 rounded-full border-2 border-[#fdfbf7] bg-gradient-to-br ${g} shadow-sm`}
+                />
+              ),
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-3 py-2 text-caption text-[#6b7280] shadow-sm">
+            <Globe className="h-4 w-4 text-[#9ca3af]" />
+            <span>
+              승인 대기{' '}
+              <span className="font-semibold text-[#121926]">{requests.length}</span>건 · Pending{' '}
+              <span className="font-semibold text-[#121926]">{requests.length}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI 카드 */}
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpiCards.map((k) => {
+          const Icon = k.icon;
+          return (
+            <div
+              key={k.key}
+              className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_4px_20px_rgba(15,23,42,0.05)]"
+            >
+              <div className="mb-3 flex items-start justify-between">
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${k.iconBg}`}
+                >
+                  <Icon className={`h-5 w-5 ${k.iconColor}`} />
+                </div>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[0.6rem] font-bold tracking-wide ${k.tagClass}`}
+                >
+                  {k.tag}
+                </span>
+              </div>
+              <p className={`text-3xl font-bold text-[#121926]`}>
+                {k.value.toLocaleString()}
+              </p>
+              <p className="mt-1 text-sm font-medium text-[#374151]">{k.labelKo}</p>
+              <p className="text-caption text-[#9ca3af]">{k.labelEn}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 필터 + 표 */}
+      <div className="overflow-hidden rounded-3xl border border-[#e4dfd4] bg-white shadow-[0_8px_32px_rgba(15,23,42,0.06)]">
+        <div className="flex flex-col gap-4 border-b border-[#efe9df] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex flex-wrap gap-2">
+            {FILTER_TABS.map((tab) => {
+              const count =
+                tab.key === 'all'
+                  ? counts.all
+                  : tab.key === 'pending'
+                    ? requests.length
+                    : counts[tab.key];
+              const active = filter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setFilter(tab.key)}
+                  className={`rounded-full px-4 py-2 text-left text-[0.8rem] font-medium transition ${
+                    active
+                      ? 'bg-[#2d2d2d] text-white shadow-sm'
+                      : 'border border-[#e5e7eb] bg-[#fafafa] text-[#4b5563] hover:bg-[#f3f4f6]'
+                  }`}
+                >
+                  <span className="block leading-tight">{tab.labelKo}</span>
+                  <span
+                    className={`block text-[0.65rem] ${active ? 'text-white/80' : 'text-[#9ca3af]'}`}
+                  >
+                    {tab.labelEn} · {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              showToast({
+                type: 'info',
+                message: '고급 필터는 준비 중입니다. · Advanced filters coming soon.',
+              })
+            }
+            className="inline-flex items-center gap-2 rounded-full border border-[#e5e7eb] bg-[#faf9f6] px-4 py-2 text-[0.8rem] font-medium text-[#4b5563] transition hover:bg-[#f3f1ec]"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-[#9ca3af]" />
+            고급 필터 · Advanced
+          </button>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={Download}
+            onClick={() => {
+              if (filter === 'pending') {
+                showToast({
+                  type: 'info',
+                  message:
+                    '보내기는 장비 목록 탭에서만 사용할 수 있습니다. · Export is only available on equipment tabs.',
+                });
+                return;
+              }
+              exportEquipmentCsv(filtered);
+              showToast({
+                type: 'success',
+                message: 'CSV 파일로 저장했습니다. · Exported to CSV.',
+              });
+            }}
+          >
+            보내기 · Export
+          </Button>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-6">
+          {filter === 'pending' ? (
+            <>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[#121926]">
+                  승인 대기 · Pending approval
+                </h2>
+                <Badge variant="warning">
+                  {requests.length}건 · {requests.length} requests
+                </Badge>
+              </div>
+              {requests.length > 0 ? (
+                <Table columns={requestColumns} data={requests} />
+              ) : (
+                <div className="py-12 text-center">
+                  <CheckCircle className="mx-auto mb-2 h-12 w-12 text-emerald-500" />
+                  <p className="text-body-sm text-[#6b7280]">
+                    처리 대기 중인 요청이 없습니다. · No pending requests.
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <Table
+                columns={columns}
+                data={paginated}
+                onRowClick={handleOpenHistory}
+                className="border-0 bg-transparent"
+              />
+              {filtered.length > 0 && (
+                <div className="mt-6 flex flex-col gap-3 border-t border-[#efe9df] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-caption text-[#8a847a]">
+                    {(page - 1) * pageSize + 1}–
+                    {Math.min(page * pageSize, filtered.length)} 표시 · Showing{' '}
+                    {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} of{' '}
+                    {filtered.length.toLocaleString()} entries
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#5c5852] transition hover:bg-[#f5f3ef] disabled:cursor-not-allowed disabled:opacity-35"
+                      aria-label="이전 페이지"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          Math.abs(p - page) <= 1,
+                      )
+                      .reduce((acc, p, idx, arr) => {
+                        if (idx > 0 && p - arr[idx - 1] > 1) acc.push('…');
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, idx) =>
+                        p === '…' ? (
+                          <span
+                            key={`e-${idx}`}
+                            className="px-1 text-caption text-[#b4aea4]"
+                          >
+                            …
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            key={p}
+                            onClick={() => setPage(p)}
+                            className={`flex h-9 min-w-9 items-center justify-center rounded-full text-sm font-medium transition ${
+                              p === page
+                                ? 'bg-[#2d2d2d] text-white shadow-sm'
+                                : 'text-[#5c5852] hover:bg-[#f5f3ef]'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ),
+                      )}
+                    <button
+                      type="button"
+                      disabled={page >= totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#5c5852] transition hover:bg-[#f5f3ef] disabled:cursor-not-allowed disabled:opacity-35"
+                      aria-label="다음 페이지"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6 flex justify-end sm:hidden">
+        <Button icon={Plus} size="sm" onClick={() => setShowAddModal(true)}>
+          장비 등록 · Add
+        </Button>
+      </div>
 
       {/* 장비 등록 모달 */}
       <Modal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        title="장비 등록"
+        title="장비 등록 · Register equipment"
         persistent
       >
         <div className="space-y-4">
           <Input
-            label="장비명"
+            label="장비명 · Equipment name"
             placeholder="장비명을 입력하세요"
             value={addForm.name}
             onChange={(e) =>
@@ -298,7 +847,7 @@ export default function EquipmentManagement() {
             }
           />
           <Input
-            label="시리얼 번호"
+            label="시리얼 번호 · Serial number"
             placeholder="시리얼 번호를 입력하세요"
             value={addForm.serial_no}
             onChange={(e) =>
@@ -306,12 +855,12 @@ export default function EquipmentManagement() {
             }
           />
           <Select
-            label="분류"
+            label="분류 · Category"
             options={[
-              { value: '노트북', label: '노트북' },
-              { value: '모니터', label: '모니터' },
-              { value: '태블릿', label: '태블릿' },
-              { value: '주변기기', label: '주변기기' },
+              { value: '노트북', label: '노트북 · Laptop' },
+              { value: '모니터', label: '모니터 · Monitor' },
+              { value: '태블릿', label: '태블릿 · Tablet' },
+              { value: '주변기기', label: '주변기기 · Peripheral' },
             ]}
             value={addForm.category}
             onChange={(e) =>
@@ -320,7 +869,7 @@ export default function EquipmentManagement() {
           />
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" onClick={() => setShowAddModal(false)}>
-              취소
+              취소 · Cancel
             </Button>
             <Button
               onClick={() => {
@@ -342,7 +891,7 @@ export default function EquipmentManagement() {
                   });
               }}
             >
-              등록
+              등록 · Register
             </Button>
           </div>
         </div>
@@ -352,16 +901,16 @@ export default function EquipmentManagement() {
       <Modal
         isOpen={!!rejectModal}
         onClose={() => setRejectModal(null)}
-        title="대여 반려"
+        title="대여 반려 · Reject request"
       >
         <div className="space-y-4">
           <p className="text-body-sm text-gray-700">
             <span className="font-medium">{rejectModal?.student_name}</span>의{' '}
             <span className="font-medium">{rejectModal?.equipment_name}</span>{' '}
-            대여 요청을 반려합니다.
+            대여 요청을 반려합니다. · You are rejecting this borrow request.
           </p>
           <Textarea
-            label="반려 사유"
+            label="반려 사유 · Reason"
             placeholder="반려 사유를 입력하세요"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
@@ -369,10 +918,10 @@ export default function EquipmentManagement() {
           />
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setRejectModal(null)}>
-              취소
+              취소 · Cancel
             </Button>
             <Button variant="danger" onClick={handleReject}>
-              반려
+              반려 · Reject
             </Button>
           </div>
         </div>
@@ -382,32 +931,44 @@ export default function EquipmentManagement() {
       <Drawer
         isOpen={!!selectedEquipment}
         onClose={() => setSelectedEquipment(null)}
-        title={selectedEquipment?.name || '장비 이력'}
+        title={
+          selectedEquipment?.name ? (
+            <span>
+              {selectedEquipment.name}{' '}
+              <span className="text-caption font-normal text-[#9ca3af]">
+                · History
+              </span>
+            </span>
+          ) : (
+            '장비 이력 · Equipment history'
+          )
+        }
       >
         {selectedEquipment && (
           <div>
-            <div className="space-y-2 mb-6">
+            <div className="mb-6 space-y-2">
               <div className="flex justify-between text-body-sm">
-                <span className="text-gray-500">시리얼</span>
-                <span className="text-gray-900">
+                <span className="text-gray-500">시리얼 · Serial</span>
+                <span className="font-mono text-gray-900">
                   {selectedEquipment.serial_no}
                 </span>
               </div>
               <div className="flex justify-between text-body-sm">
-                <span className="text-gray-500">분류</span>
+                <span className="text-gray-500">분류 · Category</span>
                 <span className="text-gray-900">
                   {selectedEquipment.category}
                 </span>
               </div>
               <div className="flex justify-between text-body-sm">
-                <span className="text-gray-500">상태</span>
+                <span className="text-gray-500">상태 · Status</span>
                 <Badge variant={statusVariant[selectedEquipment.status]}>
-                  {statusLabel[selectedEquipment.status]}
+                  {statusLabel[selectedEquipment.status]} ·{' '}
+                  {statusLabelEn[selectedEquipment.status]}
                 </Badge>
               </div>
               {selectedEquipment.borrower && (
                 <div className="flex justify-between text-body-sm">
-                  <span className="text-gray-500">사용자</span>
+                  <span className="text-gray-500">사용자 · User</span>
                   <span className="text-gray-900">
                     {selectedEquipment.borrower}
                   </span>
@@ -415,12 +976,14 @@ export default function EquipmentManagement() {
               )}
             </div>
 
-            <h3 className="text-body font-semibold text-gray-900 mb-3">
-              사용 이력
+            <h3 className="mb-3 text-body font-semibold text-gray-900">
+              사용 이력 · Usage log
             </h3>
             <div className="space-y-3">
               {equipHistory.length === 0 ? (
-                <p className="text-body-sm text-gray-400">이력이 없습니다.</p>
+                <p className="text-body-sm text-gray-400">
+                  이력이 없습니다. · No history.
+                </p>
               ) : (
                 equipHistory.map((session, i) => {
                   const cfg =
@@ -435,8 +998,7 @@ export default function EquipmentManagement() {
                       key={i}
                       className={`rounded-xl border p-3 ${cfg.bg} ${cfg.border}`}
                     >
-                      {/* 헤더: 이름 + 상태 뱃지 */}
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="mb-2 flex items-center justify-between">
                         <span
                           className={`text-body-sm font-semibold ${cfg.color}`}
                         >
@@ -444,50 +1006,49 @@ export default function EquipmentManagement() {
                         </span>
                         {session.action === 'borrow' &&
                           (session.is_active ? (
-                            <span className="text-caption font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                              대여중
+                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-caption font-medium text-blue-600">
+                              대여중 · Active
                             </span>
                           ) : (
-                            <span className="text-caption font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                              반납 완료
+                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-caption font-medium text-green-600">
+                              반납 완료 · Returned
                             </span>
                           ))}
                         {session.action !== 'borrow' && (
-                          <span className="text-caption font-medium text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full">
+                          <span className="rounded-full bg-orange-100 px-2 py-0.5 text-caption font-medium text-orange-500">
                             {cfg.label}
                           </span>
                         )}
                       </div>
 
-                      {/* 대여/반납 시간 */}
                       {session.action === 'borrow' && (
                         <div className="space-y-1 text-caption text-gray-600">
                           <div className="flex items-center gap-2">
-                            <ArrowDownCircle className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                            <ArrowDownCircle className="h-3.5 w-3.5 shrink-0 text-blue-400" />
                             <span className="w-10 shrink-0 text-gray-400">
-                              대여
+                              대여 · Out
                             </span>
                             <span className="font-medium text-gray-700">
                               {formatDT(session.borrow_at)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <ArrowUpCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                            <ArrowUpCircle className="h-3.5 w-3.5 shrink-0 text-green-400" />
                             <span className="w-10 shrink-0 text-gray-400">
-                              반납
+                              반납 · In
                             </span>
                             <span
                               className={`font-medium ${session.return_at ? 'text-gray-700' : 'text-blue-500'}`}
                             >
                               {session.return_at
                                 ? formatDT(session.return_at)
-                                : '반납 전'}
+                                : '반납 전 · Not returned'}
                             </span>
                           </div>
                           {duration && (
-                            <div className="flex items-center gap-2 pt-0.5 border-t border-gray-200 mt-1">
-                              <span className="text-gray-400 ml-5">
-                                사용 시간
+                            <div className="mt-1 flex items-center gap-2 border-t border-gray-200 pt-0.5">
+                              <span className="ml-5 text-gray-400">
+                                사용 시간 · Duration
                               </span>
                               <span className="font-medium text-gray-700">
                                 {duration}
@@ -497,10 +1058,9 @@ export default function EquipmentManagement() {
                         </div>
                       )}
 
-                      {/* 수리/기타 단일 이벤트 */}
                       {session.action !== 'borrow' && (
-                        <div className="text-caption text-gray-600 flex items-center gap-2">
-                          <span className="text-gray-400">일시</span>
+                        <div className="flex items-center gap-2 text-caption text-gray-600">
+                          <span className="text-gray-400">일시 · Time</span>
                           <span className="font-medium text-gray-700">
                             {formatDT(session.borrow_at)}
                           </span>
@@ -508,7 +1068,7 @@ export default function EquipmentManagement() {
                       )}
 
                       {session.note && (
-                        <p className="text-caption text-gray-500 mt-1.5 pl-1 border-l-2 border-gray-300">
+                        <p className="mt-1.5 border-l-2 border-gray-300 pl-1 text-caption text-gray-500">
                           {session.note}
                         </p>
                       )}
@@ -520,6 +1080,7 @@ export default function EquipmentManagement() {
           </div>
         )}
       </Drawer>
+      </div>
     </div>
   );
 }

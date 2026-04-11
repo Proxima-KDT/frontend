@@ -19,6 +19,7 @@ function TeacherRoute({ children }) {
 
 // Auth 페이지
 const LandingPage = lazy(() => import('@/pages/auth/LandingPage'));
+const MainPage9 = lazy(() => import('@/pages/auth/MainPage9'));
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const SignupPage = lazy(() => import('@/pages/auth/SignupPage'));
 const NotFoundPage = lazy(() => import('@/pages/auth/NotFoundPage'));
@@ -80,14 +81,22 @@ const AdminRoomReservation = lazy(
 const RegisterStudent = lazy(() => import('@/pages/admin/RegisterStudent'));
 const RegisterTeacher = lazy(() => import('@/pages/admin/RegisterTeacher'));
 
-// 로그인 상태면 role 대시보드로, 아니면 랜딩페이지 표시
+// 로그인 상태면 역할별 홈으로, 비로그인이면 랜딩(메인) 화면
 function HomeRoute() {
-  const { isAuthenticated, role, loading } = useAuth();
-  if (loading) return null;
-  if (!isAuthenticated) return <LandingPage />;
-  if (role === 'teacher') return <Navigate to="/teacher" replace />;
-  if (role === 'admin') return <Navigate to="/admin" replace />;
-  return <Navigate to="/student" replace />;
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f3f1ea] px-6">
+        <Skeleton width="220px" height="44px" rounded="rounded-2xl" />
+      </div>
+    );
+  }
+  if (user) {
+    if (user.role === 'teacher') return <Navigate to="/teacher" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    return <Navigate to="/student" replace />;
+  }
+  return <MainPage9 />;
 }
 
 function PageLoader() {
@@ -107,6 +116,7 @@ export default function AppRouter() {
         {/* Public */}
         <Route path="/" element={<HomeRoute />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/main9" element={<MainPage9 />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 

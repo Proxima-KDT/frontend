@@ -11,46 +11,89 @@ import { clearSelectedCourseStorage } from '@/context/CourseContext';
 
 const AuthContext = createContext(null);
 
+function normalizeRole(rawRole) {
+  const v = String(rawRole || '')
+    .trim()
+    .toLowerCase();
+  if (v === 'teacher' || v === '강사') return 'teacher';
+  if (v === 'admin' || v === '관리자') return 'admin';
+  return 'student';
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 세션에서 프로필 조회 후 user 상태 세팅
-  const loadUser = useCallback(async (session) => {
-    if (!session) {
-      setUser(null);
-      return false;
-    }
-    try {
-      const { data } = await axiosInstance.get('/api/profile/me');
-      setUser({
-        id: session.user.id,
-        email: session.user.email,
-        name: data.name,
-        role: data.role,
-        avatar_url: data.avatar_url,
-      });
-      return true;
-    } catch {
-      setUser(null);
-      return false;
-    }
+  const buildUserFromSession = useCallback((session) => {
+    const meta = session?.user?.user_metadata || {};
+    return {
+      id: session.user.id,
+      email: session.user.email,
+      name: meta.name || session.user.email?.split('@')?.[0] || '사용자',
+      role: normalizeRole(meta.role),
+      avatar_url: meta.avatar_url ?? null,
+    };
   }, []);
+
+  // 세션에서 프로필 조회 후 user 상태 세팅
+  const loadUser = useCallback(
+    async (session) => {
+      if (!session) {
+        setUser(null);
+        return null;
+      }
+      try {
+        const { data } = await axiosInstance.get('/api/profile/me');
+        const userObj = {
+          id: session.user.id,
+          email: session.user.email,
+          name: data.name,
+          role: normalizeRole(data.role),
+          avatar_url: data.avatar_url,
+        };
+        setUser(userObj);
+        return userObj;
+      } catch {
+        const fallbackUser = buildUserFromSession(session);
+        setUser(fallbackUser);
+        return fallbackUser;
+      }
+    },
+    [buildUserFromSession],
+  );
 
   // 앱 시작 시 세션 복원
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      loadUser(session).finally(() => setLoading(false));
-    });
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+
+    const initSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        await loadUser(session);
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    initSession();
 
     // 로그인/로그아웃 이벤트 감지
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       loadUser(session);
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
   }, [loadUser]);
 
   const login = useCallback(
@@ -60,11 +103,12 @@ export function AuthProvider({ children }) {
         password,
       });
       if (error) throw error;
-      const ok = await loadUser(data.session);
-      if (!ok)
+      const loadedUser = await loadUser(data.session);
+      if (!loadedUser)
         throw new Error(
           '프로필을 불러오지 못했습니다. 서버 상태를 확인해주세요.',
         );
+      return { role: loadedUser.role };
     },
     [loadUser],
   );

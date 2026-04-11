@@ -130,7 +130,7 @@ export default function SignatureCanvas({
       <div
         className={`
           relative border-2 rounded-xl overflow-hidden
-          ${disabled || submitted ? 'border-gray-200 bg-gray-50' : 'border-primary-200 bg-white'}
+          ${disabled || submitted ? 'border-[#e8e4dc] bg-[#faf9f7]' : 'border-[#d4cfc4] bg-white'}
         `}
         style={{ touchAction: 'none' }}
       >
@@ -153,10 +153,8 @@ export default function SignatureCanvas({
           </div>
         )}
         {submitted && (
-          <div className="absolute inset-0 bg-green-50/60 flex items-center justify-center">
-            <p className="text-body-sm text-green-600 font-medium">
-              서명 제출 완료
-            </p>
+          <div className="absolute inset-0 flex items-center justify-center bg-[#e8f0e9]/85">
+            <p className="text-body-sm font-semibold text-[#3d6b4f]">서명 제출 완료</p>
           </div>
         )}
       </div>
@@ -170,6 +168,7 @@ export default function SignatureCanvas({
               icon={Eraser}
               onClick={clear}
               disabled={disabled}
+              className="text-[#4a4640] hover:bg-[#f0ede6]"
             >
               지우기
             </Button>
@@ -178,13 +177,19 @@ export default function SignatureCanvas({
               icon={Check}
               onClick={handleSave}
               disabled={disabled || !hasSignature}
+              className="!bg-[#2d2a26] hover:!bg-[#1f1e1c] active:!bg-[#151413] !text-white"
             >
               서명 제출
             </Button>
           </>
         ) : (
           <>
-            <Button size="sm" icon={Check} disabled className="opacity-60">
+            <Button
+              size="sm"
+              icon={Check}
+              disabled
+              className="!cursor-not-allowed !bg-[#ebe8e3] !text-[#6b6560] opacity-100"
+            >
               제출 완료
             </Button>
             {!checkoutDone ? (
@@ -195,8 +200,8 @@ export default function SignatureCanvas({
                 disabled={checkoutDisabled || earlyLeaveDone}
                 className={
                   checkoutDisabled || earlyLeaveDone
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'bg-red-500 hover:bg-red-600 text-white'
+                    ? '!cursor-not-allowed !bg-[#ebe8e3] !text-[#a8a29e] opacity-100'
+                    : '!bg-[#8b5348] hover:!bg-[#7a483f] !text-white'
                 }
                 title={
                   checkoutDisabled
@@ -213,7 +218,7 @@ export default function SignatureCanvas({
                 size="sm"
                 icon={CheckCheck}
                 disabled
-                className="bg-gray-100 text-gray-400"
+                className="!cursor-not-allowed !bg-[#f3f1ed] !text-[#8a847a] opacity-100"
               >
                 퇴실 완료
               </Button>
@@ -226,8 +231,8 @@ export default function SignatureCanvas({
                 disabled={checkoutDone}
                 className={
                   checkoutDone
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'bg-amber-500 hover:bg-amber-600 text-white'
+                    ? '!cursor-not-allowed !bg-[#ebe8e3] !text-[#a8a29e] opacity-100'
+                    : '!bg-[#c9a227] hover:!bg-[#b89220] !text-[#1f1e1c]'
                 }
                 title={checkoutDone ? '이미 퇴실 처리되었습니다' : '조퇴 처리'}
               >
@@ -238,7 +243,7 @@ export default function SignatureCanvas({
                 size="sm"
                 icon={CheckCheck}
                 disabled
-                className="bg-gray-100 text-gray-400"
+                className="!cursor-not-allowed !bg-[#f3f1ed] !text-[#8a847a] opacity-100"
               >
                 조퇴 완료
               </Button>

@@ -58,39 +58,39 @@ const STATUS_CONFIG = {
   present: {
     label: '출석',
     badgeVariant: 'success',
-    bg: 'bg-success-50 border-success-200 hover:bg-success-100',
+    bg: 'bg-[#eef4ea] border-[#d5e4cc] hover:bg-[#e6f0df]',
     icon: CheckCircle,
-    iconClass: 'text-success-500',
+    iconClass: 'text-[#5d7a4d]',
   },
   late: {
     label: '지각',
     badgeVariant: 'warning',
-    bg: 'bg-warning-50 border-warning-200 hover:bg-warning-100',
+    bg: 'bg-[#faf3e4] border-[#edd9b1] hover:bg-[#f4ead5]',
     icon: Clock,
-    iconClass: 'text-warning-500',
+    iconClass: 'text-[#9b7640]',
   },
   absent: {
     label: '결석',
     badgeVariant: 'error',
-    bg: 'bg-error-50 border-error-200 hover:bg-error-100',
+    bg: 'bg-[#f8ece9] border-[#ebcec5] hover:bg-[#f3e3de]',
     icon: XCircle,
-    iconClass: 'text-error-500',
+    iconClass: 'text-[#a0675b]',
   },
   early_leave: {
     label: '조퇴',
     badgeVariant: 'warning',
-    bg: 'bg-amber-50 border-amber-200 hover:bg-amber-100',
+    bg: 'bg-[#f6f0e4] border-[#e5d6bb] hover:bg-[#f0e7d6]',
     icon: LogOut,
-    iconClass: 'text-amber-500',
+    iconClass: 'text-[#8f7a52]',
   },
 };
 
 const NULL_CFG = {
   label: '미확인',
   badgeVariant: 'default',
-  bg: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+  bg: 'bg-[#f3f1ed] border-[#e2ddd4] hover:bg-[#ece8e1]',
   icon: Minus,
-  iconClass: 'text-gray-400',
+  iconClass: 'text-[#9f978a]',
 };
 
 const getCfg = (status) => STATUS_CONFIG[status] ?? NULL_CFG;
@@ -179,7 +179,7 @@ function DatePickerPopover({ selectedDate, onChange }) {
         </span>
         <CalendarDays
           size={16}
-          className="text-gray-400 group-hover:text-primary-500 transition-colors"
+          className="text-gray-400 group-hover:text-[#7a6750] transition-colors"
         />
       </button>
 
@@ -248,12 +248,12 @@ function DatePickerPopover({ selectedDate, onChange }) {
                   className={`w-9 h-9 mx-auto rounded-full text-caption font-medium transition-colors flex items-center justify-center
                     ${
                       isSelected
-                        ? 'bg-primary-500 text-white'
+                        ? 'bg-[#7a6750] text-white'
                         : isToday
-                          ? 'ring-2 ring-primary-400 text-primary-700 font-bold'
+                          ? 'ring-2 ring-[#bba98f] text-[#7a6750] font-bold'
                           : isDisabled
                             ? 'text-gray-300 cursor-default'
-                            : 'text-gray-700 hover:bg-primary-50 hover:text-primary-700'
+                            : 'text-gray-700 hover:bg-[#f3ede3] hover:text-[#6a5845]'
                     }`}
                 >
                   {day}
@@ -266,7 +266,7 @@ function DatePickerPopover({ selectedDate, onChange }) {
           <div className="mt-3 pt-3 border-t border-gray-100 flex justify-center">
             <button
               onClick={goToday}
-              className="text-caption font-semibold text-primary-600 hover:text-primary-800 px-3 py-1 rounded-lg hover:bg-primary-50 transition-colors"
+              className="text-caption font-semibold text-[#7a6750] hover:text-[#5f4d3b] px-3 py-1 rounded-lg hover:bg-[#f3ede3] transition-colors"
             >
               오늘로 이동
             </button>
@@ -331,13 +331,13 @@ function SeatGrid({
                   ${
                     editMode
                       ? isDragTarget
-                        ? 'border-primary-400 bg-primary-50 scale-105'
-                        : 'border-gray-300 bg-gray-50 hover:border-primary-300 hover:bg-primary-50/50'
+                        ? 'border-[#b9a487] bg-[#f6efe4] scale-105'
+                        : 'border-gray-300 bg-gray-50 hover:border-[#c8b49c] hover:bg-[#f7f2ea]'
                       : 'border-gray-300 bg-gray-50 opacity-50'
                   }`}
               >
                 {editMode && isDragTarget ? (
-                  <span className="text-caption text-primary-500 font-medium">
+                  <span className="text-caption text-[#7a6750] font-medium">
                     여기에 배정
                   </span>
                 ) : (
@@ -381,8 +381,8 @@ function SeatGrid({
                     isBeingDragged
                       ? 'opacity-40 scale-95 border-dashed border-gray-400'
                       : isDragTarget
-                        ? 'border-primary-400 bg-primary-50 scale-105 shadow-lg'
-                        : 'border-gray-300 bg-white hover:border-primary-300 hover:shadow-md'
+                        ? 'border-[#b9a487] bg-[#f6efe4] scale-105 shadow-lg'
+                        : 'border-gray-300 bg-white hover:border-[#c8b49c] hover:shadow-md'
                   }`}
               >
                 <div className="flex items-center justify-between">
@@ -772,14 +772,21 @@ export default function AttendanceCheck() {
   const isLoading = seatsLoading || attendanceLoading;
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#eeefed] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-h1 font-bold text-gray-900">출석 확인</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-[2.05rem] font-semibold text-[#2a2d33]">
+            출석 확인
+          </h1>
+          <p className="mt-1 text-[0.95rem] text-[#6f747b]">
+            오늘의 출결과 강의실 상태를 확인하고 관리합니다.
+          </p>
+        </div>
         {!isLoading && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-xl">
-            <Users size={16} className="text-gray-500" />
-            <span className="text-body-sm font-semibold text-gray-700">
+          <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-1.5 shadow-[0_1px_4px_rgba(45,42,38,0.08)]">
+            <Users size={16} className="text-[#6b7280]" />
+            <span className="text-body-sm font-semibold text-[#374151]">
               전체 {total}명
             </span>
           </div>
@@ -787,10 +794,10 @@ export default function AttendanceCheck() {
       </div>
 
       {/* 날짜 네비게이션 */}
-      <div className="flex items-center gap-1 mb-5">
+      <div className="mb-5 flex items-center gap-1">
         <button
           onClick={() => setSelectedDate((d) => moveDateByWorkday(d, -1))}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+          className="rounded-lg p-2 text-[#6b6f76] transition-colors hover:bg-[#e3e5e2]"
         >
           <ChevronLeft size={20} />
         </button>
@@ -801,18 +808,18 @@ export default function AttendanceCheck() {
         <button
           onClick={() => setSelectedDate((d) => moveDateByWorkday(d, 1))}
           disabled={selectedDate >= TODAY}
-          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="rounded-lg p-2 text-[#6b6f76] transition-colors hover:bg-[#e3e5e2] disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronRight size={20} />
         </button>
         {selectedDate === TODAY ? (
-          <span className="ml-1 text-caption text-primary-600 font-medium bg-primary-50 px-2 py-0.5 rounded-full">
+          <span className="ml-1 rounded-full bg-[#e4e6e3] px-2 py-0.5 text-caption font-medium text-[#5e636a]">
             오늘
           </span>
         ) : (
           <button
             onClick={() => setSelectedDate(TODAY)}
-            className="ml-1 text-caption text-primary-600 font-medium bg-primary-50 px-3 py-1 rounded-full hover:bg-primary-100 transition-colors"
+            className="ml-1 rounded-full bg-[#e4e6e3] px-3 py-1 text-caption font-medium text-[#5e636a] transition-colors hover:bg-[#d9dcd8]"
           >
             오늘로 이동
           </button>
@@ -827,34 +834,40 @@ export default function AttendanceCheck() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-5">
-          <Card padding="p-4" className="border-l-4 border-l-primary-400">
-            <p className="text-caption text-gray-500 mb-1">전체</p>
-            <p className="text-h2 font-bold text-primary-600">{total}명</p>
+        <div className="mb-5 grid grid-cols-3 gap-3 md:grid-cols-6">
+          <Card padding="p-4" className="rounded-2xl border border-[#e5e6e4] bg-[#f8f9f8] shadow-none">
+            <p className="mb-1 text-caption text-[#9aa0a8]">전체</p>
+            <p className="text-h2 font-bold text-[#3f4752]">{total}명</p>
+            <div className="mt-2 h-1 rounded-full bg-[#c4c9d0]" />
           </Card>
-          <Card padding="p-4" className="border-l-4 border-l-success-400">
-            <p className="text-caption text-gray-500 mb-1">출석</p>
-            <p className="text-h2 font-bold text-success-600">
+          <Card padding="p-4" className="rounded-2xl border border-[#e5e6e4] bg-[#f8f9f8] shadow-none">
+            <p className="mb-1 text-caption text-[#9aa0a8]">출석</p>
+            <p className="text-h2 font-bold text-[#2f7b50]">
               {stats.present}명
             </p>
+            <div className="mt-2 h-1 rounded-full bg-[#66768f]" />
           </Card>
-          <Card padding="p-4" className="border-l-4 border-l-warning-400">
-            <p className="text-caption text-gray-500 mb-1">지각</p>
-            <p className="text-h2 font-bold text-warning-600">{stats.late}명</p>
+          <Card padding="p-4" className="rounded-2xl border border-[#e5e6e4] bg-[#f8f9f8] shadow-none">
+            <p className="mb-1 text-caption text-[#9aa0a8]">지각</p>
+            <p className="text-h2 font-bold text-[#9a7a2b]">{stats.late}명</p>
+            <div className="mt-2 h-1 rounded-full bg-[#eab308]" />
           </Card>
-          <Card padding="p-4" className="border-l-4 border-l-error-400">
-            <p className="text-caption text-gray-500 mb-1">결석</p>
-            <p className="text-h2 font-bold text-error-600">{stats.absent}명</p>
+          <Card padding="p-4" className="rounded-2xl border border-[#e5e6e4] bg-[#f8f9f8] shadow-none">
+            <p className="mb-1 text-caption text-[#9aa0a8]">결석</p>
+            <p className="text-h2 font-bold text-[#b44a56]">{stats.absent}명</p>
+            <div className="mt-2 h-1 rounded-full bg-[#db727c]" />
           </Card>
-          <Card padding="p-4" className="border-l-4 border-l-amber-400">
-            <p className="text-caption text-gray-500 mb-1">조퇴</p>
-            <p className="text-h2 font-bold text-amber-500">
+          <Card padding="p-4" className="rounded-2xl border border-[#e5e6e4] bg-[#f8f9f8] shadow-none">
+            <p className="mb-1 text-caption text-[#9aa0a8]">조퇴</p>
+            <p className="text-h2 font-bold text-[#a1762e]">
               {stats.early_leave}명
             </p>
+            <div className="mt-2 h-1 rounded-full bg-[#e7cfd0]" />
           </Card>
-          <Card padding="p-4" className="border-l-4 border-l-gray-300">
-            <p className="text-caption text-gray-500 mb-1">미확인</p>
-            <p className="text-h2 font-bold text-gray-500">{stats.unknown}명</p>
+          <Card padding="p-4" className="rounded-2xl border border-[#e5e6e4] bg-[#f8f9f8] shadow-none">
+            <p className="mb-1 text-caption text-[#9aa0a8]">미확인</p>
+            <p className="text-h2 font-bold text-[#56606b]">{stats.unknown}명</p>
+            <div className="mt-2 h-1 rounded-full bg-[#c4c9d0]" />
           </Card>
         </div>
       )}
@@ -873,7 +886,7 @@ export default function AttendanceCheck() {
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-primary-500 rounded-full transition-all duration-300"
+                      className="h-full bg-[#7a6750] rounded-full transition-all duration-300"
                       style={{
                         width: `${total > 0 ? (confirmed / total) * 100 : 0}%`,
                       }}
@@ -898,7 +911,7 @@ export default function AttendanceCheck() {
                     <button
                       onClick={saveEditMode}
                       disabled={seatSaving}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-caption font-medium text-white bg-primary-500 hover:bg-primary-600 transition-colors disabled:opacity-60"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-caption font-medium text-white bg-[#7a6750] hover:bg-[#665440] transition-colors disabled:opacity-60"
                     >
                       <Check size={13} />
                       {seatSaving ? '저장 중...' : '저장'}
@@ -918,9 +931,9 @@ export default function AttendanceCheck() {
 
           {/* 편집 모드 안내 */}
           {editMode && (
-            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg">
-              <GripVertical size={14} className="text-primary-500 shrink-0" />
-              <p className="text-caption text-primary-700">
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-[#f3ede3] border border-[#d9cbb5] rounded-lg">
+              <GripVertical size={14} className="text-[#7a6750] shrink-0" />
+              <p className="text-caption text-[#6a5845]">
                 학생 카드를 드래그해서 다른 자리로 이동하세요. 빈 자리에
                 드롭하면 배정됩니다.
               </p>
@@ -945,7 +958,7 @@ export default function AttendanceCheck() {
                     className={`flex items-center gap-1.5 px-3 py-2 bg-white border-2 rounded-xl cursor-grab active:cursor-grabbing select-none transition-all duration-150 ${
                       draggedStudentId === r.student_id
                         ? 'opacity-40 scale-95 border-dashed border-gray-400'
-                        : 'border-gray-300 hover:border-primary-300 hover:shadow-sm'
+                        : 'border-gray-300 hover:border-[#c8b49c] hover:shadow-sm'
                     }`}
                   >
                     <GripVertical size={13} className="text-gray-300" />
@@ -1011,7 +1024,7 @@ export default function AttendanceCheck() {
           )}
 
           {/* 강사석 */}
-          <div className="bg-primary-100 text-primary-700 text-caption font-medium text-center py-2 rounded-lg tracking-widest mt-auto">
+          <div className="bg-[#efe5d6] text-[#6a5845] text-caption font-medium text-center py-2 rounded-lg tracking-widest mt-auto">
             강 사 석
           </div>
 
@@ -1085,8 +1098,8 @@ export default function AttendanceCheck() {
           <div className="space-y-6">
             {/* 학생 정보 */}
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-              <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
-                <UserCheck size={22} className="text-primary-600" />
+              <div className="w-12 h-12 rounded-full bg-[#efe5d6] flex items-center justify-center shrink-0">
+                <UserCheck size={22} className="text-[#7a6750]" />
               </div>
               <div>
                 <p className="text-body font-bold text-gray-900">

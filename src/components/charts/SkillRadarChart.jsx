@@ -1,31 +1,160 @@
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
+import {
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  LabelList,
+} from 'recharts';
 
-export default function SkillRadarChart({ data, color = '#3B82F6', size = 'full' }) {
-  const height = size === 'mini' ? 200 : 300
+/** 꼭짓점(축)마다 구분되는 색 — 점수·라벨에 동일 적용 */
+const AXIS_COLORS = [
+  '#2563a8',
+  '#2d7a52',
+  '#b45309',
+  '#a84868',
+  '#5b4d9a',
+  '#0d9488',
+  '#7c2d12',
+];
+
+function axisLabelFromTickPayload(payload) {
+  if (payload == null) return '';
+  if (typeof payload === 'string') return payload;
+  const inner = payload.payload ?? payload;
+  if (typeof inner === 'string') return inner;
+  return inner?.subject ?? inner?.value ?? payload.subject ?? payload.value ?? '';
+}
+
+export default function SkillRadarChart({
+  data,
+  color = '#3B82F6',
+  size = 'full',
+  variant = 'default',
+}) {
+  const isEditorial = variant === 'editorial';
+  const height = size === 'mini' ? 220 : isEditorial ? 300 : 330;
+  const outerRadius = size === 'mini' ? 78 : isEditorial ? 100 : 118;
+  const chartMargin = isEditorial
+    ? { top: 28, right: 36, bottom: 28, left: 36 }
+    : { top: 16, right: 28, bottom: 16, left: 28 };
+
+  const renderAngleTick = (props) => {
+    const { payload, x, y, textAnchor, index } = props;
+    if (x == null || y == null) return null;
+    const label = axisLabelFromTickPayload(payload);
+    if (!label) return null;
+    const fill = AXIS_COLORS[(index ?? 0) % AXIS_COLORS.length];
+    return (
+      <text
+        x={x}
+        y={y}
+        textAnchor={textAnchor || 'middle'}
+        dy="0.35em"
+        fill={fill}
+        fontSize={isEditorial ? 10.5 : size === 'mini' ? 10 : 11.5}
+        fontWeight={600}
+        fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
+      >
+        {label}
+      </text>
+    );
+  };
+
+  const renderScoreDot = (props) => {
+    const { cx, cy, index } = props;
+    if (typeof cx !== 'number' || typeof cy !== 'number') return null;
+    const fill = AXIS_COLORS[(index ?? 0) % AXIS_COLORS.length];
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={isEditorial ? 4.5 : 5}
+        fill={fill}
+        stroke="#ffffff"
+        strokeWidth={1.5}
+      />
+    );
+  };
+
+  const renderScoreLabel = (props) => {
+    const { x, y, value, index } = props;
+    if (typeof x !== 'number' || typeof y !== 'number') return null;
+    const fill = AXIS_COLORS[(index ?? 0) % AXIS_COLORS.length];
+    return (
+      <text
+        x={x}
+        y={y - 8}
+        textAnchor="middle"
+        fontSize={isEditorial ? 10 : 11}
+        fontWeight={700}
+        fill={fill}
+        fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
+      >
+        {Math.round(Number(value) || 0)}
+      </text>
+    );
+  };
+
+  const gridStroke = isEditorial ? '#e3e0da' : '#D8DEE8';
+  const radiusTickFill = isEditorial ? '#a8a29e' : '#94A3B8';
+  const radarStroke = isEditorial ? '#5c5852' : color;
+  const radarFill = isEditorial ? '#6b6560' : color;
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <RadarChart data={data} cx="50%" cy="50%" outerRadius={size === 'mini' ? 70 : 110}>
-        <PolarGrid stroke="#E5E7EB" />
+      <RadarChart
+        data={data}
+        cx="50%"
+        cy="50%"
+        outerRadius={outerRadius}
+        margin={chartMargin}
+      >
+        <PolarGrid stroke={gridStroke} strokeOpacity={isEditorial ? 1 : 0.9} />
         <PolarAngleAxis
           dataKey="subject"
-          tick={{ fontSize: size === 'mini' ? 10 : 12, fill: '#6B7280' }}
+          tickLine={false}
+          tick={renderAngleTick}
         />
         <PolarRadiusAxis
           angle={90}
           domain={[0, 100]}
-          tick={{ fontSize: 10, fill: '#9CA3AF' }}
+          tick={{ fontSize: isEditorial ? 9 : 10, fill: radiusTickFill }}
           tickCount={5}
         />
+        {!isEditorial && (
+          <Radar
+            name="기준 역량"
+            dataKey={(entry) => Math.max(0, (entry?.score ?? 0) - 12)}
+            stroke="#f2be3f"
+            fill="#f2be3f"
+            fillOpacity={0.5}
+            strokeWidth={1.5}
+          />
+        )}
+        {isEditorial && (
+          <Radar
+            name="기준"
+            dataKey={(entry) => Math.max(0, (entry?.score ?? 0) - 18)}
+            stroke="#d6d3cd"
+            fill="#d6d3cd"
+            fillOpacity={0.22}
+            strokeWidth={1}
+          />
+        )}
         <Radar
           name="역량"
           dataKey="score"
-          stroke={color}
-          fill={color}
-          fillOpacity={0.25}
-          strokeWidth={2}
-        />
+          stroke={radarStroke}
+          fill={radarFill}
+          fillOpacity={isEditorial ? 0.22 : 0.45}
+          strokeWidth={isEditorial ? 2 : 2.4}
+          dot={renderScoreDot}
+        >
+          <LabelList dataKey="score" content={renderScoreLabel} />
+        </Radar>
       </RadarChart>
     </ResponsiveContainer>
-  )
+  );
 }

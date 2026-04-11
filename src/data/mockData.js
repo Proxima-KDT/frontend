@@ -2507,7 +2507,7 @@ export const studentMenuItems = [
   },
   {
     key: 'dashboard',
-    label: '커리큘럼 로드맵',
+    label: '학습 과정',
     icon: 'Map',
     path: '/student/dashboard',
     group: '내 정보',

@@ -67,7 +67,7 @@ function generateWeekDates(todayStr) {
 
 const WEEK_DATES = generateWeekDates(TODAY);
 
-// ── 목 데이터 ────────────────────────────────────────────────────────────
+// ── 목 데이터 (API 실패 시 fallback) ─────────────────────────────────────
 const mockRooms = [
   {
     id: 1,
@@ -145,6 +145,26 @@ const mockBookedSlots = [
     purpose: '개인 학습',
   },
 ];
+
+const roomImageByName = {
+  'Study Room A':
+    'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80',
+  'Study Room B':
+    'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80',
+  'Meeting Room 1':
+    'https://images.unsplash.com/photo-1568992687947-868a62a9f521?auto=format&fit=crop&w=900&q=80',
+  'Meeting Room 2':
+    'https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=900&q=80',
+  'Meeting Room 3':
+    'https://images.unsplash.com/photo-1497366412874-3415097a27e7?auto=format&fit=crop&w=900&q=80',
+};
+
+function getRoomImage(room) {
+  if (roomImageByName[room.name]) return roomImageByName[room.name];
+  return room.type === 'meeting'
+    ? roomImageByName['Meeting Room 1']
+    : roomImageByName['Study Room A'];
+}
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -225,24 +245,25 @@ export default function RoomReservationManagement() {
     setRoomsLoading(true);
     adminApi
       .getRooms()
-      .then((data) => setRooms(data))
+      .then((data) => setRooms(Array.isArray(data) ? data : []))
       .catch(() => {
         showToast({ type: 'error', message: '방 목록을 불러오지 못했습니다.' });
-        setRooms(mockRooms); // API 실패 시 목 데이터 fallback
+        setRooms(mockRooms);
       })
       .finally(() => setRoomsLoading(false));
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     setSlotsLoading(true);
     adminApi
       .getRoomSlots({ date: selectedDate })
-      .then((data) => setBookedSlots(data))
+      .then((data) => setBookedSlots(Array.isArray(data) ? data : []))
       .catch(() => {
+        showToast({ type: 'error', message: '예약 현황을 불러오지 못했습니다.' });
         setBookedSlots(selectedDate === TODAY ? mockBookedSlots : []);
       })
       .finally(() => setSlotsLoading(false));
-  }, [selectedDate]);
+  }, [selectedDate, showToast]);
 
   // ── 예약 현황 로직 ────────────────────────────────────────────────────
   const filteredRoomsForStatus = useMemo(() => {
@@ -366,9 +387,11 @@ export default function RoomReservationManagement() {
     if (editTarget) {
       adminApi
         .updateRoom(editTarget.id, roomForm)
-        .then(() => adminApi.getRooms().then((data) => setRooms(data)))
         .then(() =>
-          showToast({ type: 'success', message: '방 정보가 수정되었습니다.' }),
+          adminApi.getRooms().then((data) => {
+            setRooms(Array.isArray(data) ? data : []);
+            showToast({ type: 'success', message: '방 정보가 수정되었습니다.' });
+          }),
         )
         .catch(() =>
           showToast({ message: '수정에 실패했습니다.', type: 'error' }),
@@ -376,12 +399,11 @@ export default function RoomReservationManagement() {
     } else {
       adminApi
         .createRoom(roomForm)
-        .then((res) => {
-          // 백엔드가 { message, id } 반환 → rooms 목록 재조회
-          return adminApi.getRooms().then((data) => setRooms(data));
-        })
         .then(() =>
-          showToast({ type: 'success', message: '새 방이 추가되었습니다.' }),
+          adminApi.getRooms().then((data) => {
+            setRooms(Array.isArray(data) ? data : []);
+            showToast({ type: 'success', message: '새 방이 추가되었습니다.' });
+          }),
         )
         .catch(() =>
           showToast({ message: '방 추가에 실패했습니다.', type: 'error' }),
@@ -432,7 +454,7 @@ export default function RoomReservationManagement() {
   }, [bookedSlots, selectedDate, rooms]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       {/* 페이지 헤더 */}
       <h1 className="text-h2 font-bold text-gray-900">시설 예약 관리</h1>
 
@@ -819,7 +841,7 @@ export default function RoomReservationManagement() {
             </Button>
           </div>
 
-          {/* 방 카드 목록 — 자습실/회의실 그룹 분리 */}
+          {/* 방 카드 목록 — 자습실/회의실 그룹 분리 + 썸네일 */}
           {roomsLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -840,7 +862,7 @@ export default function RoomReservationManagement() {
                 const TypeIcon = meta.icon;
                 return (
                   <div key={type}>
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
                       <div className={`p-1.5 rounded-lg ${meta.bg}`}>
                         <TypeIcon size={14} className={meta.iconColor} />
                       </div>
@@ -880,6 +902,12 @@ export default function RoomReservationManagement() {
                             padding="p-4"
                             className={isClosed ? 'opacity-60' : ''}
                           >
+                            <img
+                              src={getRoomImage(room)}
+                              alt={room.name}
+                              className="mb-3 h-28 w-full rounded-xl object-cover"
+                              loading="lazy"
+                            />
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-2.5">
                                 <div className={`p-2 rounded-xl ${meta.bg}`}>

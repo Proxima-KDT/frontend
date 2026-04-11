@@ -1,3 +1,10 @@
+const focusRing = {
+  primary:
+    'border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100',
+  warm:
+    'border-gray-200 focus:border-[#a8a29e] focus:ring-2 focus:ring-[#ebe8e3]',
+}
+
 export default function Textarea({
   label,
   placeholder,
@@ -8,7 +15,9 @@ export default function Textarea({
   maxLength,
   disabled = false,
   className = '',
+  colorScheme = 'primary',
 }) {
+  const focusClass = focusRing[colorScheme] || focusRing.primary
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (
@@ -28,10 +37,7 @@ export default function Textarea({
           px-4 py-3 text-body text-gray-900
           placeholder:text-gray-400 resize-none
           transition-colors duration-150 outline-none
-          ${error
-            ? 'border-error-500 ring-2 ring-error-100'
-            : 'border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100'
-          }
+          ${error ? 'border-error-500 ring-2 ring-error-100' : focusClass}
           ${disabled ? 'bg-gray-50 cursor-not-allowed' : ''}
         `}
       />

@@ -14,7 +14,8 @@ export default function ProtectedRoute({ role, children }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    const loginPath = role ? `/login?role=${role}` : '/login'
+    return <Navigate to={loginPath} replace />
   }
 
   if (role && userRole !== role) {
