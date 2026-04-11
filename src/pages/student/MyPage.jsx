@@ -5,6 +5,8 @@ import {
   ChevronDown,
   X,
   BookOpen,
+  CalendarDays,
+  Hash,
 } from 'lucide-react';
 import { profileApi } from '@/api/profile';
 import { useToast } from '@/context/ToastContext';
@@ -236,13 +238,13 @@ export default function MyPage() {
 
       {/* ── 프로필 카드 ── */}
       <Card className={`border-2 ${tier.border}`}>
-        <div className="flex flex-col sm:flex-row items-stretch gap-6">
+        <div className="flex flex-col sm:flex-row items-start gap-6">
           {/* 프로필 사진 */}
-          <div className="relative shrink-0 mx-auto sm:mx-0 h-48 sm:h-auto">
+          <div className="relative shrink-0 mx-auto sm:mx-0">
             <button
               type="button"
               onClick={handleImageClick}
-              className="group relative w-36 h-full rounded-2xl overflow-hidden border-4 border-white shadow-lg focus:outline-none"
+              className="group relative w-32 h-32 rounded-2xl overflow-hidden border-4 border-white shadow-lg focus:outline-none"
               aria-label="프로필 사진 변경"
             >
               {profile?.avatar_url ? (
@@ -285,14 +287,31 @@ export default function MyPage() {
             <h2 className="text-h2 font-bold text-gray-900 mb-2">
               {profile?.name}
             </h2>
-            <div className="flex items-center gap-1.5 mb-3">
-              <BookOpen className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-              <p className="text-caption text-gray-500 truncate">
-                {profile?.cohort_name
-                  ? `${profile.cohort_name} · 랭체인 AI 영상객체탐지분석 플랫폼구축`
-                  : '랭체인 AI 영상객체탐지분석 플랫폼구축'}
-              </p>
-            </div>
+            {/* 교과 과정 정보 */}
+            {profile?.course_name && (
+              <div className="mb-3 p-3 rounded-xl bg-student-50 border border-student-100">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <BookOpen className="w-3.5 h-3.5 text-student-500 shrink-0" />
+                  <span className="text-caption font-semibold text-student-700">
+                    {profile.course_name}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {profile.cohort_number && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-student-200 text-caption text-student-600 font-medium">
+                      <Hash className="w-3 h-3" />
+                      {profile.cohort_number}기
+                    </span>
+                  )}
+                  {profile.course_start_date && profile.course_end_date && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-student-200 text-caption text-gray-500">
+                      <CalendarDays className="w-3 h-3" />
+                      {profile.course_start_date.replaceAll('-', '.')} ~ {profile.course_end_date.replaceAll('-', '.')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* 종합 점수 + 티어 배지 */}
             <div className="flex items-center gap-3 mb-4">
