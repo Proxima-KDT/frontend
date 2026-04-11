@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
-import { useAuth } from '@/context/AuthContext';
 import { CourseProvider } from '@/context/CourseContext';
 
 // 강사 라우트용 래퍼 — Sidebar가 드롭다운을 렌더링하려면 DashboardLayout 바깥에
@@ -81,21 +80,8 @@ const AdminRoomReservation = lazy(
 const RegisterStudent = lazy(() => import('@/pages/admin/RegisterStudent'));
 const RegisterTeacher = lazy(() => import('@/pages/admin/RegisterTeacher'));
 
-// 로그인 상태면 역할별 홈으로, 비로그인이면 랜딩(메인) 화면
+// 루트(/)는 항상 메인 랜딩 — 로그인 후 이동은 로그인 성공 시에만 처리
 function HomeRoute() {
-  const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f3f1ea] px-6">
-        <Skeleton width="220px" height="44px" rounded="rounded-2xl" />
-      </div>
-    );
-  }
-  if (user) {
-    if (user.role === 'teacher') return <Navigate to="/teacher" replace />;
-    if (user.role === 'admin') return <Navigate to="/admin" replace />;
-    return <Navigate to="/student" replace />;
-  }
   return <MainPage9 />;
 }
 
