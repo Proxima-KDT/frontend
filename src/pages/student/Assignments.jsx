@@ -47,74 +47,35 @@ const STATUS_CONFIG = {
 
 const FILTERS = ['전체', '미제출', '제출완료', '채점완료', '재제출 요청'];
 
-const PHASE_CONFIG = [
-  {
-    phase: 1,
-    label: 'Phase 1',
-    subject: 'Python 기초',
-    bg: 'bg-purple-100',
-    text: 'text-purple-700',
-    dot: 'bg-purple-500',
-    tab: 'bg-purple-500',
-  },
-  {
-    phase: 2,
-    label: 'Phase 2',
-    subject: 'JavaScript & React',
-    bg: 'bg-blue-100',
-    text: 'text-blue-700',
-    dot: 'bg-blue-500',
-    tab: 'bg-blue-500',
-  },
-  {
-    phase: 3,
-    label: 'Phase 3',
-    subject: 'DB & SQL',
-    bg: 'bg-green-100',
-    text: 'text-green-700',
-    dot: 'bg-green-500',
-    tab: 'bg-green-500',
-  },
-  {
-    phase: 4,
-    label: 'Phase 4',
-    subject: '알고리즘 & 자료구조',
-    bg: 'bg-orange-100',
-    text: 'text-orange-700',
-    dot: 'bg-orange-500',
-    tab: 'bg-orange-500',
-  },
-  {
-    phase: 5,
-    label: 'Phase 5',
-    subject: '풀스택 프로젝트',
-    bg: 'bg-pink-100',
-    text: 'text-pink-700',
-    dot: 'bg-pink-500',
-    tab: 'bg-pink-500',
-  },
-  {
-    phase: 6,
-    label: 'Phase 6',
-    subject: 'ML/DL & 취업준비',
-    bg: 'bg-indigo-100',
-    text: 'text-indigo-700',
-    dot: 'bg-indigo-500',
-    tab: 'bg-indigo-500',
-  },
+// Phase 색상 팔레트 — subject는 DB의 assignment.subject를 사용하므로 여기선 색상만.
+const PHASE_PALETTE = [
+  { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500', tab: 'bg-purple-500' },
+  { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500',   tab: 'bg-blue-500' },
+  { bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500',  tab: 'bg-green-500' },
+  { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500', tab: 'bg-orange-500' },
+  { bg: 'bg-pink-100',   text: 'text-pink-700',   dot: 'bg-pink-500',   tab: 'bg-pink-500' },
+  { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500', tab: 'bg-indigo-500' },
 ];
 
 function getPhaseCfg(phase) {
-  return (
-    PHASE_CONFIG.find((p) => p.phase === Number(phase)) ?? {
+  const n = Number(phase);
+  if (!n || n < 1) {
+    return {
       label: `Phase ${phase}`,
-      subject: '',
       bg: 'bg-gray-100',
       text: 'text-gray-600',
       dot: 'bg-gray-400',
       tab: 'bg-gray-400',
-    }
-  );
+    };
+  }
+  const color = PHASE_PALETTE[(n - 1) % PHASE_PALETTE.length];
+  return { label: `Phase ${n}`, ...color };
+}
+
+// 특정 phase의 첫 assignment subject를 그룹 라벨로 사용.
+function getPhaseSubject(assignments, phase) {
+  const found = assignments.find((a) => Number(a.phase) === Number(phase));
+  return found?.subject || '';
 }
 
 function getDDay(dueDate) {
@@ -552,6 +513,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
 // ── Phase 그룹 헤더 ───────────────────────────────────────
 function PhaseGroupHeader({ phase, allItems }) {
   const cfg = getPhaseCfg(phase);
+  const subject = allItems[0]?.subject || '';
   const total = allItems.length;
   const done = allItems.filter((a) => a.status === 'graded').length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -563,7 +525,9 @@ function PhaseGroupHeader({ phase, allItems }) {
       >
         <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} shrink-0`} />
         {cfg.label}
-        <span className="font-medium opacity-75">· {cfg.subject}</span>
+        {subject && (
+          <span className="font-medium opacity-75">· {subject}</span>
+        )}
       </span>
       <div className="flex-1 h-px bg-gray-200" />
       <div className="flex items-center gap-2 shrink-0">
@@ -635,6 +599,8 @@ export default function Assignments() {
   }
 
   const activePhaseCfg = phaseFilter > 0 ? getPhaseCfg(phaseFilter) : null;
+  const activePhaseSubject =
+    phaseFilter > 0 ? getPhaseSubject(assignments, phaseFilter) : '';
 
   // 파일 삭제 후 부모 상태 동기화
   const handleFileDeleted = (assignmentId, newStatus, newFiles) => {
@@ -751,7 +717,8 @@ export default function Assignments() {
             className={`w-2 h-2 rounded-full inline-block ${activePhaseCfg.dot}`}
           />
           <span className={`text-body-sm font-semibold ${activePhaseCfg.text}`}>
-            {activePhaseCfg.label} — {activePhaseCfg.subject}
+            {activePhaseCfg.label}
+            {activePhaseSubject ? ` — ${activePhaseSubject}` : ''}
           </span>
           <span className={`ml-auto text-caption ${activePhaseCfg.text}`}>
             {assignments.filter((a) => Number(a.phase) === phaseFilter).length}
