@@ -5,7 +5,6 @@ import Skeleton from '@/components/common/Skeleton'
 import { Search, MapPin, Clock, Briefcase } from 'lucide-react'
 
 const pageBg = '#F7F5F0'
-const editorial = "font-['Playfair_Display',Georgia,serif]"
 
 export default function JobMatching() {
   const [jobs, setJobs] = useState([])
@@ -58,7 +57,7 @@ export default function JobMatching() {
       className="space-y-6 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
       style={{ backgroundColor: pageBg }}
     >
-      <h1 className={`${editorial} text-[2rem] font-semibold text-[#2c2b28]`}>채용 매칭</h1>
+      <h1 className={`text-[2rem] font-semibold text-[#2c2b28]`}>채용 매칭</h1>
 
       {/* Search Bar */}
       <div className="relative">

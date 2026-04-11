@@ -28,9 +28,7 @@ import {
 } from 'lucide-react';
 
 const TODAY = new Date().toISOString().slice(0, 10);
-const CURRENT_HOUR = new Date().getHours();
-const editorial = "font-['Playfair_Display',Georgia,serif]";
-const pageBg = '#F7F5F0';
+const CURRENT_HOUR = new Date().getHours();const pageBg = '#F7F5F0';
 
 const TIME_SLOTS = [
   '09:00',
@@ -526,7 +524,7 @@ export default function RoomReservation() {
       style={{ backgroundColor: pageBg }}
     >
       <header>
-        <h1 className={`${editorial} text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}>
+        <h1 className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}>
           자습실 / 회의실 예약
         </h1>
         <p className="mt-1 text-[0.95rem] text-[#6b6560]">
@@ -619,7 +617,7 @@ export default function RoomReservation() {
                 </span>
               </div>
               <div className="flex items-end gap-1">
-                <span className={`${editorial} text-[2rem] font-semibold text-[#2c2b28]`}>
+                <span className={`text-[2rem] font-semibold text-[#2c2b28]`}>
                   {available}
                 </span>
                 <span className="text-sm text-[#b0aaa1] mb-1">/ {total}</span>
@@ -632,7 +630,7 @@ export default function RoomReservation() {
 
       {/* ── 날짜 선택 칩 바 ─────────────────────────────────────── */}
       <div>
-        <p className={`${editorial} mb-2 text-[1.55rem] font-semibold text-[#2c2b28]`}>
+        <p className={`mb-2 text-[1.55rem] font-semibold text-[#2c2b28]`}>
           Select Date
         </p>
         <div className="overflow-x-auto -mx-1 px-1">
@@ -926,7 +924,7 @@ export default function RoomReservation() {
       {/* ── 방 정보 카드 (편의시설 확인) ────────────────────────────────── */}
       <div>
         <h2
-          className={`${editorial} text-[1.7rem] font-semibold text-[#2c2b28] mb-3`}
+          className={`text-[1.7rem] font-semibold text-[#2c2b28] mb-3`}
         >
           방 정보
         </h2>

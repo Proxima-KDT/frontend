@@ -264,7 +264,7 @@ export default function AssessmentManagement() {
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.15em] text-[#8d877e]">
             Ethereal Instructor
           </p>
-          <h1 className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2a2a2a]">
+          <h1 className="text-[2rem] text-[#2a2a2a]">
             능력단위평가 관리
           </h1>
         </div>
@@ -309,7 +309,7 @@ export default function AssessmentManagement() {
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#8c867d]">
                 Evaluation Module
               </p>
-              <h2 className="mt-2 font-['Playfair_Display',Georgia,serif] text-[2.55rem] leading-[1.1] text-[#1f2f43]">
+              <h2 className="mt-2 text-[2.55rem] leading-[1.1] text-[#1f2f43]">
                 {current.title}
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#65625d]">
@@ -328,7 +328,7 @@ export default function AssessmentManagement() {
             </Card>
             <Card className="rounded-3xl border border-[#27272a] bg-[#1d1c1f] text-white">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-['Playfair_Display',Georgia,serif] text-[1.4rem]">Grading Rubric</h3>
+                <h3 className="text-[1.4rem]">Grading Rubric</h3>
                 <CircleHelp className="h-4 w-4 text-white/60" />
               </div>
               <div className="space-y-2.5">
@@ -351,7 +351,7 @@ export default function AssessmentManagement() {
           {/* 제출 통계 */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
             <Card className="rounded-3xl border border-[#e1ded8] bg-[#f8f7f4]">
-              <p className="mb-3 font-['Playfair_Display',Georgia,serif] text-[1.7rem] text-[#30343a]">Submission Insights</p>
+              <p className="mb-3 text-[1.7rem] text-[#30343a]">Submission Insights</p>
               <div className="space-y-3">
             {[
               {
@@ -418,7 +418,7 @@ export default function AssessmentManagement() {
           {/* 학생별 제출 현황 */}
           <Card className="rounded-3xl border border-[#e1ded8] bg-[#f8f7f4]">
             <div className="mb-3 flex items-center justify-between">
-              <p className="font-['Playfair_Display',Georgia,serif] text-[1.55rem] text-[#31353b]">
+              <p className="text-[1.55rem] text-[#31353b]">
                 Recent Submissions
               </p>
               <p className="text-xs font-semibold text-[#656b74]">View All Students +</p>

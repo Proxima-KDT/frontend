@@ -22,9 +22,6 @@ import {
 
 const CHECKOUT_HOUR = 17;
 const CHECKOUT_MINUTE = 50;
-
-const editorial = "font-['Playfair_Display',Georgia,serif]";
-
 function AttendanceDonut({ percent }) {
   const p = Math.min(100, Math.max(0, percent));
   const r = 36;
@@ -55,7 +52,7 @@ function AttendanceDonut({ percent }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className={`${editorial} text-2xl font-semibold text-[#1f1e1c]`}>
+        <span className={`text-2xl font-semibold text-[#1f1e1c]`}>
           {Math.round(p)}%
         </span>
         <span className="text-[0.6rem] font-bold tracking-[0.12em] text-[#8a847a]">
@@ -372,7 +369,7 @@ export default function Attendance() {
     <div className="space-y-8 rounded-3xl bg-[#F9F8F6] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8">
       <header>
         <h1
-          className={`${editorial} text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
+          className={`text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
         >
           출결 현황
         </h1>
@@ -395,7 +392,7 @@ export default function Attendance() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <div className="text-center">
-                <p className={`${editorial} text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}>
+                <p className={`text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}>
                   {monthTitleEn}
                 </p>
                 <p className="text-[0.75rem] text-[#8a847a]">
@@ -491,9 +488,6 @@ export default function Attendance() {
                 <FileSignature className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-[0.7rem] font-bold tracking-wide text-[#8a847a] uppercase">
-                  Signature
-                </p>
                 <p className="truncate text-[0.8125rem] text-[#3d3a36]">
                   {signatureStatusLine}
                 </p>
@@ -613,7 +607,7 @@ export default function Attendance() {
         <div className="space-y-5">
           <div className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_8px_32px_rgba(45,42,38,0.05)] sm:p-6">
             <h2 className="text-[0.7rem] font-bold tracking-[0.14em] text-[#8a847a] uppercase">
-              {viewMonth}월 Summary
+              {viewMonth}월
             </h2>
             <AttendanceDonut percent={monthStats.rate} />
             <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3">
@@ -646,7 +640,7 @@ export default function Attendance() {
             <p className="text-[0.65rem] font-semibold tracking-[0.15em] text-white/60">
               COURSE MILESTONE
             </p>
-            <p className={`${editorial} mt-1 text-2xl font-semibold`}>
+            <p className={`mt-1 text-2xl font-semibold`}>
               {courseCompletion}% Completion
             </p>
             <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
@@ -700,7 +694,7 @@ export default function Attendance() {
         className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_8px_32px_rgba(45,42,38,0.05)] sm:p-6"
       >
         <div className="mb-3 flex items-center justify-between">
-          <h2 className={`${editorial} text-lg font-semibold text-[#1f1e1c] sm:text-xl`}>
+          <h2 className={`text-lg font-semibold text-[#1f1e1c] sm:text-xl`}>
             {viewYear}년 {viewMonth}월 출석 이력
           </h2>
           <span className="text-[0.75rem] text-[#8a847a]">총 {tableData.length}건</span>

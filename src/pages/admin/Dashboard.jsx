@@ -55,9 +55,7 @@ export default function AdminDashboard() {
       color: 'text-amber-600',
       bg: 'bg-amber-50',
     },
-  ];
-  const editorialFont = "font-['Playfair_Display',Georgia,serif]";
-  const recentStudents = [...students].slice(0, 6);
+  ];  const recentStudents = [...students].slice(0, 6);
   const focusStudent =
     students.find((s) => (s.attendance_rate ?? 0) < 80) ?? students[0] ?? null;
   const focusSkills = Object.entries(focusStudent?.skills || {}).slice(0, 3);
@@ -70,7 +68,7 @@ export default function AdminDashboard() {
             <p className="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#8b8478]">
               Ethereal Academy
             </p>
-            <h1 className={`${editorialFont} text-[2.2rem] font-semibold text-[#2d3138]`}>
+            <h1 className={`text-[2.2rem] font-semibold text-[#2d3138]`}>
               수강생 현황 (Student Roster Overview)
             </h1>
             <p className="text-sm text-[#7a756c]">
@@ -104,7 +102,7 @@ export default function AdminDashboard() {
                 <p className="text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-[#7a756c]">
                   {stat.label}
                 </p>
-                <p className={`${editorialFont} text-[1.6rem] font-semibold text-[#2f3f54]`}>
+                <p className={`text-[1.6rem] font-semibold text-[#2f3f54]`}>
                   {stat.value}
                 </p>
               </div>
@@ -123,7 +121,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
           <Card className="rounded-3xl border border-[#e1ddd6] bg-[#f8f7f4] shadow-none">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className={`${editorialFont} text-[1.55rem] text-[#2f333a]`}>
+              <h3 className={`text-[1.55rem] text-[#2f333a]`}>
                 Recent Enrollments
               </h3>
               <div className="flex items-center gap-2">
@@ -169,7 +167,7 @@ export default function AdminDashboard() {
                   {focusStudent?.name?.[0] ?? '?'}
                 </div>
                 <div>
-                  <p className={`${editorialFont} text-[1.4rem] text-[#2f333a]`}>
+                  <p className={`text-[1.4rem] text-[#2f333a]`}>
                     {focusStudent?.name ?? '선택된 수강생'}
                   </p>
                   <p className="text-xs text-[#817b72]">{focusStudent?.email ?? '-'}</p>

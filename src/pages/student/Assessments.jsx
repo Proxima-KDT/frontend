@@ -16,9 +16,7 @@ import { assessmentsApi } from '@/api/assessments';
 import { useToast } from '@/context/ToastContext';
 import Skeleton from '@/components/common/Skeleton';
 
-const pageBg = '#F7F5F0';
-const editorial = "font-['Playfair_Display',Georgia,serif]";
-const GOLD = '#c9a962';
+const pageBg = '#F7F5F0';const GOLD = '#c9a962';
 
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -493,7 +491,7 @@ export default function Assessments() {
     >
       {/* 헤더 */}
       <div>
-        <p className={`${editorial} text-[1.85rem] text-[#5e666a]`}>Competency Evaluation</p>
+        <p className={`text-[1.85rem] text-[#5e666a]`}>Competency Evaluation</p>
         <h1 className="mt-1 text-h1 font-bold text-[#2c2b28]">능력단위평가</h1>
         <p className="mt-1 text-sm text-[#7a746b]">
           학습 성취도를 확인하고 역량 평가 현황을 관리하세요.

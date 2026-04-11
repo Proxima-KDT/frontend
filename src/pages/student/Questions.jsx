@@ -16,9 +16,7 @@ import {
   MessageCircle,
   Clock,
   Trash2,
-} from 'lucide-react';
-
-export default function Questions() {
+} from 'lucide-react';export default function Questions() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [openAnswerId, setOpenAnswerId] = useState(null);
@@ -69,15 +67,19 @@ export default function Questions() {
     <>
       <div className="space-y-6">
         <div>
-          <h1 className="text-h2 font-bold text-gray-900">질문</h1>
-          <p className="text-body-sm text-gray-500 mt-1">
+          <h1
+            className={`text-[1.65rem] font-semibold tracking-tight text-[#2c2b28]`}
+          >
+            질문
+          </h1>
+          <p className="mt-1 text-[0.95rem] text-[#6b6560]">
             궁금한 점을 질문하세요.
           </p>
         </div>
 
         {/* Question Form */}
         <Card>
-          <h2 className="text-h3 font-semibold text-gray-900 mb-3">
+          <h2 className="text-h3 font-semibold text-[#2c2b28] mb-3">
             <HelpCircle className="mr-1.5 inline-block h-5 w-5 -mt-0.5 text-[#6f8391]" />
             질문 작성
           </h2>
@@ -87,10 +89,10 @@ export default function Questions() {
         {/* My Question History */}
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-h3 font-semibold text-gray-900">
+            <h2 className="text-h3 font-semibold text-[#2c2b28]">
               내 질문 이력
             </h2>
-            <span className="text-caption text-gray-400">
+            <span className="text-caption text-[#9c988e]">
               총 {myQuestions.length}건
             </span>
           </div>
@@ -104,22 +106,22 @@ export default function Questions() {
               {myQuestions.map((q) => (
                 <div
                   key={q.id}
-                  className="rounded-xl border border-gray-100 overflow-hidden"
+                  className="rounded-2xl border border-[#eceae4] overflow-hidden bg-white shadow-[0_2px_16px_rgba(45,42,38,0.04)]"
                 >
                   {/* 질문 행 */}
-                  <div className="p-4 bg-gray-50">
+                  <div className="p-4 bg-[#fbfaf7]">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className="text-body-sm text-gray-800 leading-relaxed flex-1">
+                      <p className="text-body-sm text-[#3d3a36] leading-relaxed flex-1">
                         {q.content}
                       </p>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {q.is_anonymous ? (
-                          <Badge variant="default">
+                          <Badge variant="soft-amber">
                             <EyeOff className="w-3 h-3 mr-1 inline-block -mt-0.5" />
                             익명
                           </Badge>
                         ) : (
-                          <Badge variant="info">
+                          <Badge variant="soft-info">
                             <Eye className="w-3 h-3 mr-1 inline-block -mt-0.5" />
                             실명
                           </Badge>

@@ -158,7 +158,7 @@ export default function AdminStudentDetail() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <h2 className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2f333a]">
+              <h2 className="text-[2rem] text-[#2f333a]">
                 {student.name}
               </h2>
               <Badge variant="soft-info">수강생</Badge>
@@ -193,7 +193,7 @@ export default function AdminStudentDetail() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr]">
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
-          <p className="font-['Playfair_Display',Georgia,serif] text-[1.9rem] text-[#2f333a]">Competency Hexagon</p>
+          <p className="text-[1.9rem] text-[#2f333a]">Competency Hexagon</p>
           <div className="mt-3">
             <SkillRadarChart data={radarData} color="#636e76" size="sm" />
           </div>
@@ -210,7 +210,7 @@ export default function AdminStudentDetail() {
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_300px]">
             <div>
-              <p className="font-['Playfair_Display',Georgia,serif] text-[1.9rem] text-[#2f333a]">
+              <p className="text-[1.9rem] text-[#2f333a]">
                 AI 관찰 인사이트 (AI Observation Insights)
               </p>
               <p className="mt-3 text-sm leading-relaxed text-[#5f5a53]">
@@ -238,7 +238,7 @@ export default function AdminStudentDetail() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
           <div className="mb-3 flex items-center justify-between">
-            <p className="font-['Playfair_Display',Georgia,serif] text-[1.8rem] text-[#2f333a]">Weekly Attendance Pulse</p>
+            <p className="text-[1.8rem] text-[#2f333a]">Weekly Attendance Pulse</p>
             <div className="flex gap-3 text-[11px] text-[#7a756c]">
               <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#5d666c]" />출석</span>
               <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#e0be4f]" />지각</span>
@@ -265,7 +265,7 @@ export default function AdminStudentDetail() {
         </Card>
 
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
-          <p className="font-['Playfair_Display',Georgia,serif] text-[1.8rem] text-[#2f333a]">Archive & Artifacts</p>
+          <p className="text-[1.8rem] text-[#2f333a]">Archive & Artifacts</p>
           <div className="mt-4 space-y-2.5">
             {(student.files || []).slice(0, 4).map((file, i) => (
               <div key={i} className="flex items-center justify-between rounded-xl border border-[#e5e1da] bg-white/85 px-3 py-2.5">
@@ -292,7 +292,7 @@ export default function AdminStudentDetail() {
 
       <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
         <div className="mb-3 flex items-center justify-between">
-          <p className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2f333a]">
+          <p className="text-[2rem] text-[#2f333a]">
             Instructor Consultation Notes
           </p>
           <Button

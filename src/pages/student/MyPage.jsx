@@ -224,10 +224,8 @@ export default function MyPage() {
     }));
   }, [skillScores]);
 
-  const loginId = useMemo(() => {
-    const emailId = user?.email?.split('@')?.[0];
-    return emailId || user?.name || profile?.name || 'user';
-  }, [user?.email, user?.name, profile?.name]);
+  const displayName =
+    profile?.name?.trim() || user?.name?.trim() || '이름 없음';
 
   const radarChartData = useMemo(
     () =>
@@ -295,8 +293,6 @@ export default function MyPage() {
     );
   }
 
-  const editorialFont = "font-['Playfair_Display',Georgia,serif]";
-
   return (
     <div className="rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="mx-auto max-w-[1100px]">
@@ -349,12 +345,12 @@ export default function MyPage() {
               <div className="w-full min-w-0 space-y-5">
                 <div>
                   <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-[#7a756c] uppercase mb-2">
-                    로그인 아이디
+                    수강생명
                   </p>
                   <h2
-                    className={`${editorialFont} text-[1.85rem] sm:text-[2rem] font-semibold text-[#1f1e1c] leading-tight`}
+                    className={`text-[1.85rem] sm:text-[2rem] font-semibold text-[#1f1e1c] leading-tight`}
                   >
-                    {loginId}
+                    {displayName}
                   </h2>
                 </div>
 
@@ -420,7 +416,7 @@ export default function MyPage() {
               <div className="flex items-center gap-2 mb-3">
                 <BriefcaseBusiness className="w-5 h-5 text-[#5c6675]" />
                 <span
-                  className={`${editorialFont} text-[1.15rem] font-semibold text-[#2d2a26]`}
+                  className={`text-[1.15rem] font-semibold text-[#2d2a26]`}
                 >
                   목표 직무
                 </span>
@@ -436,11 +432,16 @@ export default function MyPage() {
           {/* ── Right: competency ── */}
           <div className="rounded-3xl border border-[#ebe8e3] bg-white/95 p-6 sm:p-7 shadow-[0_20px_48px_rgba(45,42,38,0.06)]">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <h2
-                className={`${editorialFont} text-[1.5rem] sm:text-[1.65rem] font-semibold text-[#1f1e1c]`}
-              >
-                역량 분석
-              </h2>
+              <div>
+                <h2
+                  className={`text-[1.5rem] sm:text-[1.65rem] font-semibold text-[#1f1e1c]`}
+                >
+                  역량 분석
+                </h2>
+                <p className="mt-1 text-[0.7rem] font-medium tracking-wide text-[#a39c92]">
+                  Competency analysis
+                </p>
+              </div>
               <div className="flex flex-wrap items-start justify-end gap-3">
                 <div className="text-right">
                   <span
@@ -456,7 +457,7 @@ export default function MyPage() {
                   <span className="text-[0.6rem] font-bold tracking-[0.15em] text-[#7a756c] uppercase">
                     지수
                   </span>
-                  <span className={`${editorialFont} text-2xl font-semibold text-[#2d2a26]`}>
+                  <span className={`text-2xl font-semibold text-[#2d2a26]`}>
                     {overallScore}
                   </span>
                 </div>
@@ -495,7 +496,7 @@ export default function MyPage() {
                 <Lightbulb className="w-6 h-6 shrink-0 text-[#c9a227] opacity-90" />
                 <div>
                   <p
-                    className={`${editorialFont} text-[1.05rem] italic font-medium text-[#3d3a36] mb-2`}
+                    className={`text-[1.05rem] italic font-medium text-[#3d3a36] mb-2`}
                   >
                     AI 학습 코치
                   </p>

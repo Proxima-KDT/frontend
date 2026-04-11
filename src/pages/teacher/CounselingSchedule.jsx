@@ -342,7 +342,7 @@ export default function CounselingSchedule() {
         </div>
         <div className="flex items-center gap-3 text-[#7e7a74]">
           <Bell className="h-4 w-4" />
-          <h1 className="font-['Playfair_Display',Georgia,serif] text-[1.65rem] text-[#999792]">
+          <h1 className="text-[1.65rem] text-[#999792]">
             상담일정 관리
           </h1>
         </div>
@@ -376,7 +376,7 @@ export default function CounselingSchedule() {
           {/* 헤더 */}
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="font-['Playfair_Display',Georgia,serif] text-[2.1rem] text-[#262a31]">
+              <p className="text-[2.1rem] text-[#262a31]">
                 {MONTH_NAMES[currentMonth]} {currentYear}
               </p>
               <p className="text-sm text-[#7f7b72]">학사 분기 일정 · Curator Schedule</p>
@@ -476,7 +476,7 @@ export default function CounselingSchedule() {
 
         {/* 시간 슬롯 패널 */}
         <Card className="rounded-[28px] border border-[#d8d5cd] bg-[#e4e2db] shadow-none">
-          <h2 className="mb-1 font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#333740]">
+          <h2 className="mb-1 text-[2rem] text-[#333740]">
             {MONTH_NAMES[selectedMonth - 1]} {selectedDay} ({selectedDow})
           </h2>
           <p className="mb-4 text-caption text-[#7f7b72]">
@@ -537,7 +537,7 @@ export default function CounselingSchedule() {
       {/* 하단 면담 신청 목록 */}
       <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2f333a]">
+          <h2 className="text-[2rem] text-[#2f333a]">
             최근 신청 활동
           </h2>
           <div className="flex items-center gap-3 text-sm text-[#6f746f]">

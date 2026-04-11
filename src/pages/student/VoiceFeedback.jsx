@@ -12,7 +12,6 @@ import {
   RefreshCw,
   BookOpen,
   BarChart3,
-  Users,
 } from 'lucide-react';
 import { voiceApi } from '@/api/voice';
 import Card from '@/components/common/Card';
@@ -48,8 +47,6 @@ const difficultyColors = {
   intermediate: 'bg-[#faf4e8] text-[#9a6220] border-[#e8d9b8]',
   advanced: 'bg-[#f3e8e8] text-[#944848] border-[#e0c5c5]',
 };
-
-const editorial = "font-['Playfair_Display',Georgia,serif]";
 const etherealCard =
   'rounded-3xl border border-[#e8e4dc] bg-white shadow-[0_8px_32px_rgba(45,42,38,0.05)]';
 const pillActive = 'bg-[#2d2a26] text-white border-[#2d2a26] shadow-sm';
@@ -371,7 +368,7 @@ export default function VoiceFeedback() {
     <div className="space-y-8 rounded-3xl bg-[#F9F7F2] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8">
       <header>
         <h1
-          className={`${editorial} text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
+          className={`text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
         >
           AI 말하기 연습
         </h1>
@@ -548,7 +545,7 @@ export default function VoiceFeedback() {
                   )}
                 </div>
                 <div className="text-center px-4">
-                  <p className={`${editorial} text-lg font-semibold text-[#1f1e1c]`}>
+                  <p className={`text-lg font-semibold text-[#1f1e1c]`}>
                     주제 선택
                   </p>
                   <p className="mt-2 max-w-md text-[0.8125rem] leading-relaxed text-[#6b6560]">
@@ -793,7 +790,7 @@ export default function VoiceFeedback() {
                     <BarChart3 className="h-8 w-8 text-[#7a8fa3]" />
                   </div>
                   <h3
-                    className={`${editorial} mb-2 text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}
+                    className={`mb-2 text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}
                   >
                     학습 결과가 여기에 표시됩니다
                   </h3>
@@ -808,31 +805,6 @@ export default function VoiceFeedback() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-[#e8e4dc] bg-white px-5 py-4 shadow-sm sm:flex-row sm:justify-between sm:px-6">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {['bg-[#d4e0e8]', 'bg-[#e8dfd0]', 'bg-[#e0d4dc]'].map(
-                  (bg, i) => (
-                    <div
-                      key={i}
-                      className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-white ${bg}`}
-                    >
-                      <Users className="h-4 w-4 text-[#5a6d7e] opacity-80" />
-                    </div>
-                  ),
-                )}
-              </div>
-              <div className="text-left">
-                <p className="text-[0.8125rem] font-semibold text-[#1f1e1c]">
-                  오늘도 함께 연습하는 수강생들
-                </p>
-                <p className="text-[0.75rem] text-[#8a847a]">
-                  기술 면접·말하기를 AI와 실시간으로 연습해 보세요.
-                </p>
-              </div>
             </div>
           </div>
         </>
@@ -852,7 +824,7 @@ export default function VoiceFeedback() {
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f7]">
                 <Mic className="h-8 w-8 text-[#7a8fa3]" />
               </div>
-              <h3 className={`${editorial} mb-2 text-xl font-semibold text-[#4a4640]`}>
+              <h3 className={`mb-2 text-xl font-semibold text-[#4a4640]`}>
                 학습 기록이 없습니다
               </h3>
               <p className="mb-5 max-w-sm text-body-sm text-[#8a847a]">

@@ -17,10 +17,7 @@ import { assignmentsApi } from '@/api/assignments';
 import Skeleton from '@/components/common/Skeleton';
 import { useToast } from '@/context/ToastContext';
 
-const pageBg = '#F7F5F0';
-const editorial = "font-['Playfair_Display',Georgia,serif]";
-
-// ── 상수 ──────────────────────────────────────────────────
+const pageBg = '#F7F5F0';// ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
   pending: {
     label: '미제출',
@@ -458,7 +455,7 @@ export default function Assignments() {
           <ClipboardList className="h-5 w-5 text-[#4e5a61]" />
         </div>
         <div>
-          <h1 className={`${editorial} text-[2rem] font-semibold text-[#2c2b28]`}>과제</h1>
+          <h1 className={`text-[2rem] font-semibold text-[#2c2b28]`}>과제</h1>
           <p className="text-caption text-gray-500">
             과제를 제출하고 피드백을 확인하세요
           </p>
@@ -468,15 +465,15 @@ export default function Assignments() {
       {/* 요약 통계 */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl border border-[#eceae4] bg-white p-4 text-center shadow-[0_2px_18px_rgba(60,52,40,0.04)]">
-          <p className={`${editorial} text-[2rem] font-semibold text-[#2c2b28]`}>{stats.graded}</p>
+          <p className={`text-[2rem] font-semibold text-[#2c2b28]`}>{stats.graded}</p>
           <p className="mt-0.5 text-caption text-[#8a847a]">채점완료</p>
         </div>
         <div className="rounded-2xl border border-[#eceae4] bg-white p-4 text-center shadow-[0_2px_18px_rgba(60,52,40,0.04)]">
-          <p className={`${editorial} text-[2rem] font-semibold text-[#4f6475]`}>{stats.submitted}</p>
+          <p className={`text-[2rem] font-semibold text-[#4f6475]`}>{stats.submitted}</p>
           <p className="mt-0.5 text-caption text-[#8a847a]">제출완료</p>
         </div>
         <div className="rounded-2xl border border-[#eceae4] bg-white p-4 text-center shadow-[0_2px_18px_rgba(60,52,40,0.04)]">
-          <p className={`${editorial} text-[2rem] font-semibold text-[#a33b39]`}>{stats.pending}</p>
+          <p className={`text-[2rem] font-semibold text-[#a33b39]`}>{stats.pending}</p>
           <p className="mt-0.5 text-caption text-[#8a847a]">미제출</p>
         </div>
       </div>

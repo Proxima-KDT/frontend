@@ -6,10 +6,7 @@ import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import Modal from '@/components/common/Modal';
 import { Monitor, Laptop, Tablet, Keyboard } from 'lucide-react';
-const pageBg = '#F7F5F0';
-const editorial = "font-['Playfair_Display',Georgia,serif]";
-
-const categoryMeta = {
+const pageBg = '#F7F5F0';const categoryMeta = {
   노트북: {
     icon: Laptop,
     bg: 'bg-[#eef2f4]',
@@ -276,7 +273,7 @@ export default function Equipment() {
       style={{ backgroundColor: pageBg }}
     >
       <header>
-        <h1 className={`${editorial} text-[2.1rem] font-semibold text-[#2c2b28]`}>
+        <h1 className={`text-[2.1rem] font-semibold text-[#2c2b28]`}>
           장비 대여
         </h1>
         <p className="mt-1 text-sm text-[#8a847a]">

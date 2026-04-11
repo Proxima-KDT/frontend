@@ -438,7 +438,7 @@ export default function AssignmentManagement() {
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#8d877e]">
             Ethereal Instructor
           </p>
-          <h1 className="font-['Playfair_Display',Georgia,serif] text-[2rem] leading-tight text-[#2a2a2a]">
+          <h1 className="text-[2rem] leading-tight text-[#2a2a2a]">
             과제 관리
           </h1>
         </div>
@@ -468,7 +468,7 @@ export default function AssignmentManagement() {
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
             Total Assignments
           </p>
-          <p className="mt-1 font-['Playfair_Display',Georgia,serif] text-5xl text-[#1f2f43]">{assignments.length}</p>
+          <p className="mt-1 text-5xl text-[#1f2f43]">{assignments.length}</p>
           <p className="mt-2 text-xs text-[#6c665f]">+ 이번 학기 신규 과제</p>
           <ClipboardList className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
@@ -476,7 +476,7 @@ export default function AssignmentManagement() {
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
             Pending Submissions
           </p>
-          <p className="mt-1 font-['Playfair_Display',Georgia,serif] text-5xl text-[#1f2f43]">{totalPending}</p>
+          <p className="mt-1 text-5xl text-[#1f2f43]">{totalPending}</p>
           <p className="mt-2 text-xs text-[#8a6a28]">Due within 48 hours</p>
           <FileText className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
@@ -484,7 +484,7 @@ export default function AssignmentManagement() {
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
             Grading Requests
           </p>
-          <p className="mt-1 font-['Playfair_Display',Georgia,serif] text-5xl text-[#1f2f43]">{totalResubmit}</p>
+          <p className="mt-1 text-5xl text-[#1f2f43]">{totalResubmit}</p>
           <span className="mt-3 inline-flex rounded-full bg-[#d9bf63] px-3 py-1 text-[10px] font-bold uppercase text-[#4a3a14]">
             High Priority
           </span>
@@ -531,7 +531,7 @@ export default function AssignmentManagement() {
             return (
               <section key={phase}>
                 <div className="mb-3 flex items-center justify-between gap-3 border-b border-[#dbd7d0] pb-2">
-                  <h2 className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#202020]">
+                  <h2 className="text-[2rem] text-[#202020]">
                     Phase {String(phase).padStart(2, '0')}
                   </h2>
                   <span className="text-sm italic text-[#7c7870]">
@@ -566,7 +566,7 @@ export default function AssignmentManagement() {
                     Status {pendingGrade > 0 ? 'Active' : 'Upcoming'}
                   </span>
                 </div>
-                <p className="font-['Playfair_Display',Georgia,serif] text-[2rem] leading-tight text-[#1f2f43]">
+                <p className="text-[2rem] leading-tight text-[#1f2f43]">
                     {assignment.title}
                 </p>
                 <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[#e0ddd6] pt-4 text-sm">

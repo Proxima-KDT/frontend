@@ -1,38 +1,31 @@
 import { useState, useEffect, useMemo, Fragment } from 'react';
-import {
-  ChevronRight,
-  BookOpen,
-  Sparkles,
-  CheckCircle2,
-  Circle,
-  Clock,
-} from 'lucide-react';
+import { Sparkles, CheckCircle2, Circle, Clock } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { curriculumApi } from '@/api/curriculum';
 import Skeleton from '@/components/common/Skeleton';
-
-const editorial = "font-['Playfair_Display',Georgia,serif]";
 
 const statusUi = {
   completed: {
     card: 'bg-white border-[#e8e4dc] shadow-[0_4px_20px_rgba(45,42,38,0.06)]',
     badge: 'bg-[#3d3d3d] text-white',
-    badgeText: 'COMPLETED',
+    badgeMain: '완료',
+    badgeSub: 'completed',
     bar: 'bg-[#3d3d3d]',
     dim: '',
   },
   in_progress: {
     card: 'bg-[#f3f1ed] border-[#d4cfc4] shadow-[0_8px_28px_rgba(45,42,38,0.1)] ring-1 ring-[#e0dbd2]',
     badge: 'bg-[#c9a227] text-[#1f1e1c]',
-    badgeText: 'IN PROGRESS',
+    badgeMain: '진행중',
+    badgeSub: 'In progress',
     bar: 'bg-[#c9a227]',
     dim: '',
-    currentTab: true,
   },
   upcoming: {
     card: 'bg-white/70 border-[#ebe8e3] opacity-[0.72]',
     badge: 'bg-[#b8b3ab] text-white',
-    badgeText: 'PLANNED',
+    badgeMain: '예정',
+    badgeSub: 'planned',
     bar: 'bg-[#a8a29e]',
     dim: 'opacity-90',
   },
@@ -75,7 +68,7 @@ function TaskRow({ task }) {
 
 function buildAiTip(phase) {
   if (!phase?.tasks?.length) {
-    return 'AI Tip: 모듈을 선택하면 맞춤 학습 팁이 표시됩니다.';
+    return 'AI Tip: 단계를 선택하면 맞춤 학습 팁이 표시됩니다.';
   }
   const tasks = [...phase.tasks].sort((a, b) => b.progress - a.progress);
   const strong = tasks[0];
@@ -101,25 +94,25 @@ function ModuleCard({ phase, selected, onSelect }) {
         ${ui.dim}
       `}
     >
-      {ui.currentTab && (
-        <span className="absolute -top-2.5 right-3 rounded-md bg-[#2d2a26] px-2 py-0.5 text-[0.6rem] font-bold tracking-wider text-white">
-          CURRENT
-        </span>
-      )}
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f0ede6] text-[#4a4640]">
           <PhaseIcon className="h-4 w-4" />
         </div>
         <span
-          className={`rounded-md px-2 py-0.5 text-[0.58rem] font-bold tracking-[0.08em] ${ui.badge}`}
+          className={`flex min-w-[3.25rem] flex-col items-end gap-0 rounded-md px-2 py-1 text-right leading-tight ${ui.badge}`}
         >
-          {ui.badgeText}
+          <span className="text-[0.62rem] font-bold tracking-wide">
+            {ui.badgeMain}
+          </span>
+          <span className="text-[0.5rem] font-medium opacity-90">
+            {ui.badgeSub}
+          </span>
         </span>
       </div>
       <p
-        className={`${editorial} line-clamp-2 text-[0.85rem] font-semibold leading-snug text-[#1f1e1c] sm:text-[0.95rem]`}
+        className={`line-clamp-2 text-[0.85rem] font-semibold leading-snug text-[#1f1e1c] sm:text-[0.95rem]`}
       >
-        Module {phase.phase}: {phase.title}
+        {phase.phase}. {phase.title}
       </p>
       <p className="mt-1 line-clamp-2 text-[0.7rem] leading-relaxed text-[#6b6560]">
         {phase.description}
@@ -212,19 +205,20 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1
-            className={`${editorial} text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
+            className={`text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
           >
-            커리큘럼 로드맵
+            학습 과정
           </h1>
           <p className="mt-1 text-[0.875rem] text-[#6b6560]">
-            6개월 과정 · {completedPhases}/{totalPhases} 모듈 완료
+            6개월 과정 · {completedPhases}/{totalPhases}단계 완료
           </p>
         </div>
         <div className="text-left sm:text-right">
-          <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-[#8a847a]">
-            OVERALL COMPLETION
+          <p className="text-[0.9375rem] font-semibold text-[#2d2a26]">진도율</p>
+          <p className="mt-0.5 text-[0.65rem] font-medium tracking-wide text-[#a39c92]">
+            Overall completion
           </p>
-          <p className="text-[1.75rem] font-semibold tabular-nums leading-tight text-[#2d2a26]">
+          <p className="mt-1 text-[1.75rem] font-semibold tabular-nums leading-tight text-[#2d2a26]">
             {overallProgress}%
           </p>
         </div>
@@ -268,9 +262,9 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <h2
-                    className={`${editorial} text-[1.35rem] font-semibold text-[#1f1e1c] sm:text-[1.5rem]`}
+                    className={`text-[1.35rem] font-semibold text-[#1f1e1c] sm:text-[1.5rem]`}
                   >
-                    Module {selectedPhase.phase}: {selectedPhase.title}
+                    {selectedPhase.phase}. {selectedPhase.title}
                   </h2>
                   <p className="mt-2 text-[0.9rem] leading-relaxed text-[#5c5852]">
                     {selectedPhase.description}
@@ -280,29 +274,10 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#2d2a26] px-5 py-2.5 text-[0.875rem] font-semibold text-white shadow-sm transition hover:bg-[#1a1918]"
-                >
-                  이어서 학습
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#d4cfc4] bg-white px-5 py-2.5 text-[0.875rem] font-semibold text-[#3d3a36] transition hover:bg-[#faf9f7]"
-                >
-                  <BookOpen className="h-4 w-4" />
-                  강의 계획 보기
-                </button>
-              </div>
             </div>
 
             <div>
-              <h3 className="text-[0.7rem] font-bold tracking-[0.14em] text-[#8a847a] uppercase">
-                Topic Completion
-              </h3>
-              <ul className="mt-4 space-y-3.5">
+              <ul className="space-y-3.5">
                 {(selectedPhase.tasks || []).map((task, idx) => (
                   <TaskRow key={`${task.name}-${idx}`} task={task} />
                 ))}

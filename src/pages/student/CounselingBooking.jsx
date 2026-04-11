@@ -19,10 +19,7 @@ import {
   Shield,
 } from 'lucide-react';
 
-const pageBg = '#F7F5F0';
-const editorial = "font-['Playfair_Display',Georgia,serif]";
-
-const _now = new Date();
+const pageBg = '#F7F5F0';const _now = new Date();
 const TODAY = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
 const TODAY_DATE = new Date(TODAY);
 
@@ -342,7 +339,7 @@ export default function CounselingBooking() {
     >
       <header>
         <h1
-          className={`${editorial} text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}
+          className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}
         >
           면담 예약
         </h1>
@@ -355,7 +352,7 @@ export default function CounselingBooking() {
       <section>
         <div className="mb-3 flex items-center justify-between gap-4">
           <h2
-            className={`${editorial} text-[1.4rem] font-semibold text-[#2c2b28]`}
+            className={`text-[1.4rem] font-semibold text-[#2c2b28]`}
           >
             멘토 선택
           </h2>
@@ -424,7 +421,7 @@ export default function CounselingBooking() {
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
         <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
           <div className="mb-4 flex items-center justify-between px-1">
-            <h3 className={`${editorial} text-[1.25rem] font-semibold text-[#2c2b28]`}>
+            <h3 className={`text-[1.25rem] font-semibold text-[#2c2b28]`}>
               {formatMonthTitle(currentYear, currentMonth)}
             </h3>
             <div className="flex items-center gap-1">
@@ -529,7 +526,7 @@ export default function CounselingBooking() {
 
         <div className="space-y-4">
           <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
-            <h3 className={`${editorial} mb-3 text-[1.25rem] font-semibold text-[#2c2b28]`}>
+            <h3 className={`mb-3 text-[1.25rem] font-semibold text-[#2c2b28]`}>
               시간 선택
             </h3>
             {selectedDate ? (
@@ -609,7 +606,7 @@ export default function CounselingBooking() {
       {/* ── 내 면담 예약 내역 ── */}
       <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className={`${editorial} text-[1.7rem] font-semibold text-[#2c2b28]`}>
+          <h2 className={`text-[1.7rem] font-semibold text-[#2c2b28]`}>
             내 면담 예약
           </h2>
           <div className="flex gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1">

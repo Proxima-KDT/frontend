@@ -159,7 +159,7 @@ export default function MainPage() {
           }}
         >
           <h2
-            className="mt-4 font-serif text-[92px] italic leading-[0.92]"
+            className="mt-4 font-sans text-[92px] italic leading-[0.92]"
             style={{
               color: textHovered ? 'transparent' : '#1a1a1d',
               backgroundImage: textHovered

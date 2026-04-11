@@ -760,7 +760,7 @@ export default function AttendanceCheck() {
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="font-['Playfair_Display',Georgia,serif] text-[2.05rem] font-semibold text-[#2a2d33]">
+          <h1 className="text-[2.05rem] font-semibold text-[#2a2d33]">
             출석 확인
           </h1>
           <p className="mt-1 text-[0.95rem] text-[#6f747b]">

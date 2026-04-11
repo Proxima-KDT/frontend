@@ -117,7 +117,7 @@ export default function StudentManagement() {
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#8b8478]">
             Ethereal Academy
           </p>
-          <h1 className="font-['Playfair_Display',Georgia,serif] text-[2.2rem] text-[#2f333a]">
+          <h1 className="text-[2.2rem] text-[#2f333a]">
             수강생 현황 (Student Roster Overview)
           </h1>
           <p className="text-sm text-[#7b7872]">개별 학습 진행도와 출결을 함께 확인합니다. (AI 기반 인사이트 포함)</p>
@@ -155,7 +155,7 @@ export default function StudentManagement() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
         <Card padding="p-0" className="rounded-3xl border border-[#e1ddd6] bg-[#f8f7f4] shadow-none">
           <div className="flex items-center justify-between px-5 pt-5">
-            <h3 className="font-['Playfair_Display',Georgia,serif] text-[1.5rem] text-[#32363d]">
+            <h3 className="text-[1.5rem] text-[#32363d]">
               최근 등록 수강생
             </h3>
             <div className="flex gap-2">
@@ -172,7 +172,7 @@ export default function StudentManagement() {
                 {focusStudent?.name?.[0] ?? '?'}
               </div>
               <div>
-                <p className="font-['Playfair_Display',Georgia,serif] text-[1.35rem] text-[#2f333a]">
+                <p className="text-[1.35rem] text-[#2f333a]">
                   {focusStudent?.name ?? '선택된 수강생 없음'}
                 </p>
                 <p className="text-xs text-[#7e7a72]">{focusStudent?.email ?? '-'}</p>

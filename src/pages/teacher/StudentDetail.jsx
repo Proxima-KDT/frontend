@@ -175,7 +175,7 @@ export default function StudentDetail() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <h2 className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2f333a]">
+              <h2 className="text-[2rem] text-[#2f333a]">
                 {student.name}
               </h2>
               <Badge variant="soft-info">수강생</Badge>
@@ -210,7 +210,7 @@ export default function StudentDetail() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr]">
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
-          <p className="font-['Playfair_Display',Georgia,serif] text-[1.9rem] text-[#2f333a]">
+          <p className="text-[1.9rem] text-[#2f333a]">
             Competency Hexagon
           </p>
           <div className="mt-3">
@@ -231,7 +231,7 @@ export default function StudentDetail() {
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_300px]">
             <div>
-              <p className="font-['Playfair_Display',Georgia,serif] text-[1.9rem] text-[#2f333a]">
+              <p className="text-[1.9rem] text-[#2f333a]">
                 AI 관찰 인사이트 (AI Observation Insights)
               </p>
               <p className="mt-3 text-sm leading-relaxed text-[#5f5a53]">
@@ -259,7 +259,7 @@ export default function StudentDetail() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
           <div className="mb-3 flex items-center justify-between">
-            <p className="font-['Playfair_Display',Georgia,serif] text-[1.8rem] text-[#2f333a]">
+            <p className="text-[1.8rem] text-[#2f333a]">
               Weekly Attendance Pulse
             </p>
             <div className="flex gap-3 text-[11px] text-[#7a756c]">
@@ -288,7 +288,7 @@ export default function StudentDetail() {
         </Card>
 
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
-          <p className="font-['Playfair_Display',Georgia,serif] text-[1.8rem] text-[#2f333a]">
+          <p className="text-[1.8rem] text-[#2f333a]">
             Archive & Artifacts
           </p>
           <div className="mt-4 space-y-2.5">
@@ -317,7 +317,7 @@ export default function StudentDetail() {
 
       <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
         <div className="mb-3 flex items-center justify-between">
-          <p className="font-['Playfair_Display',Georgia,serif] text-[2rem] text-[#2f333a]">
+          <p className="text-[2rem] text-[#2f333a]">
             Instructor Consultation Notes
           </p>
           <Button

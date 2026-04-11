@@ -29,8 +29,9 @@ const T = {
   body: '#6b7280',
 };
 
-const fontDisplay = '"Fraunces", "Georgia", "Times New Roman", serif';
-const fontUi = '"Outfit", system-ui, sans-serif';
+/** 앱 전체와 동일: 영문 Inter → 한글 Pretendard */
+const fontApp =
+  "'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif";
 
 /** 호버 시 파란 톤 대신 따뜻한 하이라이트·빛 번짐 */
 function MagneticGlowText({ as: Tag = 'span', children, className = '', intensity = 1 }) {
@@ -182,7 +183,7 @@ export default function MainPage9() {
     <main
       ref={mainRef}
       className="relative min-h-screen overflow-hidden bg-[#f3f1ea]"
-      style={{ color: T.base, fontFamily: fontUi }}
+      style={{ color: T.base, fontFamily: fontApp }}
       onMouseMove={handleMove}
     >
       <style>{`
@@ -331,7 +332,7 @@ export default function MainPage9() {
           />
         </div>
         <MagneticGlowText as="p" className="text-center text-xs font-semibold tracking-[0.18em] md:text-sm" intensity={0.75}>
-          <span style={{ color: T.body, fontFamily: fontUi }}>Innovative experience</span>
+          <span style={{ color: T.body, fontFamily: fontApp }}>Innovative experience</span>
         </MagneticGlowText>
       </header>
 
@@ -339,7 +340,7 @@ export default function MainPage9() {
         <div className="pt-4 xl:pt-8">
           <h1
             className="text-[2.4rem] font-semibold leading-[1.08] tracking-[-0.02em] md:text-[3.25rem] lg:text-[3.6rem]"
-            style={{ color: T.heading, fontFamily: fontDisplay }}
+            style={{ color: T.heading, fontFamily: fontApp }}
           >
             <MagneticGlowText className="block" intensity={0.9}>
               Korea IT Academy
@@ -347,7 +348,7 @@ export default function MainPage9() {
           </h1>
           <h2
             className="mt-2 text-[1.85rem] font-semibold leading-[1.12] tracking-[-0.015em] md:text-[2.35rem] lg:text-[2.65rem]"
-            style={{ color: T.heading, fontFamily: fontDisplay }}
+            style={{ color: T.heading, fontFamily: fontApp }}
           >
             <MagneticGlowText className="block" intensity={0.85}>
               <span className="italic font-normal" style={{ color: T.body }}>
