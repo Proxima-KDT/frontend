@@ -7,7 +7,7 @@ import Tabs from '@/components/common/Tabs';
 import Table from '@/components/common/Table';
 import Drawer from '@/components/common/Drawer';
 import { useToast } from '@/context/ToastContext';
-import { ChevronLeft, ChevronRight, User, X, Circle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User, X, Circle, CalendarX, CalendarCheck } from 'lucide-react';
 
 const TODAY = new Date().toISOString().slice(0, 10);
 const BOOKING_PAGE_SIZE = 8;
@@ -166,6 +166,38 @@ export default function CounselingSchedule() {
       })
       .catch(() => {
         // 실패 시 이전 상태로 롤백
+        setBlockedSlots((prev) => ({ ...prev, [selectedDate]: prevSlots }));
+        showToast({ message: '슬롯 상태 변경에 실패했습니다.', type: 'error' });
+      });
+  }
+
+  // 선택 날짜의 차단 가능한 슬롯 (예약된 슬롯 제외)
+  const blockableSlots = TIME_SLOTS.filter(
+    (slot) => getSlotStatus(slot).type !== 'booked',
+  );
+  const currentDayBlocked = blockedSlots[selectedDate] || [];
+  const isAllBlocked =
+    blockableSlots.length > 0 &&
+    blockableSlots.every((slot) => currentDayBlocked.includes(slot));
+
+  function handleBlockAll() {
+    const prevSlots = currentDayBlocked;
+    // 전체 차단이면 전체 해제, 아니면 차단 가능한 슬롯 전부 차단
+    const updatedSlots = isAllBlocked ? [] : blockableSlots;
+
+    setBlockedSlots((prev) => ({ ...prev, [selectedDate]: updatedSlots }));
+
+    counselingManageApi
+      .updateBlockedSlots(selectedDate, updatedSlots)
+      .then(() =>
+        showToast({
+          message: isAllBlocked
+            ? '하루 전체 차단이 해제되었습니다.'
+            : '하루 전체가 차단되었습니다.',
+          type: isAllBlocked ? 'info' : 'warning',
+        }),
+      )
+      .catch(() => {
         setBlockedSlots((prev) => ({ ...prev, [selectedDate]: prevSlots }));
         showToast({ message: '슬롯 상태 변경에 실패했습니다.', type: 'error' });
       });
@@ -456,9 +488,26 @@ export default function CounselingSchedule() {
 
         {/* 시간 슬롯 패널 */}
         <Card>
-          <h2 className="text-h3 font-semibold text-gray-900 mb-1">
-            {selectedMonth}월 {selectedDay}일 ({selectedDow})
-          </h2>
+          <div className="flex items-start justify-between mb-1">
+            <h2 className="text-h3 font-semibold text-gray-900">
+              {selectedMonth}월 {selectedDay}일 ({selectedDow})
+            </h2>
+            <button
+              onClick={handleBlockAll}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-body-sm font-medium transition-colors cursor-pointer
+                ${isAllBlocked
+                  ? 'bg-primary-50 text-primary-600 hover:bg-primary-100'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+            >
+              {isAllBlocked ? (
+                <CalendarCheck className="w-3.5 h-3.5" />
+              ) : (
+                <CalendarX className="w-3.5 h-3.5" />
+              )}
+              {isAllBlocked ? '전체 해제' : '하루 전체 차단'}
+            </button>
+          </div>
           <p className="text-caption text-gray-400 mb-4">
             슬롯을 클릭해 차단/해제할 수 있습니다
           </p>

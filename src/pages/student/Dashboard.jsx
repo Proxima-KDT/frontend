@@ -226,16 +226,18 @@ export default function Dashboard() {
   const [curriculum, setCurriculum] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedPhaseId, setSelectedPhaseId] = useState(null)
+  const [coursePeriod, setCoursePeriod] = useState(null)
 
   useEffect(() => {
-    curriculumApi.getAll()
-      .then((data) => {
-        setCurriculum(data)
-        const inProgress = data.find((c) => c.status === 'in_progress')
-        setSelectedPhaseId(inProgress?.id ?? data[0]?.id ?? null)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    Promise.all([
+      curriculumApi.getAll(),
+      curriculumApi.getCoursePeriod().catch(() => null),
+    ]).then(([data, period]) => {
+      setCurriculum(data)
+      setCoursePeriod(period)
+      const inProgress = data.find((c) => c.status === 'in_progress')
+      setSelectedPhaseId(inProgress?.id ?? data[0]?.id ?? null)
+    }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
   const completedPhases = curriculum.filter((c) => c.status === 'completed').length;
@@ -243,6 +245,15 @@ export default function Dashboard() {
   const overallProgress = totalPhases > 0
     ? Math.round(curriculum.reduce((sum, c) => sum + c.progress, 0) / totalPhases)
     : 0;
+
+  // 커리큘럼 실제 기간: phase들의 start_date 최솟값 ~ end_date 최댓값
+  const curriculumDates = curriculum.filter((c) => c.start_date && c.end_date);
+  const curriculumStart = curriculumDates.length > 0
+    ? curriculumDates.reduce((min, c) => c.start_date < min ? c.start_date : min, curriculumDates[0].start_date)
+    : null;
+  const curriculumEnd = curriculumDates.length > 0
+    ? curriculumDates.reduce((max, c) => c.end_date > max ? c.end_date : max, curriculumDates[0].end_date)
+    : null;
 
   const togglePhase = (id) =>
     setSelectedPhaseId((prev) => (prev === id ? null : id));
@@ -270,7 +281,12 @@ export default function Dashboard() {
         <div>
           <h1 className="text-h2 font-bold text-gray-900">커리큘럼 로드맵</h1>
           <p className="text-body-sm text-gray-500 mt-1">
-            6개월 과정 · {completedPhases}/{totalPhases} 단계 완료
+            {curriculumStart && curriculumEnd
+              ? `${curriculumStart} ~ ${curriculumEnd}${coursePeriod?.cohort_number ? ` · ${coursePeriod.cohort_number}기` : ''}`
+              : coursePeriod?.duration_months
+                ? `${coursePeriod.duration_months}개월 과정`
+                : `${completedPhases}/${totalPhases} 단계 완료`}
+            {' · '}{completedPhases}/{totalPhases} 단계 완료
           </p>
         </div>
         <Badge variant="student">{overallProgress}% 달성</Badge>

@@ -63,11 +63,20 @@ export default function TeacherDashboard() {
       <div className="mb-6">
         <h1 className="text-h1 font-bold text-gray-900">수강생 현황</h1>
         {selectedCourse && (
-          <p className="text-body-sm text-gray-500 mt-1">
-            {selectedCourse.track_type === 'main' ? '[메인] ' : '[서브] '}
-            {selectedCourse.name}
-            {selectedCourse.classroom ? ` · ${selectedCourse.classroom}` : ''}
-          </p>
+          <>
+            <p className="text-body-sm text-gray-500 mt-1">
+              {selectedCourse.track_type === 'main' ? '[메인] ' : '[서브] '}
+              {selectedCourse.name}
+              {selectedCourse.classroom ? ` · ${selectedCourse.classroom}` : ''}
+            </p>
+            <p className="text-caption text-gray-400 mt-0.5">
+              {selectedCourse.start_date && selectedCourse.end_date
+                ? `${selectedCourse.start_date} ~ ${selectedCourse.end_date}${selectedCourse.cohort_number ? ` · ${selectedCourse.cohort_number}기` : ''}`
+                : selectedCourse.duration_months
+                  ? `${selectedCourse.duration_months}개월 과정`
+                  : null}
+            </p>
+          </>
         )}
       </div>
 

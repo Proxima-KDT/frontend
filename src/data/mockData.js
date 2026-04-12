@@ -2499,6 +2499,14 @@ export const mockSubjects = [
 // --- 사이드바 메뉴 ---
 export const studentMenuItems = [
   {
+    key: 'ai-agent',
+    label: 'AI 학습코치',
+    icon: 'Sparkles',
+    path: '/ai-agent',
+    group: '통합 AI',
+    ai: true,
+  },
+  {
     key: 'mypage',
     label: '마이페이지',
     icon: 'User',
@@ -3861,6 +3869,14 @@ export const mockTeacherAssessments = [
 
 export const teacherMenuItems = [
   {
+    key: 'ai-agent',
+    label: 'AI 교수 브리핑',
+    icon: 'Sparkles',
+    path: '/ai-agent',
+    group: '통합 AI',
+    ai: true,
+  },
+  {
     key: 'dashboard',
     label: '수강생 현황',
     icon: 'LayoutDashboard',
@@ -3915,6 +3931,14 @@ export const teacherMenuItems = [
 ];
 
 export const adminMenuItems = [
+  {
+    key: 'ai-agent',
+    label: 'AI 운영 모니터',
+    icon: 'Sparkles',
+    path: '/ai-agent',
+    group: '통합 AI',
+    ai: true,
+  },
   {
     key: 'dashboard',
     label: '수강생 현황',

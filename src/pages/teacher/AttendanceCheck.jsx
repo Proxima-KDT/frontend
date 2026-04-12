@@ -468,7 +468,8 @@ export default function AttendanceCheck() {
         }),
       )
       .finally(() => setSeatsLoading(false));
-  }, [selectedCourseId, showToast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCourseId]);
 
   useEffect(() => {
     // 과정이 바뀌면 좌석 재로드. 좌석이 없으면 10개 자동 초기화 후 로드.
@@ -500,7 +501,8 @@ export default function AttendanceCheck() {
         }),
       )
       .finally(() => setSeatsLoading(false));
-  }, [selectedCourseId, showToast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCourseId]);
 
   // 과정 변경 시 출결 캐시 초기화 → 이전 과정 데이터가 남지 않게
   useEffect(() => {
@@ -525,7 +527,8 @@ export default function AttendanceCheck() {
         setAttendanceData((prev) => ({ ...prev, [selectedDate]: [] }));
       })
       .finally(() => setAttendanceLoading(false));
-  }, [selectedDate, selectedCourseId, attendanceData, showToast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate, selectedCourseId, attendanceData]);
 
   // 편집 모드 진입 — localSeats를 현재 seats로 초기화
   function enterEditMode() {

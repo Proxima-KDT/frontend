@@ -80,6 +80,9 @@ const AdminRoomReservation = lazy(
 const RegisterStudent = lazy(() => import('@/pages/admin/RegisterStudent'));
 const RegisterTeacher = lazy(() => import('@/pages/admin/RegisterTeacher'));
 
+// Common 페이지 (통합 AI 에이전트 — 모든 role 공통)
+const AIAgent = lazy(() => import('@/pages/common/AIAgent'));
+
 // 로그인 상태면 role 대시보드로, 아니면 랜딩페이지 표시
 function HomeRoute() {
   const { isAuthenticated, role, loading } = useAuth();
@@ -376,6 +379,16 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <RegisterTeacher />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 통합 AI 에이전트 — 모든 role 공통 (role 별 UI 자동 분기) */}
+        <Route
+          path="/ai-agent"
+          element={
+            <ProtectedRoute>
+              <AIAgent />
             </ProtectedRoute>
           }
         />
