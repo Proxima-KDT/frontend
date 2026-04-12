@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
-import { useAuth } from '@/context/AuthContext';
 import { CourseProvider } from '@/context/CourseContext';
 
 // 강사 라우트용 래퍼 — CourseProvider 는 AppRouter 최상위에 위치.
@@ -104,6 +103,7 @@ export default function AppRouter() {
         {/* Public */}
         <Route path="/" element={<HomeRoute />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/main9" element={<MainPage9 />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
