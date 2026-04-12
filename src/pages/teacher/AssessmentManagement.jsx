@@ -7,6 +7,9 @@ import {
   RefreshCcw,
   AlertTriangle,
   FileText,
+  Bell,
+  Search,
+  CircleHelp,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import { useCourse } from '@/context/CourseContext';
@@ -18,12 +21,12 @@ import ProgressBar from '@/components/common/ProgressBar';
 import { useToast } from '@/context/ToastContext';
 
 const PHASE_COLORS = [
-  { bg: 'bg-purple-500', light: 'bg-purple-100', text: 'text-purple-700' },
-  { bg: 'bg-blue-500', light: 'bg-blue-100', text: 'text-blue-700' },
-  { bg: 'bg-green-500', light: 'bg-green-100', text: 'text-green-700' },
-  { bg: 'bg-orange-500', light: 'bg-orange-100', text: 'text-orange-700' },
-  { bg: 'bg-pink-500', light: 'bg-pink-100', text: 'text-pink-700' },
-  { bg: 'bg-indigo-500', light: 'bg-indigo-100', text: 'text-indigo-700' },
+  { bg: 'bg-[#65737e]', light: 'bg-[#e2eaef]', text: 'text-[#476171]' },
+  { bg: 'bg-[#78808f]', light: 'bg-[#e6e8f1]', text: 'text-[#596077]' },
+  { bg: 'bg-[#768568]', light: 'bg-[#e7ecdf]', text: 'text-[#58694b]' },
+  { bg: 'bg-[#9a7e4f]', light: 'bg-[#f1e8d7]', text: 'text-[#84652f]' },
+  { bg: 'bg-[#8a6f6c]', light: 'bg-[#efe3e1]', text: 'text-[#785653]' },
+  { bg: 'bg-[#667287]', light: 'bg-[#e3e8ef]', text: 'text-[#4f5f79]' },
 ];
 
 function formatSubmittedAt(raw) {
@@ -49,17 +52,17 @@ const STATUS_CONFIG = {
   },
   submitted: {
     label: '제출완료',
-    classes: 'bg-blue-100 text-blue-700',
+    classes: 'bg-[#dbe9ea] text-[#567881]',
     Icon: CheckCircle2,
   },
   graded: {
     label: '채점완료',
-    classes: 'bg-green-100 text-green-700',
+    classes: 'bg-[#dce8ea] text-[#4f6f78]',
     Icon: CheckCircle2,
   },
   resubmit_required: {
     label: '재제출 요청',
-    classes: 'bg-orange-100 text-orange-700',
+    classes: 'bg-[#f1e6d3] text-[#8a6a39]',
     Icon: RefreshCcw,
   },
 };
@@ -293,13 +296,31 @@ export default function AssessmentManagement() {
   }
 
   return (
-    <div>
-      <h1 className="text-h1 font-bold text-gray-900 mb-6">
-        능력단위평가 관리
-      </h1>
+    <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#dbd8d1] pb-3">
+        <div>
+          <h1 className="text-[2rem] text-[#2a2a2a]">
+            능력단위평가 관리
+          </h1>
+          <p className="mt-1 text-[0.8rem] font-medium tracking-wide text-[#a39c92]">
+            Competency Evaluation Management
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-[#7e7a74]">
+          <span className="px-2 py-1">Dashboard</span>
+          <span className="rounded-full border border-[#bab7b0] bg-[#e8e5de] px-3 py-1">Evaluations</span>
+          <span className="px-2 py-1">Analytics</span>
+          <span className="px-2 py-1">Resources</span>
+          <Search className="h-4 w-4" />
+          <Bell className="h-4 w-4" />
+          <Button variant="primary" size="sm" className="rounded-full !bg-[#69717a] !text-white hover:!bg-[#535a62]">
+            Create Evaluation
+          </Button>
+        </div>
+      </div>
 
       {/* Phase 탭 */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+      <div className="mb-6 flex gap-2 overflow-x-auto rounded-xl bg-[#f1eee8] p-1.5 pb-1">
         {assessments.map((a, idx) => {
           const color = PHASE_COLORS[idx % 6];
           const isActive = activePhase === a.phaseId;
@@ -309,8 +330,8 @@ export default function AssessmentManagement() {
               onClick={() => setActivePhase(a.phaseId)}
               className={`shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 isActive
-                  ? `${color.bg} text-white shadow-sm`
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#232833] text-white shadow-sm'
+                  : 'bg-transparent text-[#6f6a61] hover:bg-white hover:text-[#35312d]'
               }`}
             >
               Phase {a.phaseId}
@@ -321,88 +342,91 @@ export default function AssessmentManagement() {
 
       {current && (
         <div className="space-y-4">
-          {/* 평가 정보 카드 */}
-          <Card>
-            <div className="flex items-start gap-3">
-              <div
-                className={`w-10 h-10 rounded-xl ${phaseColor.bg} flex items-center justify-center shrink-0`}
-              >
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h2 className="text-h3 font-bold text-gray-900">
-                    {current.title}
-                  </h2>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-semibold ${phaseColor.light} ${phaseColor.text}`}
-                  >
-                    {current.phaseTitle}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-1">{current.subject}</p>
-                <p className="text-caption text-gray-500">
-                  제출 기간: {current.period.start} ~ {current.period.end} ·
-                  합격 기준: {current.passScore}점 이상
-                </p>
-              </div>
-            </div>
-            {/* 루브릭 미리보기 */}
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm font-semibold text-gray-700 mb-2">
-                채점 기준 (루브릭)
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
+            <Card className="rounded-3xl border border-[#e1ded8] bg-[#f3f1ec]">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#8c867d]">
+                Evaluation Module
               </p>
-              <div className="flex flex-wrap gap-2">
+              <h2 className="mt-2 text-[2.55rem] leading-[1.1] text-[#1f2f43]">
+                {current.title}
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#65625d]">
+                {current.subject || 'Assessing fundamental programming competencies and practical structures.'}
+              </p>
+              <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="rounded-2xl border border-[#dfddd7] bg-[#f8f7f4] px-4 py-3 text-sm text-[#5f6369]">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#8f8a80]">Due Date</p>
+                  <p className="font-semibold text-[#2f3237]">{current.period.end || '-'}</p>
+                </div>
+                <div className="rounded-2xl border border-[#dfddd7] bg-[#f8f7f4] px-4 py-3 text-sm text-[#5f6369]">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#8f8a80]">AI Processing</p>
+                  <p className="font-semibold text-[#2f3237]">Active</p>
+                </div>
+              </div>
+            </Card>
+            <Card className="rounded-3xl border border-[#27272a] bg-[#1d1c1f] text-white">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-[1.4rem]">Grading Rubric</h3>
+                <CircleHelp className="h-4 w-4 text-white/60" />
+              </div>
+              <div className="space-y-2.5">
                 {current.rubric.map((r) => (
-                  <span
-                    key={r.item}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium ${phaseColor.light} ${phaseColor.text}`}
-                  >
-                    {r.item} ({r.maxScore}점)
-                  </span>
+                  <div key={r.item} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <div className="mb-1 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-[#f4f4f5]">{r.item}</p>
+                      <span className="text-[10px] text-[#c6c6ce]">{r.maxScore}%</span>
+                    </div>
+                    <p className="text-[10px] text-[#a7a7b0]">Criterion-based evaluation detail</p>
+                  </div>
                 ))}
               </div>
-            </div>
-          </Card>
+              <Button variant="secondary" fullWidth className="mt-4 !rounded-xl !border-white/30 !bg-white/90 !text-[#2a2a2a] hover:!bg-white">
+                Edit Weightage
+              </Button>
+            </Card>
+          </div>
 
           {/* 제출 통계 */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
+            <Card className="rounded-3xl border border-[#e1ded8] bg-[#f8f7f4]">
+              <p className="mb-3 text-[1.7rem] text-[#30343a]">Submission Insights</p>
+              <div className="space-y-3">
             {[
               {
-                label: '제출 완료',
+                label: 'Submission Rate',
                 value: current.studentSubmissions.filter(
                   (s) => s.status !== 'pending',
                 ).length,
                 total: current.studentSubmissions.length,
-                barColor: 'bg-blue-500',
-                textColor: 'text-blue-600',
+                barColor: 'bg-[#586067]',
+                textColor: 'text-[#374151]',
               },
               {
-                label: '채점 완료',
+                label: 'Grading Progress',
                 value: current.studentSubmissions.filter(
                   (s) => s.status === 'graded',
                 ).length,
                 total: current.studentSubmissions.length,
-                barColor: 'bg-green-500',
-                textColor: 'text-green-600',
+                barColor: 'bg-[#6f8791]',
+                textColor: 'text-[#374151]',
               },
               {
-                label: '합격',
+                label: 'Predicted Pass Rate',
                 value: current.studentSubmissions.filter(
                   (s) => s.passed === true,
                 ).length,
                 total: current.studentSubmissions.length,
-                barColor: 'bg-primary-500',
-                textColor: 'text-primary-600',
+                barColor: 'bg-[#8c7632]',
+                textColor: 'text-[#8a6a28]',
               },
             ].map((stat) => (
-              <Card key={stat.label} padding="p-3">
-                <p className="text-caption text-gray-500 mb-1">{stat.label}</p>
+              <div key={stat.label}>
+                <div className="mb-1 flex items-center justify-between text-xs text-[#77726a]">
+                  <p>{stat.label}</p>
+                  <p>{stat.value}/{stat.total}</p>
+                </div>
                 <p className={`text-h3 font-bold ${stat.textColor}`}>
-                  {stat.value}
-                  <span className="text-caption text-gray-400 font-normal">
-                    /{stat.total}
-                  </span>
+                  {stat.total > 0 ? Math.round((stat.value / stat.total) * 100) : 0}%
                 </p>
                 <ProgressBar
                   value={
@@ -415,13 +439,29 @@ export default function AssessmentManagement() {
                   color={stat.barColor}
                   className="mt-2"
                 />
-              </Card>
+              </div>
             ))}
+              </div>
+            </Card>
+            <Card className="rounded-3xl border border-[#e2ddcf] bg-[#f1ebd9]">
+              <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[#917c3b]">
+                AI Observation
+              </p>
+              <p className="text-sm leading-relaxed text-[#60594d]">
+                학생들이 특정 핵심 항목에서 반복적으로 점수가 낮아 루브릭 예시 답안을 추가하면 전체 평균이 개선될 가능성이 높습니다.
+              </p>
+            </Card>
           </div>
 
           {/* 학생별 제출 현황 */}
-          <Card>
-            <p className="text-sm font-semibold text-gray-700 mb-3">
+          <Card className="rounded-3xl border border-[#e1ded8] bg-[#f8f7f4]">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[1.55rem] text-[#31353b]">
+                Recent Submissions
+              </p>
+              <p className="text-xs font-semibold text-[#656b74]">View All Students +</p>
+            </div>
+            <p className="mb-3 text-sm text-[#6f716d]">
               학생별 제출 현황
             </p>
             <div className="space-y-2">

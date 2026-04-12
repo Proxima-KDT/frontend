@@ -8,7 +8,6 @@ import Modal from '@/components/common/Modal';
 import Textarea from '@/components/common/Textarea';
 import EmptyState from '@/components/common/EmptyState';
 import {
-  User,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -19,6 +18,7 @@ import {
   Shield,
 } from 'lucide-react';
 
+const pageBg = '#F7F5F0';
 const _now = new Date();
 const TODAY = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
 const TODAY_DATE = new Date(TODAY);
@@ -95,6 +95,24 @@ const statusConfig = {
   completed: { label: '완료', variant: 'default' },
   cancelled: { label: '취소됨', variant: 'error' },
 };
+
+function formatMonthTitle(year, month) {
+  return `${MONTH_NAMES[month]} ${year}`;
+}
+
+function toAmPm(timeHHMM) {
+  const [h, m] = String(timeHHMM).split(':').map((v) => parseInt(v, 10));
+  const hh = String(((h + 11) % 12) + 1).padStart(2, '0');
+  const mm = String(m).padStart(2, '0');
+  const ap = h >= 12 ? 'PM' : 'AM';
+  return `${hh}:${mm} ${ap}`;
+}
+
+function chipClass(active) {
+  return active
+    ? 'bg-[#4e5a61] text-white shadow-[0_10px_24px_rgba(78,90,97,0.24)]'
+    : 'bg-white text-[#6b6560] hover:bg-[#faf9f7]';
+}
 
 function formatDateStr(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -250,13 +268,6 @@ export default function CounselingBooking() {
 
   function getSlotStatus(time) {
     if (myBookedKeys.has(`${selectedDate}_${time}`)) return 'mine';
-    // 오늘 날짜에서 현재 시각 이전 슬롯은 예약 불가
-    if (selectedDate === TODAY) {
-      const [h, m] = time.split(':').map(Number);
-      const slotTime = new Date();
-      slotTime.setHours(h, m, 0, 0);
-      if (slotTime <= new Date()) return 'unavailable';
-    }
     if (!availableTimes.includes(time)) return 'unavailable';
     return 'available';
   }
@@ -322,124 +333,113 @@ export default function CounselingBooking() {
     .sort((a, b) => (`${a.date}_${a.time}` > `${b.date}_${b.time}` ? -1 : 1));
 
   return (
-    <div className="space-y-6">
-      {/* ── 헤더 ── */}
-      <div>
-        <h1 className="text-h2 font-bold text-gray-900">면담 신청</h1>
-        <p className="text-body-sm text-gray-500 mt-1">
-          담당 강사님 또는 멘토님과 1:1 면담을 예약하세요.
+    <div
+      className="space-y-8 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
+      style={{ backgroundColor: pageBg }}
+    >
+      <header>
+        <h1
+          className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}
+        >
+          면담 예약
+        </h1>
+        <p className="mt-1 text-[0.95rem] text-[#6b6560]">
+          멘토 및 학업 매니저와의 1:1 세션을 통해 학습 방향을 설계하고 필요한 지원을 받으세요.
         </p>
-      </div>
+      </header>
 
-      {/* ── 상담사 선택 ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {counselors.map((counselor) => {
-          const isSelected = selectedCounselorId === counselor.id;
-          const meta = roleMeta[counselor.role] || defaultRoleMeta;
-          const RoleIcon = meta.icon;
-          return (
-            <button
-              key={counselor.id}
-              onClick={() => handleCounselorChange(counselor.id)}
-              className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                isSelected
-                  ? `${meta.border} bg-white shadow-sm`
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                    isSelected ? meta.selectedBg : meta.bg
-                  }`}
-                >
-                  <RoleIcon
-                    className={`w-5 h-5 ${
-                      isSelected ? meta.selectedIconColor : meta.iconColor
-                    }`}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p
-                      className={`text-sm font-bold ${
-                        isSelected ? meta.nameColor : 'text-gray-800'
-                      }`}
-                    >
-                      {counselor.name}
-                    </p>
-                    <span
-                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                        isSelected
-                          ? `${meta.badgeBg} ${meta.badgeText}`
-                          : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {counselor.role_label}
-                    </span>
+      {/* ── 멘토 선택 ── */}
+      <section>
+        <div className="mb-3">
+          <h2
+            className={`text-[1.4rem] font-semibold text-[#2c2b28]`}
+          >
+            멘토 선택
+          </h2>
+        </div>
+
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {counselors.map((c) => {
+            const isSelected = selectedCounselorId === c.id;
+            const meta = roleMeta[c.role] || defaultRoleMeta;
+            const RoleIcon = meta.icon;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => handleCounselorChange(c.id)}
+                className={`min-w-[220px] rounded-2xl border bg-white p-4 text-left shadow-[0_2px_18px_rgba(60,52,40,0.04)] transition ${
+                  isSelected
+                    ? 'border-[#c9a962] ring-1 ring-[#c9a962]/30'
+                    : 'border-[#eceae4] hover:border-[#ddd9cf]'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#ece9e3]">
+                    <RoleIcon className="h-5 w-5 text-[#6b6560]" />
                   </div>
-                  <p
-                    className={`text-xs mt-0.5 ${
-                      isSelected ? meta.subColor : 'text-gray-400'
-                    }`}
-                  >
-                    {counselor.role === 'teacher'
-                      ? '학습 · 과제 상담'
-                      : '진로 · 취업 상담'}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-[#2c2b28]">
+                      {c.name}
+                    </p>
+                    <p className="mt-0.5 text-[0.75rem] text-[#9c988e]">
+                      {c.role_label}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <span className="rounded-full bg-[#f0eeeb] px-2 py-0.5 text-[0.62rem] font-semibold text-[#6b6560]">
+                        {c.role === 'teacher' ? '학업 상담' : '진로 상담'}
+                      </span>
+                    </div>
+                  </div>
+                  {isSelected ? (
+                    <span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#c9a962]" />
+                  ) : null}
                 </div>
-                {isSelected && (
-                  <div
-                    className={`w-2 h-2 rounded-full shrink-0 ${meta.iconColor.replace(
-                      'text-',
-                      'bg-',
-                    )}`}
-                  />
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
-      {/* ── 캘린더 + 시간 슬롯 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
-        {/* 캘린더 */}
-        <Card>
-          {/* 월 탐색 */}
-          <div className="flex items-center justify-between mb-5">
-            <button
-              onClick={prevMonth}
-              disabled={
-                currentYear === THIS_YEAR && currentMonth === THIS_MONTH
-              }
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-500" />
-            </button>
-            <h2 className="text-body font-bold text-gray-900">
-              {currentYear}년 {MONTH_NAMES[currentMonth]}
-            </h2>
-            <button
-              onClick={nextMonth}
-              disabled={currentYear === MAX_YEAR && currentMonth === MAX_MONTH}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-500" />
-            </button>
+      {/* ── 캘린더 + 시간 선택 ── */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
+        <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
+          <div className="mb-4 flex items-center justify-between px-1">
+            <h3 className={`text-[1.25rem] font-semibold text-[#2c2b28]`}>
+              {formatMonthTitle(currentYear, currentMonth)}
+            </h3>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={prevMonth}
+                disabled={currentYear === THIS_YEAR && currentMonth === THIS_MONTH}
+                className="rounded-xl p-2 hover:bg-[#faf9f7] disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="이전 달"
+              >
+                <ChevronLeft className="h-5 w-5 text-[#8a847a]" />
+              </button>
+              <button
+                type="button"
+                onClick={nextMonth}
+                disabled={currentYear === MAX_YEAR && currentMonth === MAX_MONTH}
+                className="rounded-xl p-2 hover:bg-[#faf9f7] disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="다음 달"
+              >
+                <ChevronRight className="h-5 w-5 text-[#8a847a]" />
+              </button>
+            </div>
           </div>
 
-          {/* 요일 헤더 */}
           <div className="grid grid-cols-7 mb-1">
             {DAYS_OF_WEEK.map((day, i) => (
               <div
                 key={day}
-                className={`text-center text-xs font-medium py-2 ${
+                className={`py-2 text-center text-xs font-medium ${
                   i === 5
                     ? 'text-blue-400'
                     : i === 6
                       ? 'text-red-400'
-                      : 'text-gray-400'
+                      : 'text-[#b0aaa1]'
                 }`}
               >
                 {day}
@@ -447,11 +447,9 @@ export default function CounselingBooking() {
             ))}
           </div>
 
-          {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-2">
             {calendarDays.map((day, idx) => {
               if (day === null) return <div key={`empty-${idx}`} />;
-
               const dateStr = formatDateStr(currentYear, currentMonth, day);
               const isPast = new Date(dateStr) < TODAY_DATE;
               const isAvailable = availableDates.includes(dateStr) && !isPast;
@@ -460,266 +458,236 @@ export default function CounselingBooking() {
               const col = idx % 7;
               const isSat = col === 5;
               const isSun = col === 6;
-
               return (
                 <button
                   key={day}
+                  type="button"
                   onClick={() => handleDateClick(day)}
                   disabled={!isAvailable}
                   className={`
-                    relative aspect-square flex flex-col items-center justify-center
-                    rounded-xl text-sm font-medium transition-all
+                    relative aspect-square rounded-2xl text-sm font-semibold transition-all
+                    flex items-center justify-center
                     ${
                       isSelected
-                        ? 'bg-student-500 text-white shadow-md'
+                        ? 'bg-[#4e5a61] text-white shadow-[0_10px_24px_rgba(78,90,97,0.22)]'
                         : isAvailable
-                          ? 'bg-student-50 text-student-700 hover:bg-student-100 cursor-pointer'
+                          ? 'bg-[#f7f6f2] text-[#2c2b28] hover:bg-[#efede7] cursor-pointer'
                           : isPast
-                            ? 'text-gray-300 cursor-not-allowed'
+                            ? 'text-[#d3cec6] cursor-not-allowed'
                             : isSat
                               ? 'text-blue-300 cursor-not-allowed'
                               : isSun
                                 ? 'text-red-300 cursor-not-allowed'
-                                : 'text-gray-400 cursor-not-allowed'
+                                : 'text-[#c9c4bc] cursor-not-allowed'
                     }
-                    ${isToday && !isSelected ? 'ring-2 ring-student-400' : ''}
+                    ${isToday && !isSelected ? 'ring-2 ring-[#c9a962]' : ''}
                   `}
                 >
                   <span>{day}</span>
-                  {isAvailable && !isSelected && (
-                    <span className="absolute bottom-1 w-1 h-1 rounded-full bg-student-400" />
-                  )}
+                  {isAvailable && !isSelected ? (
+                    <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-[#c9a962]" />
+                  ) : null}
                 </button>
               );
             })}
           </div>
 
-          {/* 범례 */}
-          <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-md bg-student-50 border border-student-200" />
-              상담 가능
+          <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-[#f0ede8] pt-4">
+            <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
+              <div className="h-3 w-3 rounded-md border border-[#e6e2d9] bg-[#f7f6f2]" />
+              예약 가능
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-md bg-student-500" />
-              선택된 날짜
+            <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
+              <div className="h-3 w-3 rounded-md bg-[#4e5a61]" />
+              선택됨
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-md bg-white ring-2 ring-student-400" />
+            <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
+              <div className="h-3 w-3 rounded-md bg-white ring-2 ring-[#c9a962]" />
               오늘
             </div>
           </div>
         </Card>
 
-        {/* 시간 슬롯 패널 */}
-        <Card>
-          {selectedDate ? (
-            <>
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-4 h-4 text-student-500" />
-                <span className="text-body-sm font-semibold text-gray-900">
-                  {selectedDate.replace(/-/g, '.')} 예약 가능 시간
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {TIME_SLOTS.map((time) => {
-                  const status = getSlotStatus(time);
+        <div className="space-y-4">
+          <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
+            <h3 className={`mb-3 text-[1.25rem] font-semibold text-[#2c2b28]`}>
+              시간 선택
+            </h3>
+            {selectedDate ? (
+              <div className="space-y-2">
+                {availableTimes.slice(0, 10).map((t) => {
+                  const isSelected = selectedTime === t;
+                  const status = getSlotStatus(t);
                   return (
                     <button
-                      key={time}
-                      onClick={() => handleTimeClick(time)}
+                      key={t}
+                      type="button"
+                      onClick={() => handleTimeClick(t)}
                       disabled={status !== 'available'}
-                      className={`
-                        py-2.5 px-3 rounded-xl text-sm font-medium transition-all border
-                        ${
-                          status === 'available'
-                            ? 'border-student-200 bg-student-50 text-student-700 hover:bg-student-100 hover:border-student-300'
-                            : status === 'mine'
-                              ? 'border-success-200 bg-success-50 text-success-700 cursor-default'
-                              : 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed'
-                        }
-                      `}
+                      className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                        status !== 'available'
+                          ? 'border-[#efede8] bg-[#f8f7f4] text-[#c9c4bc] cursor-not-allowed'
+                          : isSelected
+                            ? 'border-[#4e5a61] bg-[#f2f1ef] text-[#2c2b28]'
+                            : 'border-[#eceae4] bg-white text-[#2c2b28] hover:bg-[#faf9f7]'
+                      }`}
                     >
-                      {time}
-                      {status === 'mine' && (
-                        <span className="block text-xs font-normal">
-                          예약됨
+                      <span>{toAmPm(t)}</span>
+                      {isSelected ? (
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#4e5a61] bg-[#4e5a61] text-white">
+                          ✓
                         </span>
-                      )}
+                      ) : null}
                     </button>
                   );
                 })}
+
+                <p className="pt-2 text-[0.72rem] text-[#a8a29e]">
+                  선택: {selectedDate?.replace(/-/g, '.')}
+                  {selectedTime ? ` ${toAmPm(selectedTime)}` : ''}
+                  {selectedCounselor?.name ? ` · ${selectedCounselor.name}` : ''}
+                </p>
+
+                <div className="pt-2">
+                  <Button
+                    fullWidth
+                    size="md"
+                    className="!rounded-2xl !bg-[#4e5a61] hover:!bg-[#414b51] active:!bg-[#394248]"
+                    onClick={() => {
+                      if (!selectedTime) return;
+                      setShowModal(true);
+                    }}
+                    disabled={!selectedTime}
+                  >
+                    예약 확정하기
+                  </Button>
+                </div>
               </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Calendar className="w-10 h-10 text-gray-300 mb-3" />
-              <p className="text-body-sm font-medium text-gray-500">
-                날짜를 선택하세요
-              </p>
-              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                캘린더에서 상담 가능한 날짜를
-                <br />
-                클릭하면 시간대가 표시됩니다.
-              </p>
-            </div>
-          )}
-        </Card>
-      </div>
+            ) : (
+              <div className="rounded-2xl border border-[#efede8] bg-[#fbfaf7] p-6 text-center">
+                <Calendar className="mx-auto mb-3 h-9 w-9 text-[#c9c4bc]" />
+                <p className="text-sm font-semibold text-[#6b6560]">
+                  날짜를 먼저 선택해 주세요
+                </p>
+                <p className="mt-1 text-xs text-[#a8a29e]">
+                  선택 가능한 날짜에만 시간 목록이 표시됩니다.
+                </p>
+              </div>
+            )}
+          </Card>
+
+          <Card className="!rounded-3xl !border-[#f1d16a] !bg-[#f3c94a] shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
+            <p className="text-[0.75rem] font-bold tracking-[0.12em] text-[#5c4a1a]">
+              Quick Guide
+            </p>
+            <p className="mt-2 text-[0.85rem] leading-relaxed text-[#4a3b12]">
+              준비물: 질문 리스트를 미리 작성해 오시면 면담이 더 효율적입니다.
+            </p>
+          </Card>
+        </div>
+      </section>
 
       {/* ── 내 면담 예약 내역 ── */}
-      <Card>
-        {/* 헤더 + 탭 */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <CalendarCheck className="w-5 h-5 text-student-500" />
-            <h2 className="text-body font-semibold text-gray-900">
-              내 면담 예약
-            </h2>
-          </div>
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
+      <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className={`text-[1.7rem] font-semibold text-[#2c2b28]`}>
+            내 면담 예약
+          </h2>
+          <div className="flex gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1">
             <button
               onClick={() => setMyResTab('upcoming')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                myResTab === 'upcoming'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${chipClass(
+                myResTab === 'upcoming',
+              )}`}
             >
               예정
-              {activeBookings.length > 0 && (
-                <span
-                  className={`ml-1.5 text-[10px] rounded-full px-1.5 py-0.5 ${
-                    myResTab === 'upcoming'
-                      ? 'bg-student-100 text-student-700'
-                      : 'bg-gray-200 text-gray-500'
-                  }`}
-                >
-                  {activeBookings.length}
-                </span>
-              )}
             </button>
             <button
               onClick={() => setMyResTab('past')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                myResTab === 'past'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${chipClass(
+                myResTab === 'past',
+              )}`}
             >
               지난 면담
-              {pastBookings.length > 0 && (
-                <span
-                  className={`ml-1.5 text-[10px] rounded-full px-1.5 py-0.5 ${
-                    myResTab === 'past'
-                      ? 'bg-gray-200 text-gray-700'
-                      : 'bg-gray-200 text-gray-500'
-                  }`}
-                >
-                  {pastBookings.length}
-                </span>
-              )}
             </button>
           </div>
         </div>
 
-        {/* 탭 콘텐츠 — 고정 높이 스크롤 */}
-        <div className="overflow-y-auto max-h-72 space-y-2 pr-1">
-          {myResTab === 'upcoming' &&
-            (activeBookings.length === 0 ? (
-              <EmptyState
-                icon={Calendar}
-                title="예정된 면담이 없습니다"
-                description="캘린더에서 날짜를 선택해 면담을 예약해보세요."
-              />
-            ) : (
-              activeBookings.map((booking) => {
-                const cfg =
-                  statusConfig[booking.status] ?? statusConfig.confirmed;
-                return (
-                  <div
-                    key={booking.id}
-                    className="flex items-start justify-between gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100"
-                  >
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-gray-900">
-                          {booking.counselor_name}
-                        </span>
-                        <Badge variant="default" size="sm">
-                          {booking.counselor_role_label}
-                        </Badge>
-                        <Badge variant={cfg.variant} size="sm">
-                          {cfg.label}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3 shrink-0" />
-                        {booking.date.replace(/-/g, '.')} · {booking.time} (
-                        {booking.duration}분)
-                      </p>
-                      <p className="text-xs text-gray-600 flex items-start gap-1">
-                        <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
-                        <span className="truncate">{booking.reason}</span>
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCancelBooking(booking.id)}
-                      className="text-error-500 hover:text-error-600 hover:bg-error-50 shrink-0"
-                    >
-                      취소
-                    </Button>
-                  </div>
-                );
-              })
-            ))}
+        <div className="hidden grid-cols-[1.2fr_1.4fr_0.8fr_0.8fr_0.5fr] gap-3 px-3 pb-2 text-[0.72rem] font-semibold tracking-[0.08em] text-[#a8a29e] sm:grid">
+          <span>멘토</span>
+          <span>일시</span>
+          <span>유형</span>
+          <span>상태</span>
+          <span>액션</span>
+        </div>
 
-          {myResTab === 'past' &&
-            (pastBookings.length === 0 ? (
-              <EmptyState
-                icon={Calendar}
-                title="지난 면담 기록이 없습니다"
-                description="완료된 면담 내역이 여기에 표시됩니다."
-              />
-            ) : (
-              pastBookings.map((booking) => {
-                const cfg =
-                  booking.status === 'cancelled'
-                    ? statusConfig.cancelled
-                    : statusConfig.completed;
-                return (
-                  <div
-                    key={booking.id}
-                    className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 opacity-60"
-                  >
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-gray-900">
-                          {booking.counselor_name}
-                        </span>
-                        <Badge variant="default" size="sm">
-                          {booking.counselor_role_label}
-                        </Badge>
-                        <Badge variant={cfg.variant} size="sm">
-                          {cfg.label}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3 shrink-0" />
-                        {booking.date.replace(/-/g, '.')} · {booking.time} (
-                        {booking.duration}분)
-                      </p>
-                      <p className="text-xs text-gray-600 flex items-start gap-1">
-                        <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
-                        <span className="truncate">{booking.reason}</span>
-                      </p>
-                    </div>
+        <div className="space-y-2">
+          {(myResTab === 'upcoming' ? activeBookings : pastBookings).length === 0 ? (
+            <EmptyState
+              icon={Calendar}
+              title={
+                myResTab === 'upcoming'
+                  ? '예정된 면담이 없습니다'
+                  : '지난 면담 기록이 없습니다'
+              }
+              description="면담 예약 내역이 여기에 표시됩니다."
+            />
+          ) : (
+            (myResTab === 'upcoming' ? activeBookings : pastBookings).map((b) => {
+              const isUpcoming = myResTab === 'upcoming';
+              const cfg = statusConfig[b.status] ?? statusConfig.confirmed;
+              return (
+                <div
+                  key={b.id}
+                  className={`grid grid-cols-1 gap-2 rounded-2xl border border-[#f0ede8] bg-[#fbfaf7] p-3 sm:grid-cols-[1.2fr_1.4fr_0.8fr_0.8fr_0.5fr] sm:items-center sm:gap-3 ${
+                    !isUpcoming ? 'opacity-75' : ''
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#2c2b28]">
+                      {b.counselor_name}
+                    </p>
+                    <p className="text-[0.72rem] text-[#a8a29e]">
+                      {b.counselor_role_label}
+                    </p>
                   </div>
-                );
-              })
-            ))}
+                  <p className="text-sm text-[#3d3a36]">
+                    {b.date.replace(/-/g, '.')} {b.time}
+                  </p>
+                  <p className="text-sm text-[#3d3a36]">{b.reason || '진로 상담'}</p>
+                  <div>
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-1 text-[0.62rem] font-bold tracking-wide ${
+                        cfg.variant === 'success'
+                          ? 'bg-[#e8eef8] text-[#2d4a7c]'
+                          : cfg.variant === 'warning'
+                            ? 'bg-[#faf4e0] text-[#7a6120]'
+                            : cfg.variant === 'error'
+                              ? 'bg-[#f5e8e8] text-[#8b2f2d]'
+                              : 'bg-[#efeeeb] text-[#6b6860]'
+                      }`}
+                    >
+                      {cfg.label}
+                    </span>
+                  </div>
+                  <div className="flex justify-end sm:justify-start">
+                    {isUpcoming ? (
+                      <button
+                        type="button"
+                        onClick={() => handleCancelBooking(b.id)}
+                        className="rounded-lg px-2 py-1 text-sm text-[#8a847a] hover:bg-[#f2f1ed] hover:text-[#5c5852]"
+                        title="취소"
+                      >
+                        ⋯
+                      </button>
+                    ) : (
+                      <span className="text-[#c1bcb3]">-</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </Card>
 
@@ -761,29 +729,28 @@ export default function CounselingBooking() {
         isOpen={showModal}
         onClose={handleCloseModal}
         title="면담 예약 확인"
-        persistent
       >
         <div className="space-y-4">
           {/* 예약 요약 */}
-          <div className="p-4 bg-student-50 rounded-xl space-y-2.5">
+          <div className="space-y-2.5 rounded-2xl border border-[#e8edf3] bg-[#f5f9fd] p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">상담 대상</span>
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="text-sm text-[#7d8ea6]">상담 대상</span>
+              <span className="text-sm font-semibold text-[#1f2f46]">
                 {selectedCounselor?.name}{' '}
-                <span className="font-normal text-gray-500">
+                <span className="font-normal text-[#6f7f96]">
                   ({selectedCounselor?.role_label})
                 </span>
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">일시</span>
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="text-sm text-[#7d8ea6]">일시</span>
+              <span className="text-sm font-semibold text-[#1f2f46]">
                 {selectedDate?.replace(/-/g, '.')} {selectedTime}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">소요 시간</span>
-              <span className="text-sm font-semibold text-gray-900">30분</span>
+              <span className="text-sm text-[#7d8ea6]">소요 시간</span>
+              <span className="text-sm font-semibold text-[#1f2f46]">30분</span>
             </div>
           </div>
 
@@ -800,17 +767,15 @@ export default function CounselingBooking() {
           {/* 액션 버튼 */}
           <div className="flex gap-3">
             <Button
-              variant="secondary"
               size="md"
-              className="flex-1"
+              className="flex-1 !rounded-2xl !border !border-[#d7dfe8] !bg-white !text-[#4e5a61] hover:!bg-[#f7f9fb]"
               onClick={handleCloseModal}
             >
               닫기
             </Button>
             <Button
-              variant="primary"
               size="md"
-              className="flex-1"
+              className="flex-1 !rounded-2xl !bg-[#4e5a61] hover:!bg-[#414b51] active:!bg-[#394248]"
               onClick={handleBookingConfirm}
               disabled={!bookingReason.trim()}
             >

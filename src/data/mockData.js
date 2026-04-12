@@ -2515,14 +2515,14 @@ export const studentMenuItems = [
   },
   {
     key: 'dashboard',
-    label: '커리큘럼 로드맵',
+    label: '학습 과정',
     icon: 'Map',
     path: '/student/dashboard',
     group: '내 정보',
   },
   {
     key: 'attendance',
-    label: '출석',
+    label: '출결 확인',
     icon: 'Calendar',
     path: '/student/attendance',
     group: '내 정보',
@@ -3885,7 +3885,7 @@ export const teacherMenuItems = [
   },
   {
     key: 'attendance-check',
-    label: '출석 확인',
+    label: '출결 확인',
     icon: 'UserCheck',
     path: '/teacher/attendance-check',
     group: '수업 관리',

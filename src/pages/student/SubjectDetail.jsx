@@ -85,7 +85,7 @@ export default function SubjectDetail() {
               <div className="flex items-center gap-4">
                 <div className="shrink-0">
                   {isCompleted ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-500" />
+                    <CheckCircle2 className="w-6 h-6 text-[#6f8391]" />
                   ) : (
                     <Circle className={`w-6 h-6 ${isStarted ? 'text-amber-400' : 'text-gray-300'}`} />
                   )}
@@ -93,14 +93,14 @@ export default function SubjectDetail() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-body font-semibold text-gray-900">{concept.title}</h3>
-                    {isCompleted && <Badge variant="success">완료</Badge>}
+                    {isCompleted && <Badge variant="soft-info">완료</Badge>}
                     {isStarted && !isCompleted && <Badge variant="warning">진행 중</Badge>}
                   </div>
                   <p className="text-caption text-gray-500 mb-2">{concept.description}</p>
                   <div className="flex items-center gap-3">
                     <ProgressBar
                       value={progress.percent}
-                      color={isCompleted ? 'bg-green-500' : 'bg-amber-500'}
+                      color={isCompleted ? 'bg-[#6f8391]' : 'bg-[#b79b5d]'}
                       size="sm"
                       showValue={false}
                       className="flex-1"
@@ -120,23 +120,23 @@ export default function SubjectDetail() {
         <Card
           hoverable
           onClick={() => navigate(`/student/problems/${subjectId}/comprehensive`)}
-          className="border-2 border-dashed border-student-200 bg-student-50/30"
+          className="border-2 border-dashed border-[#d8d2c7] bg-[#faf9f6]"
         >
           <div className="flex items-center gap-4">
             <div className="shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-student-100 flex items-center justify-center">
-                <Shuffle className="w-5 h-5 text-student-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef2f4]">
+                <Shuffle className="h-5 w-5 text-[#4e5a61]" />
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="text-body font-semibold text-student-700">
+              <h3 className="text-body font-semibold text-[#4f6475]">
                 {subject.title} 종합 문제 풀기
               </h3>
-              <p className="text-caption text-student-500">
+              <p className="text-caption text-[#7f786d]">
                 모든 개념에서 랜덤으로 출제 · 총 {totalProblems}문제 중 랜덤 선택
               </p>
             </div>
-            <ChevronRight className="w-5 h-5 text-student-300 shrink-0" />
+            <ChevronRight className="w-5 h-5 shrink-0 text-[#c5bfb4]" />
           </div>
         </Card>
       </div>

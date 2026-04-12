@@ -12,6 +12,9 @@ import {
   FileText,
   X,
   Download,
+  Eye,
+  AlertCircle,
+  ChevronRight,
 } from 'lucide-react';
 import { assignmentsApi } from '@/api/assignments';
 import Skeleton from '@/components/common/Skeleton';
@@ -49,12 +52,48 @@ const FILTERS = ['전체', '미제출', '제출완료', '채점완료', '재제�
 
 // Phase 색상 팔레트 — subject는 DB의 assignment.subject를 사용하므로 여기선 색상만.
 const PHASE_PALETTE = [
-  { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500', tab: 'bg-purple-500' },
-  { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500',   tab: 'bg-blue-500' },
-  { bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500',  tab: 'bg-green-500' },
-  { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500', tab: 'bg-orange-500' },
-  { bg: 'bg-pink-100',   text: 'text-pink-700',   dot: 'bg-pink-500',   tab: 'bg-pink-500' },
-  { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500', tab: 'bg-indigo-500' },
+  {
+    bg: 'bg-purple-100',
+    text: 'text-purple-700',
+    dot: 'bg-purple-500',
+    tab: 'bg-purple-500',
+    stripe: 'bg-violet-600',
+  },
+  {
+    bg: 'bg-blue-100',
+    text: 'text-blue-700',
+    dot: 'bg-blue-500',
+    tab: 'bg-blue-500',
+    stripe: 'bg-blue-600',
+  },
+  {
+    bg: 'bg-green-100',
+    text: 'text-green-700',
+    dot: 'bg-green-500',
+    tab: 'bg-green-500',
+    stripe: 'bg-emerald-600',
+  },
+  {
+    bg: 'bg-orange-100',
+    text: 'text-orange-700',
+    dot: 'bg-orange-500',
+    tab: 'bg-orange-500',
+    stripe: 'bg-amber-700',
+  },
+  {
+    bg: 'bg-pink-100',
+    text: 'text-pink-700',
+    dot: 'bg-pink-500',
+    tab: 'bg-pink-500',
+    stripe: 'bg-rose-600',
+  },
+  {
+    bg: 'bg-indigo-100',
+    text: 'text-indigo-700',
+    dot: 'bg-indigo-500',
+    tab: 'bg-indigo-500',
+    stripe: 'bg-indigo-600',
+  },
 ];
 
 function getPhaseCfg(phase) {
@@ -66,10 +105,36 @@ function getPhaseCfg(phase) {
       text: 'text-gray-600',
       dot: 'bg-gray-400',
       tab: 'bg-gray-400',
+      stripe: 'bg-slate-500',
     };
   }
   const color = PHASE_PALETTE[(n - 1) % PHASE_PALETTE.length];
   return { label: `Phase ${n}`, ...color };
+}
+
+function getAssignmentDueDate(a) {
+  return a.due_date || a.dueDate || '';
+}
+
+function getAssignmentSubmittedAt(a) {
+  return a.submitted_at || a.submittedAt || '';
+}
+
+function formatKoDate(iso) {
+  if (!iso) return '';
+  const d = new Date(`${String(iso).slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function subjectCategoryLine(subject) {
+  if (!subject) return '과제';
+  if (/[가-힣]/.test(subject)) return subject;
+  return String(subject).toUpperCase();
 }
 
 // 특정 phase의 첫 assignment subject를 그룹 라벨로 사용.
@@ -87,19 +152,6 @@ function getDDay(dueDate) {
 }
 
 // ── 서브 컴포넌트 ──────────────────────────────────────────
-function StatusBadge({ status }) {
-  const cfg = STATUS_CONFIG[status];
-  const Icon = cfg.icon;
-  return (
-    <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.badgeClass}`}
-    >
-      <Icon className="w-3 h-3" />
-      {cfg.label}
-    </span>
-  );
-}
-
 function DueDateBadge({ dueDate, status }) {
   if (status === 'graded') return null;
   const dday = getDDay(dueDate);
@@ -123,7 +175,10 @@ function DueDateBadge({ dueDate, status }) {
 function RubricTable({ rubric }) {
   if (!rubric) return null;
   const total = rubric.reduce((s, r) => s + (r.score ?? 0), 0);
-  const max = rubric.reduce((s, r) => s + (r.maxScore ?? 0), 0);
+  const max = rubric.reduce(
+    (s, r) => s + (r.maxScore ?? r.max_score ?? 0),
+    0,
+  );
   return (
     <div className="mt-4">
       <p className="text-body-sm font-semibold text-gray-700 mb-2">
@@ -149,7 +204,7 @@ function RubricTable({ rubric }) {
               <tr key={i} className="border-t border-gray-100">
                 <td className="px-4 py-2.5 text-gray-700">{r.item}</td>
                 <td className="px-4 py-2.5 text-right text-gray-500">
-                  {r.maxScore ?? '-'}점
+                  {r.maxScore ?? r.max_score ?? '-'}점
                 </td>
                 <td className="px-4 py-2.5 text-right font-semibold text-student-600">
                   {r.score != null ? (
@@ -254,7 +309,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
   const [deletingPath, setDeletingPath] = useState(null); // 삭제 중인 파일 path
   // 제출 파일 목록은 로컬에서 관리 (삭제 후 즉시 반영)
   const [localSubmittedFiles, setLocalSubmittedFiles] = useState(
-    assignment.submitted_files ?? [],
+    assignment.submitted_files ?? assignment.submittedFiles ?? [],
   );
 
   const canSubmit =
@@ -301,76 +356,149 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
     }
   };
 
+  const dueStr = getAssignmentDueDate(assignment);
+  const phaseCfg = assignment.phase ? getPhaseCfg(assignment.phase) : null;
+  const stripeClass = phaseCfg?.stripe ?? 'bg-slate-500';
+  const dday = dueStr ? getDDay(dueStr) : 99;
+  const urgent =
+    (assignment.status === 'pending' ||
+      assignment.status === 'resubmit_required') &&
+    dday >= 0 &&
+    dday <= 3;
+  const stripeAccent = urgent ? 'bg-[#9b3d3d]' : stripeClass;
+  const maxScr = assignment.max_score ?? assignment.maxScore ?? 100;
+
+  const statusPill = {
+    graded: 'bg-[#eceae4] text-[#4a4640] border border-[#e0ddd6]',
+    submitted: 'bg-[#e3edf5] text-[#3d5a73] border border-[#c9d8e8]',
+    pending: 'bg-[#f5e8e6] text-[#8b3a38] border border-[#e8cfcb]',
+    resubmit_required:
+      'bg-[#fff1e6] text-[#9a5a1c] border border-[#f0dcc4]',
+  }[assignment.status];
+
+  const statusPillLabel = {
+    graded: '채점완료',
+    submitted: '검토 중',
+    pending: '미제출',
+    resubmit_required: '재제출',
+  }[assignment.status];
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* 카드 헤더 */}
-      <button
-        className="w-full text-left p-5 hover:bg-gray-50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-1.5">
-              {/* Phase 뱃지 (subject 포함) */}
-              {assignment.phase
-                ? (() => {
-                    const pcfg = getPhaseCfg(assignment.phase);
-                    return (
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold ${pcfg.bg} ${pcfg.text}`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${pcfg.dot} inline-block shrink-0`}
-                        />
-                        {pcfg.label}
-                        {assignment.subject && (
-                          <span className="font-medium opacity-75">
-                            · {assignment.subject}
-                          </span>
-                        )}
-                      </span>
-                    );
-                  })()
-                : assignment.subject && (
-                    <span className="text-caption text-gray-400 font-medium">
-                      {assignment.subject}
-                    </span>
-                  )}
-              <StatusBadge status={assignment.status} />
+    <div className="relative overflow-hidden rounded-2xl border border-[#e8e4dc] bg-white shadow-[0_10px_36px_rgba(45,42,38,0.07)]">
+      <div
+        className={`absolute left-0 top-0 z-[1] h-full w-1 rounded-l-2xl ${stripeAccent}`}
+        aria-hidden
+      />
+      <div className="relative pl-1">
+        <div className="flex items-stretch gap-2 sm:gap-4">
+          <button
+            type="button"
+            className="min-w-0 flex-1 px-4 py-4 pl-5 text-left transition-colors hover:bg-[#faf9f6] sm:px-5 sm:py-5"
+            onClick={() => setExpanded(!expanded)}
+          >
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[#7a756c]">
+                {subjectCategoryLine(assignment.subject)}
+              </span>
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${statusPill}`}
+              >
+                {statusPillLabel}
+              </span>
               {assignment.status !== 'graded' && (
-                <DueDateBadge
-                  dueDate={assignment.due_date}
-                  status={assignment.status}
-                />
+                <DueDateBadge dueDate={dueStr} status={assignment.status} />
               )}
             </div>
-            <h3 className="text-body font-bold text-gray-900 truncate">
+            <h3 className="text-[1.05rem] font-bold leading-snug text-[#1f1e1c] sm:text-[1.15rem]">
               {assignment.title}
             </h3>
+            <p className="mt-1.5 text-[0.8rem] text-[#8a847a]">
+              {assignment.status === 'graded' ? (
+                <>
+                  완료일{' '}
+                  {formatKoDate(
+                    getAssignmentSubmittedAt(assignment) || dueStr,
+                  )}
+                </>
+              ) : (
+                <>마감 {formatKoDate(dueStr) || '—'}</>
+              )}
+            </p>
+          </button>
+
+          <div className="flex shrink-0 flex-col items-end justify-center gap-2 pr-3 sm:pr-4">
             {assignment.status === 'graded' && (
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-h3 font-bold text-student-600">
-                  {assignment.score}점
+              <div className="text-right">
+                <p className="text-[1.35rem] font-bold tabular-nums leading-none text-[#2c2b28] sm:text-[1.5rem]">
+                  {assignment.score}
+                  <span className="text-base font-semibold text-[#a39c92]">
+                    {' '}
+                    / {maxScr}
+                  </span>
+                </p>
+                <p className="mt-1 text-[10px] font-semibold tracking-wide text-[#a39c92]">
+                  현재 점수
+                </p>
+              </div>
+            )}
+            {assignment.status === 'submitted' && (
+              <div className="flex flex-col items-end gap-2">
+                <span className="text-xs font-semibold text-[#4f6475]">
+                  검토 중
                 </span>
-                <span className="text-caption text-gray-400">
-                  / {assignment.max_score}점
+                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d9d3c8] bg-white text-[#5c6675] shadow-sm">
+                  <Eye className="h-4 w-4" aria-hidden />
                 </span>
               </div>
             )}
-          </div>
-          <div className="shrink-0 mt-0.5">
-            {expanded ? (
-              <ChevronUp className="w-5 h-5 text-gray-400" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+            {(assignment.status === 'pending' ||
+              assignment.status === 'resubmit_required') && (
+              <div className="flex flex-col items-end gap-2">
+                {urgent && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded bg-[#9b3d3d] px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white">
+                      긴급
+                    </span>
+                    <span className="text-[11px] font-bold text-[#9b3d3d]">
+                      D-{dday} 남음
+                    </span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpanded(true);
+                  }}
+                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                    urgent
+                      ? 'bg-[#9b3d3d] text-white shadow-md hover:bg-[#853432]'
+                      : 'border border-[#cfc9c0] bg-white text-[#4a4640] hover:bg-[#f7f5f0]'
+                  }`}
+                >
+                  {urgent ? '지금 제출' : '상세 보기'}
+                </button>
+              </div>
             )}
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e8e4dc] bg-[#faf9f6] text-[#7a756c] transition-colors hover:bg-white"
+              onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
+            >
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
           </div>
         </div>
-      </button>
+      </div>
 
       {/* 상세 영역 */}
       {expanded && (
-        <div className="border-t border-gray-100 p-5 space-y-5">
+        <div className="border-t border-[#ede9e2] bg-[#fcfbfa] p-5 space-y-5">
           {/* 과제 설명 */}
           <div>
             <p className="text-body-sm font-semibold text-gray-700 mb-1.5">
@@ -440,9 +568,9 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
                     )}
                   </div>
                 ))}
-                {assignment.submitted_at && (
+                {getAssignmentSubmittedAt(assignment) && (
                   <p className="text-caption text-gray-400">
-                    제출일시: {assignment.submitted_at}
+                    제출일시: {getAssignmentSubmittedAt(assignment)}
                   </p>
                 )}
               </div>
@@ -629,34 +757,71 @@ export default function Assignments() {
         })()
       : [];
 
+  const pageBg = '#F7F5F0';
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+    <div
+      className="mx-auto max-w-3xl space-y-6 rounded-3xl px-4 py-6 sm:px-5 md:-mx-2 md:px-8 md:py-8"
+      style={{ backgroundColor: pageBg }}
+    >
       {/* 헤더 */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-student-100 flex items-center justify-center">
-          <ClipboardList className="w-5 h-5 text-student-600" />
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#e8e4dc] bg-white shadow-sm">
+          <ClipboardList className="h-5 w-5 text-[#5c6675]" />
         </div>
         <div>
-          <h1 className="text-h2 font-bold text-gray-900">과제</h1>
-          <p className="text-caption text-gray-500">
+          <h1 className="font-serif text-[1.75rem] font-semibold leading-tight tracking-tight text-[#2a2825] sm:text-[2rem]">
+            과제
+          </h1>
+          <p className="mt-1 text-sm leading-relaxed text-[#7a756c]">
             과제를 제출하고 피드백을 확인하세요
           </p>
         </div>
       </div>
 
       {/* 요약 통계 */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-gray-900">{stats.graded}</p>
-          <p className="text-caption text-gray-500 mt-0.5">채점완료</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e8e4dc] bg-white p-4 shadow-[0_6px_24px_rgba(45,42,38,0.05)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f0efeb]">
+            <CheckCircle2 className="h-5 w-5 text-[#5c6675]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-2xl font-bold tabular-nums text-[#2c2b28]">
+              {stats.graded}
+            </p>
+            <p className="text-xs font-medium text-[#7a756c]">채점완료</p>
+            <span className="mt-1 inline-block rounded-full border border-[#e0ddd6] bg-[#f7f6f3] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#6b6560]">
+              완료
+            </span>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-blue-600">{stats.submitted}</p>
-          <p className="text-caption text-gray-500 mt-0.5">제출완료</p>
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e8e4dc] bg-white p-4 shadow-[0_6px_24px_rgba(45,42,38,0.05)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e8f0f6]">
+            <FileText className="h-5 w-5 text-[#4f6f86]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-2xl font-bold tabular-nums text-[#3d5a73]">
+              {stats.submitted}
+            </p>
+            <p className="text-xs font-medium text-[#7a756c]">제출완료</p>
+            <span className="mt-1 inline-block rounded-full border border-[#c9d8e8] bg-[#eef4f9] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#4f6475]">
+              검토중
+            </span>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-orange-500">{stats.pending}</p>
-          <p className="text-caption text-gray-500 mt-0.5">미제출</p>
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e8e4dc] bg-white p-4 shadow-[0_6px_24px_rgba(45,42,38,0.05)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f7e8e6]">
+            <AlertCircle className="h-5 w-5 text-[#9b3d3d]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-2xl font-bold tabular-nums text-[#9b3d3d]">
+              {stats.pending}
+            </p>
+            <p className="text-xs font-medium text-[#7a756c]">미제출</p>
+            <span className="mt-1 inline-block rounded-full border border-[#e8cfcb] bg-[#fbefed] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#8b3a38]">
+              대기
+            </span>
+          </div>
         </div>
       </div>
 
@@ -665,13 +830,13 @@ export default function Assignments() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => setPhaseFilter(0)}
-            className={`shrink-0 px-4 py-2 rounded-xl text-body-sm font-semibold transition-all ${
+            className={`shrink-0 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
               phaseFilter === 0
-                ? 'bg-gray-800 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#2d2d2d] text-white shadow-sm'
+                : 'border border-transparent bg-white/80 text-[#5c5852] hover:bg-white'
             }`}
           >
-            전체 Phase
+            전체
           </button>
           {presentPhases.map((p) => {
             const cfg = getPhaseCfg(p);
@@ -681,10 +846,10 @@ export default function Assignments() {
               <button
                 key={p}
                 onClick={() => setPhaseFilter(p)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-body-sm font-semibold transition-all ${
+                className={`shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
                   isActive
                     ? `${cfg.tab} text-white shadow-sm`
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'border border-transparent bg-white/80 text-[#5c5852] hover:bg-white'
                 }`}
               >
                 <span
@@ -728,15 +893,15 @@ export default function Assignments() {
       )}
 
       {/* 상태 필터 탭 */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setStatusFilter(f)}
-            className={`px-3.5 py-1.5 rounded-full text-body-sm font-medium transition-colors ${
+            className={`rounded-full px-3.5 py-1.5 text-body-sm font-semibold transition-colors ${
               statusFilter === f
-                ? 'bg-student-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#2d2d2d] text-white shadow-sm'
+                : 'border border-[#e2ded7] bg-white text-[#5c5852] hover:border-[#cfc9c0]'
             }`}
           >
             {f}

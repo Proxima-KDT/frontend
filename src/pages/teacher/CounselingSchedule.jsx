@@ -7,7 +7,18 @@ import Tabs from '@/components/common/Tabs';
 import Table from '@/components/common/Table';
 import Drawer from '@/components/common/Drawer';
 import { useToast } from '@/context/ToastContext';
-import { ChevronLeft, ChevronRight, User, X, Circle, CalendarX, CalendarCheck } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  User,
+  X,
+  Circle,
+  Search,
+  Bell,
+  Plus,
+  CalendarX,
+  CalendarCheck,
+} from 'lucide-react';
 
 const TODAY = new Date().toISOString().slice(0, 10);
 const BOOKING_PAGE_SIZE = 8;
@@ -50,10 +61,10 @@ const TIME_SLOTS = [
 ];
 
 const STATUS_CONFIG = {
-  pending: { label: '대기중', variant: 'warning' },
-  confirmed: { label: '확정', variant: 'success' },
-  completed: { label: '완료', variant: 'info' },
-  cancelled: { label: '취소됨', variant: 'error' },
+  pending: { label: '대기중', variant: 'soft-warning' },
+  confirmed: { label: '확정', variant: 'soft-success' },
+  completed: { label: '완료', variant: 'soft-info' },
+  cancelled: { label: '취소됨', variant: 'soft-error' },
 };
 
 function formatDateStr(year, month, day) {
@@ -171,7 +182,6 @@ export default function CounselingSchedule() {
       });
   }
 
-  // 선택 날짜의 차단 가능한 슬롯 (예약된 슬롯 제외)
   const blockableSlots = TIME_SLOTS.filter(
     (slot) => getSlotStatus(slot).type !== 'booked',
   );
@@ -182,7 +192,6 @@ export default function CounselingSchedule() {
 
   function handleBlockAll() {
     const prevSlots = currentDayBlocked;
-    // 전체 차단이면 전체 해제, 아니면 차단 가능한 슬롯 전부 차단
     const updatedSlots = isAllBlocked ? [] : blockableSlots;
 
     setBlockedSlots((prev) => ({ ...prev, [selectedDate]: updatedSlots }));
@@ -192,8 +201,8 @@ export default function CounselingSchedule() {
       .then(() =>
         showToast({
           message: isAllBlocked
-            ? '하루 전체 차단이 해제되었습니다.'
-            : '하루 전체가 차단되었습니다.',
+            ? '오늘 전체 차단이 해제되었습니다.'
+            : '오늘 전체가 차단되었습니다.',
           type: isAllBlocked ? 'info' : 'warning',
         }),
       )
@@ -357,63 +366,80 @@ export default function CounselingSchedule() {
   const selectedDow = formatDayOfWeek(selectedDate);
 
   return (
-    <div>
-      <h1 className="text-h1 font-bold text-gray-900 mb-6">상담일정</h1>
+    <div className="relative rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="relative w-full max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9a968e]" />
+          <input
+            readOnly
+            value=""
+            placeholder="상담 검색 (Search consultations)"
+            className="h-10 w-full rounded-full border border-[#e4e1db] bg-[#f7f6f2] pl-10 pr-4 text-sm text-[#6f6b64] placeholder:text-[#b4b0a8]"
+          />
+        </div>
+        <div className="flex items-center gap-3 text-[#7e7a74]">
+          <Bell className="h-4 w-4" />
+          <h1 className="text-[1.65rem] text-[#999792]">
+            상담일정 관리
+          </h1>
+        </div>
+      </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">전체 신청</p>
-          <p className="text-h2 font-bold text-gray-900">{totalCount}건</p>
+      <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">전체 신청 (Total Requests)</p>
+          <p className="text-4xl font-semibold text-[#2f3f54]">{totalCount}</p>
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">대기중</p>
-          <p className="text-h2 font-bold text-warning-600">{pendingCount}건</p>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">승인 대기 (Pending)</p>
+          <p className="text-4xl font-semibold text-[#7d661e]">{pendingCount}</p>
+          <div className="mt-2 h-1 rounded-full bg-[#8f7728]" />
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">확정</p>
-          <p className="text-h2 font-bold text-success-600">
-            {confirmedCount}건
-          </p>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">예약 확정 (Confirmed)</p>
+          <p className="text-4xl font-semibold text-[#2f3f54]">{confirmedCount}</p>
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">완료</p>
-          <p className="text-h2 font-bold text-primary-600">
-            {completedCount}건
-          </p>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">완료 (Completed)</p>
+          <p className="text-4xl font-semibold text-[#2f3f54]">{completedCount}</p>
         </Card>
       </div>
 
       {/* 캘린더 + 슬롯 패널 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
         {/* 월간 캘린더 */}
-        <Card>
+        <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
           {/* 헤더 */}
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={prevMonth}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
-            </button>
-            <span className="text-body font-semibold text-gray-900">
-              {currentYear}년 {MONTH_NAMES[currentMonth]}
-            </span>
-            <button
-              onClick={nextMonth}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4 text-gray-600" />
-            </button>
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-[2.1rem] text-[#262a31]">
+                {MONTH_NAMES[currentMonth]} {currentYear}
+              </p>
+              <p className="text-sm text-[#7f7b72]">학사 분기 일정 · Curator Schedule</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={prevMonth}
+                className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd]"
+              >
+                <ChevronLeft className="h-4 w-4 text-[#5f5b53]" />
+              </button>
+              <button
+                onClick={nextMonth}
+                className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd]"
+              >
+                <ChevronRight className="h-4 w-4 text-[#5f5b53]" />
+              </button>
+            </div>
           </div>
 
           {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 mb-1">
+          <div className="mb-1 grid grid-cols-7 rounded-t-xl bg-[#f8f7f4]">
             {DAYS_OF_WEEK.map((d, i) => (
               <div
                 key={d}
-                className={`text-center text-caption font-medium py-1
-                  ${i === 5 ? 'text-primary-400' : i === 6 ? 'text-red-400' : 'text-gray-400'}`}
+                className="py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-[#8f8a80]"
               >
                 {d}
               </div>
@@ -421,7 +447,7 @@ export default function CounselingSchedule() {
           </div>
 
           {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7 gap-y-1">
+          <div className="grid grid-cols-7 overflow-hidden rounded-b-xl border border-[#e2dfd8]">
             {calendarDays.map((day, idx) => {
               if (!day) return <div key={`empty-${idx}`} />;
               const dateStr = formatDateStr(currentYear, currentMonth, day);
@@ -438,14 +464,13 @@ export default function CounselingSchedule() {
                   onClick={() => !isPast && setSelectedDate(dateStr)}
                   disabled={isPast}
                   className={`
-                    relative flex flex-col items-center justify-center h-9 rounded-xl text-body-sm font-medium
-                    transition-colors cursor-pointer
+                    relative flex h-16 flex-col items-start justify-start border-r border-b border-[#e4e1da] px-2 py-1 text-left text-[13px] font-medium transition-colors
                     ${isPast ? 'text-gray-300 cursor-default' : ''}
-                    ${!isPast && !isSelected ? 'hover:bg-primary-50' : ''}
-                    ${isSelected ? 'bg-primary-500 text-white' : ''}
-                    ${isToday && !isSelected ? 'ring-2 ring-primary-300 text-primary-600' : ''}
-                    ${!isPast && !isSelected && dow === 5 ? 'text-primary-400' : ''}
-                    ${!isPast && !isSelected && dow === 6 ? 'text-red-400' : ''}
+                    ${!isPast && !isSelected ? 'hover:bg-[#ece9e2] text-[#373f4a]' : ''}
+                    ${isSelected ? 'bg-[#e9e8e5] text-[#223248] ring-1 ring-[#8a8f96]' : ''}
+                    ${isToday && !isSelected ? 'text-[#2f3f54]' : ''}
+                    ${!isPast && !isSelected && dow === 5 ? 'text-[#47576b]' : ''}
+                    ${!isPast && !isSelected && dow === 6 ? 'text-[#8f5757]' : ''}
                   `}
                 >
                   {day}
@@ -456,10 +481,10 @@ export default function CounselingSchedule() {
                         ${
                           hasBooking
                             ? isSelected
-                              ? 'bg-white'
-                              : 'bg-primary-400'
+                              ? 'bg-[#2f3f54]'
+                              : 'bg-[#5b6677]'
                             : isSelected
-                              ? 'bg-white/60'
+                              ? 'bg-[#8f8a80]'
                               : 'bg-gray-300'
                         }`}
                     />
@@ -470,49 +495,50 @@ export default function CounselingSchedule() {
           </div>
 
           {/* 범례 */}
-          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100">
+          <div className="mt-4 flex items-center gap-4 border-t border-[#e0ddd7] pt-3">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-primary-400" />
-              <span className="text-caption text-gray-500">면담 신청</span>
+              <span className="h-2 w-2 rounded-full bg-[#5b6677]" />
+              <span className="text-caption text-[#77736b]">면담 신청</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-gray-300" />
-              <span className="text-caption text-gray-500">차단된 날짜</span>
+              <span className="h-2 w-2 rounded-full bg-gray-300" />
+              <span className="text-caption text-[#77736b]">차단된 날짜</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full ring-2 ring-primary-300 inline-block" />
-              <span className="text-caption text-gray-500">오늘</span>
+              <span className="inline-block h-3 w-3 rounded-full ring-2 ring-[#8d95a3]" />
+              <span className="text-caption text-[#77736b]">오늘</span>
             </div>
           </div>
         </Card>
 
         {/* 시간 슬롯 패널 */}
-        <Card>
-          <div className="flex items-start justify-between mb-1">
-            <h2 className="text-h3 font-semibold text-gray-900">
-              {selectedMonth}월 {selectedDay}일 ({selectedDow})
+        <Card className="rounded-[28px] border border-[#d8d5cd] bg-[#e4e2db] shadow-none">
+          <div className="mb-1 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <h2 className="text-[2rem] text-[#333740]">
+              {MONTH_NAMES[selectedMonth - 1]} {selectedDay} ({selectedDow})
             </h2>
             <button
+              type="button"
               onClick={handleBlockAll}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-body-sm font-medium transition-colors cursor-pointer
-                ${isAllBlocked
-                  ? 'bg-primary-50 text-primary-600 hover:bg-primary-100'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+              className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
+                isAllBlocked
+                  ? 'border border-[#c5c2bc] bg-[#f5f4f1] text-[#4a4640] hover:bg-[#ecebe7]'
+                  : 'border border-[#8a857d] bg-[#5f6972] text-white hover:bg-[#4e5760]'
+              }`}
             >
               {isAllBlocked ? (
-                <CalendarCheck className="w-3.5 h-3.5" />
+                <CalendarCheck className="h-3.5 w-3.5" />
               ) : (
-                <CalendarX className="w-3.5 h-3.5" />
+                <CalendarX className="h-3.5 w-3.5" />
               )}
-              {isAllBlocked ? '전체 해제' : '하루 전체 차단'}
+              {isAllBlocked ? '전체 해제' : '오늘 전체 차단'}
             </button>
           </div>
-          <p className="text-caption text-gray-400 mb-4">
-            슬롯을 클릭해 차단/해제할 수 있습니다
+          <p className="mb-4 text-caption text-[#7f7b72]">
+            슬롯을 클릭해 차단·해제할 수 있습니다. 예약된 슬롯은 그대로 유지됩니다.
           </p>
 
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="space-y-2">
             {TIME_SLOTS.map((slot) => {
               const status = getSlotStatus(slot);
 
@@ -521,17 +547,13 @@ export default function CounselingSchedule() {
                   <button
                     key={slot}
                     onClick={() => handleSlotClick(slot)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl
-                      bg-primary-50 border border-primary-200
-                      hover:bg-primary-100 transition-colors cursor-pointer text-left"
+                    className="flex w-full items-center justify-between rounded-xl border border-[#d8e2e4] bg-[#f5f7f6] px-3 py-2.5 text-left transition-colors hover:bg-[#eef3f2]"
                   >
-                    <User className="w-3.5 h-3.5 text-primary-500 shrink-0" />
-                    <span className="text-body-sm font-medium text-primary-700 shrink-0">
-                      {slot}
-                    </span>
-                    <span className="text-body-sm text-primary-600 truncate">
-                      {status.booking.student_name}
-                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-[#2f3f54]">{slot}</p>
+                      <p className="text-xs text-[#7f8793]">{status.booking.student_name}</p>
+                    </div>
+                    <Badge variant="soft-info" className="font-semibold">확정</Badge>
                   </button>
                 );
               }
@@ -541,14 +563,10 @@ export default function CounselingSchedule() {
                   <button
                     key={slot}
                     onClick={() => handleSlotClick(slot)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl
-                      bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer text-left"
+                    className="flex w-full items-center justify-between rounded-xl bg-[#ecebe7] px-3 py-2.5 text-left transition-colors hover:bg-[#e2e0db]"
                   >
-                    <X className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    <span className="text-body-sm text-gray-400 shrink-0 line-through">
-                      {slot}
-                    </span>
-                    <span className="text-body-sm text-gray-400">차단</span>
+                    <p className="text-sm font-semibold text-[#8f8c85] line-through">{slot}</p>
+                    <Badge variant="soft-amber" className="font-semibold">차단</Badge>
                   </button>
                 );
               }
@@ -557,15 +575,10 @@ export default function CounselingSchedule() {
                 <button
                   key={slot}
                   onClick={() => handleSlotClick(slot)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl
-                    border border-transparent hover:bg-primary-50 hover:border-primary-100
-                    transition-colors cursor-pointer text-left"
+                  className="flex w-full items-center justify-between rounded-xl bg-[#f5f4f1] px-3 py-2.5 text-left transition-colors hover:bg-[#ecebe7]"
                 >
-                  <Circle className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-                  <span className="text-body-sm text-gray-700 shrink-0">
-                    {slot}
-                  </span>
-                  <span className="text-body-sm text-gray-400">가능</span>
+                  <p className="text-sm font-semibold text-[#2f3f54]">{slot}</p>
+                  <Badge variant="soft-success" className="font-semibold">가능</Badge>
                 </button>
               );
             })}
@@ -574,10 +587,10 @@ export default function CounselingSchedule() {
       </div>
 
       {/* 하단 면담 신청 목록 */}
-      <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-4">
-          신청된 면담
-        </h2>
+      <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
+        <div className="mb-4">
+          <h2 className="text-[2rem] text-[#2f333a]">최근 신청 활동</h2>
+        </div>
         <div className="overflow-x-auto">
           <Tabs
             tabs={tabs}
@@ -638,7 +651,7 @@ export default function CounselingSchedule() {
                       onClick={() => setBookingPage(p)}
                       className={`min-w-8 h-8 rounded-lg text-body-sm font-medium transition-colors ${
                         p === safeBookingPage
-                          ? 'bg-primary-600 text-white'
+                          ? 'bg-[#5f6972] text-white'
                           : 'hover:bg-gray-100 text-gray-600'
                       }`}
                     >
@@ -659,6 +672,14 @@ export default function CounselingSchedule() {
           </div>
         )}
       </Card>
+
+      <button
+        type="button"
+        className="fixed bottom-8 right-8 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#5f6972] text-white shadow-[0_12px_28px_rgba(40,44,48,0.35)] transition-colors hover:bg-[#4f5961]"
+        title="새 일정"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       {/* 면담 상세 Drawer */}
       <Drawer
