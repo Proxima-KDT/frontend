@@ -4,6 +4,7 @@ import { Users, Calendar, TrendingUp, Bell, Search } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import { useCourse } from '@/context/CourseContext';
 import Card from '@/components/common/Card';
+import Avatar from '@/components/common/Avatar';
 import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
 import Skeleton from '@/components/common/Skeleton';
@@ -162,15 +163,27 @@ export default function TeacherDashboard() {
             <div className="space-y-2">
               {recentStudents.map((student) => {
                 const score = Math.max(0, (student.attendance_rate ?? 0) - 8);
+                const avatarSrc =
+                  student.avatar_url ?? student.avatarUrl ?? undefined;
                 return (
                   <button
                     key={student.id}
                     onClick={() => navigate(`/teacher/students/${student.id}`)}
-                    className="grid w-full cursor-pointer grid-cols-[1.3fr_80px_110px_100px] items-center gap-3 rounded-xl border border-[#ebe7df] bg-white/70 px-3 py-2.5 text-left hover:bg-white"
+                    className="grid w-full cursor-pointer grid-cols-[44px_minmax(0,1.3fr)_80px_110px_100px] items-center gap-3 rounded-xl border border-[#ebe7df] bg-white/70 px-3 py-2.5 text-left hover:bg-white"
                   >
-                    <div>
-                      <p className="font-semibold text-[#2f333a]">{student.name}</p>
-                      <p className="text-xs text-[#8a857d]">{student.email}</p>
+                    <Avatar
+                      name={student.name}
+                      src={avatarSrc}
+                      size="md"
+                      className="shrink-0 border border-[#e8e4dc] bg-[#eef0f3] text-[#4f6070]"
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-[#2f333a]">
+                        {student.name}
+                      </p>
+                      <p className="truncate text-xs text-[#8a857d]">
+                        {student.email}
+                      </p>
                     </div>
                     <p className="text-sm font-semibold text-[#4f5967]">{student.attendance_rate ?? 0}%</p>
                     <div className="flex items-center gap-2">
@@ -193,14 +206,23 @@ export default function TeacherDashboard() {
           <div className="space-y-4">
             <Card className="rounded-3xl border border-[#e1ddd6] bg-[#f8f7f4] shadow-none">
               <div className="flex items-start gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#d8e1e7] text-lg font-semibold text-[#4f6070]">
-                  {focusStudent?.name?.[0] ?? '?'}
-                </div>
-                <div>
+                <Avatar
+                  name={focusStudent?.name}
+                  src={
+                    focusStudent?.avatar_url ??
+                    focusStudent?.avatarUrl ??
+                    undefined
+                  }
+                  size="lg"
+                  className="shrink-0 border border-[#e8e4dc] bg-[#eef0f3] text-lg font-semibold text-[#4f6070]"
+                />
+                <div className="min-w-0">
                   <p className={`text-[1.4rem] text-[#2f333a]`}>
                     {focusStudent?.name ?? '선택된 수강생'}
                   </p>
-                  <p className="text-xs text-[#817b72]">{focusStudent?.email ?? '-'}</p>
+                  <p className="text-xs text-[#817b72]">
+                    {focusStudent?.email ?? '-'}
+                  </p>
                 </div>
               </div>
             </Card>

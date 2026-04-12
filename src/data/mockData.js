@@ -2572,13 +2572,6 @@ export const studentMenuItems = [
     ai: true,
   },
   {
-    key: 'jobs',
-    label: '채용 매칭',
-    icon: 'Briefcase',
-    path: '/student/jobs',
-    group: '취업',
-  },
-  {
     key: 'equipment',
     label: '장비 대여',
     icon: 'Monitor',

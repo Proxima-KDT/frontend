@@ -157,7 +157,7 @@ function DueDateBadge({ dueDate, status }) {
   const dday = getDDay(dueDate);
   if (dday < 0)
     return (
-      <span className="text-xs text-gray-400">
+      <span className="text-xs text-[#9a9a9a]">
         마감 {new Date(dueDate).toLocaleDateString('ko-KR')}
       </span>
     );
@@ -166,7 +166,7 @@ function DueDateBadge({ dueDate, status }) {
   if (dday <= 3)
     return <span className="text-xs font-semibold text-red-500">D-{dday}</span>;
   return (
-    <span className="text-xs text-gray-500">
+    <span className="text-xs text-[#7a7a7a]">
       D-{dday} · {new Date(dueDate).toLocaleDateString('ko-KR')}
     </span>
   );
@@ -357,23 +357,20 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
   };
 
   const dueStr = getAssignmentDueDate(assignment);
-  const phaseCfg = assignment.phase ? getPhaseCfg(assignment.phase) : null;
-  const stripeClass = phaseCfg?.stripe ?? 'bg-slate-500';
   const dday = dueStr ? getDDay(dueStr) : 99;
   const urgent =
     (assignment.status === 'pending' ||
       assignment.status === 'resubmit_required') &&
     dday >= 0 &&
     dday <= 3;
-  const stripeAccent = urgent ? 'bg-[#9b3d3d]' : stripeClass;
   const maxScr = assignment.max_score ?? assignment.maxScore ?? 100;
 
   const statusPill = {
-    graded: 'bg-[#eceae4] text-[#4a4640] border border-[#e0ddd6]',
-    submitted: 'bg-[#e3edf5] text-[#3d5a73] border border-[#c9d8e8]',
-    pending: 'bg-[#f5e8e6] text-[#8b3a38] border border-[#e8cfcb]',
+    graded: 'bg-[#e8e8e8] text-[#3a3a3a] border border-[#d0d0d0]',
+    submitted: 'bg-[#e4e4e4] text-[#2f2f2f] border border-[#c8c8c8]',
+    pending: 'bg-[#ededed] text-[#4a4a4a] border border-[#d4d4d4]',
     resubmit_required:
-      'bg-[#fff1e6] text-[#9a5a1c] border border-[#f0dcc4]',
+      'bg-[#ebe8e4] text-[#5c4a38] border border-[#d8d4ce]',
   }[assignment.status];
 
   const statusPillLabel = {
@@ -384,20 +381,22 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
   }[assignment.status];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-[#e8e4dc] bg-white shadow-[0_10px_36px_rgba(45,42,38,0.07)]">
-      <div
-        className={`absolute left-0 top-0 z-[1] h-full w-1 rounded-l-2xl ${stripeAccent}`}
-        aria-hidden
-      />
-      <div className="relative pl-1">
+    <div
+      className={`relative overflow-hidden rounded-2xl border border-[#e0e0e0] border-l-[3px] border-t-[3px] bg-white shadow-[2px_3px_0_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[3px_4px_0_rgba(0,0,0,0.06)] ${
+        urgent
+          ? 'border-l-[#8b2f2f] border-t-[#8b2f2f]'
+          : 'border-l-[#2a2a2a] border-t-[#2a2a2a]'
+      }`}
+    >
+      <div className="relative">
         <div className="flex items-stretch gap-2 sm:gap-4">
           <button
             type="button"
-            className="min-w-0 flex-1 px-4 py-4 pl-5 text-left transition-colors hover:bg-[#faf9f6] sm:px-5 sm:py-5"
+            className="min-w-0 flex-1 px-4 py-4 pl-5 text-left transition-colors hover:bg-[#fafafa] sm:px-5 sm:py-5"
             onClick={() => setExpanded(!expanded)}
           >
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[#7a756c]">
+              <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#8c8c8c]">
                 {subjectCategoryLine(assignment.subject)}
               </span>
               <span
@@ -409,10 +408,10 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
                 <DueDateBadge dueDate={dueStr} status={assignment.status} />
               )}
             </div>
-            <h3 className="text-[1.05rem] font-bold leading-snug text-[#1f1e1c] sm:text-[1.15rem]">
+            <h3 className="text-[1.05rem] font-bold leading-snug text-[#2a2a2a] sm:text-[1.2rem]">
               {assignment.title}
             </h3>
-            <p className="mt-1.5 text-[0.8rem] text-[#8a847a]">
+            <p className="mt-1.5 text-[0.8rem] text-[#7a7a7a]">
               {assignment.status === 'graded' ? (
                 <>
                   완료일{' '}
@@ -431,22 +430,22 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
               <div className="text-right">
                 <p className="text-[1.35rem] font-bold tabular-nums leading-none text-[#2c2b28] sm:text-[1.5rem]">
                   {assignment.score}
-                  <span className="text-base font-semibold text-[#a39c92]">
+                  <span className="text-base font-semibold text-[#8a8a8a]">
                     {' '}
                     / {maxScr}
                   </span>
                 </p>
-                <p className="mt-1 text-[10px] font-semibold tracking-wide text-[#a39c92]">
+                <p className="mt-1 text-[10px] font-semibold tracking-wide text-[#8a8a8a]">
                   현재 점수
                 </p>
               </div>
             )}
             {assignment.status === 'submitted' && (
               <div className="flex flex-col items-end gap-2">
-                <span className="text-xs font-semibold text-[#4f6475]">
+                <span className="text-xs font-semibold text-[#5a5a5a]">
                   검토 중
                 </span>
-                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d9d3c8] bg-white text-[#5c6675] shadow-sm">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d0d0d0] bg-white text-[#4a4a4a] shadow-sm">
                   <Eye className="h-4 w-4" aria-hidden />
                 </span>
               </div>
@@ -470,10 +469,10 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
                     e.stopPropagation();
                     setExpanded(true);
                   }}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                     urgent
-                      ? 'bg-[#9b3d3d] text-white shadow-md hover:bg-[#853432]'
-                      : 'border border-[#cfc9c0] bg-white text-[#4a4640] hover:bg-[#f7f5f0]'
+                      ? 'bg-[#8b2f2f] text-white shadow-sm hover:bg-[#732828]'
+                      : 'border border-[#c8c8c8] bg-white text-[#333333] hover:bg-[#f5f5f5]'
                   }`}
                 >
                   {urgent ? '지금 제출' : '상세 보기'}
@@ -482,7 +481,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
             )}
             <button
               type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e8e4dc] bg-[#faf9f6] text-[#7a756c] transition-colors hover:bg-white"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d0d0d0] bg-white text-[#4a4a4a] transition-colors hover:bg-[#f5f5f5]"
               onClick={() => setExpanded(!expanded)}
               aria-expanded={expanded}
             >
@@ -498,7 +497,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
 
       {/* 상세 영역 */}
       {expanded && (
-        <div className="border-t border-[#ede9e2] bg-[#fcfbfa] p-5 space-y-5">
+        <div className="space-y-5 border-t border-[#e8e8e8] bg-[#fafafa] p-5">
           {/* 과제 설명 */}
           <div>
             <p className="text-body-sm font-semibold text-gray-700 mb-1.5">
@@ -648,21 +647,19 @@ function PhaseGroupHeader({ phase, allItems }) {
 
   return (
     <div className="flex items-center gap-2.5">
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${cfg.bg} ${cfg.text}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} shrink-0`} />
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dedede] bg-[#ececec] px-2.5 py-1 text-xs font-bold text-[#333333]">
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cfg.dot}`} />
         {cfg.label}
         {subject && (
-          <span className="font-medium opacity-75">· {subject}</span>
+          <span className="font-medium text-[#5a5a5a]">· {subject}</span>
         )}
       </span>
-      <div className="flex-1 h-px bg-gray-200" />
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="text-caption text-gray-400">
+      <div className="h-px flex-1 bg-[#dcdcdc]" />
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="text-caption text-[#888888]">
           {done}/{total} 완료
         </span>
-        <div className="w-14 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-1.5 w-14 overflow-hidden rounded-full bg-[#e0e0e0]">
           <div
             className={`h-full rounded-full transition-all ${cfg.dot}`}
             style={{ width: `${pct}%` }}
@@ -757,7 +754,7 @@ export default function Assignments() {
         })()
       : [];
 
-  const pageBg = '#F7F5F0';
+  const pageBg = '#F3F3F2';
 
   return (
     <div
@@ -766,14 +763,14 @@ export default function Assignments() {
     >
       {/* 헤더 */}
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#e8e4dc] bg-white shadow-sm">
-          <ClipboardList className="h-5 w-5 text-[#5c6675]" />
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#e0e0e0] bg-white shadow-sm">
+          <ClipboardList className="h-5 w-5 text-[#4a4a4a]" />
         </div>
         <div>
-          <h1 className="font-serif text-[1.75rem] font-semibold leading-tight tracking-tight text-[#2a2825] sm:text-[2rem]">
+          <h1 className="font-serif text-[1.75rem] font-semibold leading-tight tracking-tight text-[#2a2a2a] sm:text-[2rem]">
             과제
           </h1>
-          <p className="mt-1 text-sm leading-relaxed text-[#7a756c]">
+          <p className="mt-1 text-sm leading-relaxed text-[#6a6a6a]">
             과제를 제출하고 피드백을 확인하세요
           </p>
         </div>
@@ -781,44 +778,44 @@ export default function Assignments() {
 
       {/* 요약 통계 */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-2xl border border-[#e8e4dc] bg-white p-4 shadow-[0_6px_24px_rgba(45,42,38,0.05)]">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f0efeb]">
-            <CheckCircle2 className="h-5 w-5 text-[#5c6675]" />
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ececec]">
+            <CheckCircle2 className="h-5 w-5 text-[#4a4a4a]" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-2xl font-bold tabular-nums text-[#2c2b28]">
+            <p className="text-2xl font-bold tabular-nums text-[#2a2a2a]">
               {stats.graded}
             </p>
-            <p className="text-xs font-medium text-[#7a756c]">채점완료</p>
-            <span className="mt-1 inline-block rounded-full border border-[#e0ddd6] bg-[#f7f6f3] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#6b6560]">
+            <p className="text-xs font-medium text-[#6a6a6a]">채점완료</p>
+            <span className="mt-1 inline-block rounded-full border border-[#d8d8d8] bg-[#efefef] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#4a4a4a]">
               완료
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-[#e8e4dc] bg-white p-4 shadow-[0_6px_24px_rgba(45,42,38,0.05)]">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e8f0f6]">
-            <FileText className="h-5 w-5 text-[#4f6f86]" />
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e4e4e4]">
+            <FileText className="h-5 w-5 text-[#3d3d3d]" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-2xl font-bold tabular-nums text-[#3d5a73]">
+            <p className="text-2xl font-bold tabular-nums text-[#2a2a2a]">
               {stats.submitted}
             </p>
-            <p className="text-xs font-medium text-[#7a756c]">제출완료</p>
-            <span className="mt-1 inline-block rounded-full border border-[#c9d8e8] bg-[#eef4f9] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#4f6475]">
+            <p className="text-xs font-medium text-[#6a6a6a]">제출완료</p>
+            <span className="mt-1 inline-block rounded-full border border-[#d0d0d0] bg-[#ececec] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#3d3d3d]">
               검토중
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-[#e8e4dc] bg-white p-4 shadow-[0_6px_24px_rgba(45,42,38,0.05)]">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f7e8e6]">
-            <AlertCircle className="h-5 w-5 text-[#9b3d3d]" />
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ebe4e4]">
+            <AlertCircle className="h-5 w-5 text-[#8b2f2f]" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-2xl font-bold tabular-nums text-[#9b3d3d]">
+            <p className="text-2xl font-bold tabular-nums text-[#8b2f2f]">
               {stats.pending}
             </p>
-            <p className="text-xs font-medium text-[#7a756c]">미제출</p>
-            <span className="mt-1 inline-block rounded-full border border-[#e8cfcb] bg-[#fbefed] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#8b3a38]">
+            <p className="text-xs font-medium text-[#6a6a6a]">미제출</p>
+            <span className="mt-1 inline-block rounded-full border border-[#ddd4d4] bg-[#f5eded] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#6b3030]">
               대기
             </span>
           </div>
@@ -832,8 +829,8 @@ export default function Assignments() {
             onClick={() => setPhaseFilter(0)}
             className={`shrink-0 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
               phaseFilter === 0
-                ? 'bg-[#2d2d2d] text-white shadow-sm'
-                : 'border border-transparent bg-white/80 text-[#5c5852] hover:bg-white'
+                ? 'bg-[#2a2a2a] text-white shadow-sm'
+                : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
             }`}
           >
             전체
@@ -846,22 +843,22 @@ export default function Assignments() {
               <button
                 key={p}
                 onClick={() => setPhaseFilter(p)}
-                className={`shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
                   isActive
-                    ? `${cfg.tab} text-white shadow-sm`
-                    : 'border border-transparent bg-white/80 text-[#5c5852] hover:bg-white'
+                    ? 'bg-[#2a2a2a] text-white shadow-sm'
+                    : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
                 }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full inline-block ${isActive ? 'bg-white' : cfg.dot}`}
+                  className={`inline-block h-1.5 w-1.5 rounded-full ${cfg.dot} ${isActive ? 'ring-2 ring-white/40' : ''}`}
                 />
                 {cfg.label}
                 {pendingCnt > 0 && (
                   <span
-                    className={`ml-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold ${
+                    className={`ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold ${
                       isActive
-                        ? 'bg-white/30 text-white'
-                        : 'bg-orange-400 text-white'
+                        ? 'bg-white/25 text-white'
+                        : 'bg-[#9a9a9a] text-white'
                     }`}
                   >
                     {pendingCnt}
@@ -875,17 +872,15 @@ export default function Assignments() {
 
       {/* 선택된 Phase 설명 배너 */}
       {activePhaseCfg && (
-        <div
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl ${activePhaseCfg.bg}`}
-        >
+        <div className="flex items-center gap-2 rounded-xl border border-[#dedede] bg-[#ececec] px-3 py-2">
           <span
-            className={`w-2 h-2 rounded-full inline-block ${activePhaseCfg.dot}`}
+            className={`inline-block h-2 w-2 rounded-full ${activePhaseCfg.dot}`}
           />
-          <span className={`text-body-sm font-semibold ${activePhaseCfg.text}`}>
+          <span className="text-body-sm font-semibold text-[#2a2a2a]">
             {activePhaseCfg.label}
             {activePhaseSubject ? ` — ${activePhaseSubject}` : ''}
           </span>
-          <span className={`ml-auto text-caption ${activePhaseCfg.text}`}>
+          <span className="ml-auto text-caption text-[#5a5a5a]">
             {assignments.filter((a) => Number(a.phase) === phaseFilter).length}
             개 과제
           </span>
@@ -900,8 +895,8 @@ export default function Assignments() {
             onClick={() => setStatusFilter(f)}
             className={`rounded-full px-3.5 py-1.5 text-body-sm font-semibold transition-colors ${
               statusFilter === f
-                ? 'bg-[#2d2d2d] text-white shadow-sm'
-                : 'border border-[#e2ded7] bg-white text-[#5c5852] hover:border-[#cfc9c0]'
+                ? 'bg-[#2a2a2a] text-white shadow-sm'
+                : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
             }`}
           >
             {f}
@@ -967,9 +962,9 @@ export default function Assignments() {
           </div>
         )
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-          <XCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-body text-gray-400">해당하는 과제가 없습니다</p>
+        <div className="rounded-2xl border border-[#e0e0e0] bg-white p-12 text-center shadow-sm">
+          <XCircle className="mx-auto mb-3 h-10 w-10 text-[#c4c4c4]" />
+          <p className="text-body text-[#888888]">해당하는 과제가 없습니다</p>
         </div>
       )}
     </div>

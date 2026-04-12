@@ -13,5 +13,12 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    // VITE_API_URL 이 비어 있거나 잘못될 때: 브라우저 → /api/* → 여기로 프록시 (AI 에이전트 등)
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
   },
 })

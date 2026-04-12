@@ -288,11 +288,6 @@ export default function Sidebar({ collapsed = false, onToggle }) {
               장비 등록 · ADD EQUIPMENT
             </button>
           )}
-          {!collapsed && isStudentLightTheme && (
-            <button className={`mb-3 w-full rounded-xl py-2.5 text-[0.82rem] font-semibold text-white ${isTeacherTheme ? 'bg-[#4b5563] hover:bg-[#374151]' : 'bg-[#49555d] hover:bg-[#3d474e]'}`}>
-              문의하기
-            </button>
-          )}
           <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
           <Avatar
             name={user?.name}

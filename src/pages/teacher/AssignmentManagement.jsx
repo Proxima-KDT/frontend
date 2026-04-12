@@ -498,7 +498,6 @@ export default function AssignmentManagement() {
             Total Assignments
           </p>
           <p className="mt-1 text-5xl text-[#1f2f43]">{assignments.length}</p>
-          <p className="mt-2 text-xs text-[#6c665f]">+ 이번 학기 신규 과제</p>
           <ClipboardList className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
         <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">

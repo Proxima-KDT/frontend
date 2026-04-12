@@ -25,7 +25,6 @@ const ConceptQuiz = lazy(() => import('@/pages/student/ConceptQuiz'));
 const MyPage = lazy(() => import('@/pages/student/MyPage'));
 const VoiceFeedback = lazy(() => import('@/pages/student/VoiceFeedback'));
 const MockInterview = lazy(() => import('@/pages/student/MockInterview'));
-const JobMatching = lazy(() => import('@/pages/student/JobMatching'));
 const Attendance = lazy(() => import('@/pages/student/Attendance'));
 const StudentQuestions = lazy(() => import('@/pages/student/Questions'));
 const StudentEquipment = lazy(() => import('@/pages/student/Equipment'));
@@ -167,14 +166,6 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="student">
               <MockInterview />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/jobs"
-          element={
-            <ProtectedRoute role="student">
-              <JobMatching />
             </ProtectedRoute>
           }
         />
