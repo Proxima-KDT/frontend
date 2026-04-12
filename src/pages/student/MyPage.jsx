@@ -184,7 +184,10 @@ export default function MyPage() {
         setSelectedJobs(prof.target_jobs ?? []);
         // 메인 과정(기수 있는) 동생만 파일 로드
         if (prof.cohort_number) {
-          profileApi.getFiles().then(setFiles).catch(() => {});
+          profileApi
+            .getFiles()
+            .then(setFiles)
+            .catch(() => {});
         }
       })
       .catch(() => {})
@@ -270,7 +273,10 @@ export default function MyPage() {
     try {
       const result = await profileApi.uploadAvatar(file);
       setProfile((prev) => ({ ...prev, avatar_url: result.avatar_url }));
-      showToast({ type: 'success', message: '프로필 사진이 업데이트되었습니다.' });
+      showToast({
+        type: 'success',
+        message: '프로필 사진이 업데이트되었습니다.',
+      });
     } catch {
       showToast({ type: 'error', message: '이미지 업로드에 실패했습니다.' });
     }
@@ -400,7 +406,10 @@ export default function MyPage() {
                           profile.course_end_date && (
                             <span className="inline-flex items-center gap-1 rounded-full border border-[#e5e2dc] bg-white/90 px-2.5 py-1 text-[0.7rem] font-medium text-[#6b6560]">
                               <CalendarDays className="h-3 w-3 shrink-0" />
-                              {profile.course_start_date.replaceAll('-', '.')} ~{' '}
+                              {profile.course_start_date.replaceAll(
+                                '-',
+                                '.',
+                              )} ~{' '}
                               {profile.course_end_date.replaceAll('-', '.')}
                             </span>
                           )}
@@ -458,9 +467,7 @@ export default function MyPage() {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <BriefcaseBusiness className="w-5 h-5 text-[#5c6675]" />
-                <span
-                  className={`text-[1.15rem] font-semibold text-[#2d2a26]`}
-                >
+                <span className={`text-[1.15rem] font-semibold text-[#2d2a26]`}>
                   목표 직무
                 </span>
               </div>
@@ -521,7 +528,9 @@ export default function MyPage() {
                     key={`${skill.subject}-${idx}`}
                     value={skill.score}
                     label={toDisplaySkillLabel(skill.subject)}
-                    color={SKILL_BAR_BG_CLASSES[idx % SKILL_BAR_BG_CLASSES.length]}
+                    color={
+                      SKILL_BAR_BG_CLASSES[idx % SKILL_BAR_BG_CLASSES.length]
+                    }
                     size="md"
                     labelClassName="text-[0.78rem] font-semibold tracking-tight text-[#3d3a36] whitespace-normal break-keep leading-snug pr-1"
                   />
@@ -550,26 +559,47 @@ export default function MyPage() {
         {/* 이력서 / 포트폴리오 (메인 과정 동생만) */}
         {profile?.cohort_number && (
           <div className="mt-8 rounded-3xl border border-[#ebe8e3] bg-white/95 p-6 sm:p-7 shadow-[0_20px_48px_rgba(45,42,38,0.06)]">
-            <h2 className="text-[1.5rem] font-semibold text-[#1f1e1c] mb-5">이력서 / 포트폴리오</h2>
+            <h2 className="text-[1.5rem] font-semibold text-[#1f1e1c] mb-5">
+              이력서 / 포트폴리오
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {[
-                { type: 'resume', label: '이력서', icon: FileText, colorClass: 'blue', accept: '.pdf,.doc,.docx' },
-                { type: 'portfolio', label: '포트폴리오', icon: FolderOpen, colorClass: 'purple', accept: '.pdf,.doc,.docx,.ppt,.pptx' },
+                {
+                  type: 'resume',
+                  label: '이력서',
+                  icon: FileText,
+                  colorClass: 'blue',
+                  accept: '.pdf,.doc,.docx',
+                },
+                {
+                  type: 'portfolio',
+                  label: '포트폴리오',
+                  icon: FolderOpen,
+                  colorClass: 'purple',
+                  accept: '.pdf,.doc,.docx,.ppt,.pptx',
+                },
               ].map(({ type, label, icon: Icon, colorClass, accept }) => {
                 const typeFiles = files.filter((f) => f.type === type);
                 return (
-                  <div key={type} className="rounded-2xl border border-gray-200 bg-gray-50/30 p-4">
+                  <div
+                    key={type}
+                    className="rounded-2xl border border-gray-200 bg-gray-50/30 p-4"
+                  >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
                           <Icon className="w-4 h-4 text-gray-600" />
                         </div>
-                        <span className="text-body-sm font-semibold text-[#2d2a26]">{label}</span>
+                        <span className="text-body-sm font-semibold text-[#2d2a26]">
+                          {label}
+                        </span>
                         <span className="text-caption px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
                           {typeFiles.length}
                         </span>
                       </div>
-                      <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-semibold cursor-pointer transition-colors ${fileUploading ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-100'} text-gray-700 bg-white border border-gray-200`}>
+                      <label
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-semibold cursor-pointer transition-colors ${fileUploading ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-100'} text-gray-700 bg-white border border-gray-200`}
+                      >
                         <Upload className="w-3.5 h-3.5" />
                         업로드
                         <input
@@ -585,19 +615,34 @@ export default function MyPage() {
                       </label>
                     </div>
                     {typeFiles.length === 0 ? (
-                      <p className="text-caption text-gray-400 text-center py-4">아직 업로드된 파일이 없습니다</p>
+                      <p className="text-caption text-gray-400 text-center py-4">
+                        아직 업로드된 파일이 없습니다
+                      </p>
                     ) : (
                       <div className="space-y-2">
                         {typeFiles.map((file) => (
-                          <div key={file.id} className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-gray-200">
+                          <div
+                            key={file.id}
+                            className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-gray-200"
+                          >
                             <FileText className="w-4 h-4 text-gray-500 shrink-0" />
-                            <span className="flex-1 text-body-sm text-gray-700 truncate">{file.name}</span>
+                            <span className="flex-1 text-body-sm text-gray-700 truncate">
+                              {file.name}
+                            </span>
                             {file.url && (
-                              <a href={file.url} target="_blank" rel="noopener noreferrer" className="p-1 rounded hover:bg-gray-100 transition-colors">
+                              <a
+                                href={file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1 rounded hover:bg-gray-100 transition-colors"
+                              >
                                 <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
                               </a>
                             )}
-                            <button onClick={() => handleFileDelete(file.id)} className="p-1 rounded hover:bg-red-50 transition-colors">
+                            <button
+                              onClick={() => handleFileDelete(file.id)}
+                              className="p-1 rounded hover:bg-red-50 transition-colors"
+                            >
                               <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
                             </button>
                           </div>
@@ -610,7 +655,6 @@ export default function MyPage() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

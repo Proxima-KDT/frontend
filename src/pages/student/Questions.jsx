@@ -173,79 +173,79 @@ export default function Questions() {
                         </div>
                       </div>
                     ) : (
-                    /* 일반 모드 */
-                    <>
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className="text-body-sm text-[#3d3a36] leading-relaxed flex-1">
-                        {q.content}
-                      </p>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {q.is_anonymous ? (
-                          <Badge variant="soft-amber">
-                            <EyeOff className="w-3 h-3 mr-1 inline-block -mt-0.5" />
-                            익명
-                          </Badge>
-                        ) : (
-                          <Badge variant="soft-info">
-                            <Eye className="w-3 h-3 mr-1 inline-block -mt-0.5" />
-                            실명
-                          </Badge>
-                        )}
-                        {!q.answer && (
-                          <>
-                            <button
-                              onClick={() => handleEditStart(q)}
-                              disabled={!!editingId || deletingId === q.id}
-                              className="p-1.5 rounded-lg text-gray-300 hover:text-student-500 hover:bg-student-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                              title="질문 수정"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirmId(q.id)}
-                              disabled={!!editingId || deletingId === q.id}
-                              className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                              title="질문 삭제"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                      /* 일반 모드 */
+                      <>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <p className="text-body-sm text-[#3d3a36] leading-relaxed flex-1">
+                            {q.content}
+                          </p>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {q.is_anonymous ? (
+                              <Badge variant="soft-amber">
+                                <EyeOff className="w-3 h-3 mr-1 inline-block -mt-0.5" />
+                                익명
+                              </Badge>
+                            ) : (
+                              <Badge variant="soft-info">
+                                <Eye className="w-3 h-3 mr-1 inline-block -mt-0.5" />
+                                실명
+                              </Badge>
+                            )}
+                            {!q.answer && (
+                              <>
+                                <button
+                                  onClick={() => handleEditStart(q)}
+                                  disabled={!!editingId || deletingId === q.id}
+                                  className="p-1.5 rounded-lg text-gray-300 hover:text-student-500 hover:bg-student-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                  title="질문 수정"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirmId(q.id)}
+                                  disabled={!!editingId || deletingId === q.id}
+                                  className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                  title="질문 삭제"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-caption text-gray-400">
-                        {!q.is_anonymous && q.author && (
-                          <>
-                            <span>{q.author}</span>
-                            <span>&middot;</span>
-                          </>
-                        )}
-                        <span>{q.created_at}</span>
-                      </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-caption text-gray-400">
+                            {!q.is_anonymous && q.author && (
+                              <>
+                                <span>{q.author}</span>
+                                <span>&middot;</span>
+                              </>
+                            )}
+                            <span>{q.created_at}</span>
+                          </div>
 
-                      {q.answer ? (
-                        <button
-                          onClick={() => toggleAnswer(q.id)}
-                          className="flex items-center gap-1.5 text-caption font-medium text-[#4f6475] transition-colors hover:text-[#3f5568]"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          답변 확인
-                          {openAnswerId === q.id ? (
-                            <ChevronUp className="w-3.5 h-3.5" />
+                          {q.answer ? (
+                            <button
+                              onClick={() => toggleAnswer(q.id)}
+                              className="flex items-center gap-1.5 text-caption font-medium text-[#4f6475] transition-colors hover:text-[#3f5568]"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              답변 확인
+                              {openAnswerId === q.id ? (
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
+                            </button>
                           ) : (
-                            <ChevronDown className="w-3.5 h-3.5" />
+                            <span className="flex items-center gap-1 text-caption text-gray-400">
+                              <Clock className="w-3.5 h-3.5" />
+                              답변 대기중
+                            </span>
                           )}
-                        </button>
-                      ) : (
-                        <span className="flex items-center gap-1 text-caption text-gray-400">
-                          <Clock className="w-3.5 h-3.5" />
-                          답변 대기중
-                        </span>
-                      )}
-                    </div>
-                    </>
+                        </div>
+                      </>
                     )}
                   </div>
                   {q.answer && openAnswerId === q.id && (

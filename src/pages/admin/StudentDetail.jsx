@@ -108,7 +108,8 @@ export default function AdminStudentDetail() {
       setPwResetDone(true);
       showToast({ type: 'success', message: '비밀번호가 변경되었습니다.' });
     } catch (err) {
-      const detail = err?.response?.data?.detail || '비밀번호 변경에 실패했습니다.';
+      const detail =
+        err?.response?.data?.detail || '비밀번호 변경에 실패했습니다.';
       setPwError(detail);
     } finally {
       setPwSaving(false);
@@ -165,13 +166,15 @@ export default function AdminStudentDetail() {
     );
   }
 
-  const skillData = Object.entries(student.skills || {}).map(([key, score]) => ({
-    key,
-    label: SKILL_LABELS[key] || key,
-    radarLabel: RADAR_LABELS[key] || key,
-    score: score ?? 0,
-    fullMark: 100,
-  }));
+  const skillData = Object.entries(student.skills || {}).map(
+    ([key, score]) => ({
+      key,
+      label: SKILL_LABELS[key] || key,
+      radarLabel: RADAR_LABELS[key] || key,
+      score: score ?? 0,
+      fullMark: 100,
+    }),
+  );
   const radarData = skillData.map((item) => ({
     subject: item.radarLabel,
     score: item.score,
@@ -204,7 +207,11 @@ export default function AdminStudentDetail() {
         <div className="flex items-start gap-4">
           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#ddd8cf] bg-[#d8e1e7]">
             {student.avatar_url ? (
-              <img src={student.avatar_url} alt={student.name} className="h-full w-full object-cover" />
+              <img
+                src={student.avatar_url}
+                alt={student.name}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[#4f6070]">
                 {student.name?.charAt(0) ?? '?'}
@@ -250,7 +257,8 @@ export default function AdminStudentDetail() {
                 <span className="inline-flex items-center gap-1.5">
                   <BookOpen className="h-3.5 w-3.5 text-[#9b968d]" />
                   {student.course_name}
-                  {student.cohort_number != null && ` · ${student.cohort_number}기`}
+                  {student.cohort_number != null &&
+                    ` · ${student.cohort_number}기`}
                 </span>
               )}
               {student.phone && (
@@ -282,7 +290,8 @@ export default function AdminStudentDetail() {
       >
         <div className="flex flex-col gap-4">
           <p className="text-body-sm text-gray-600">
-            {student.name} 학생의 새 비밀번호를 설정합니다. 변경 후 학생에게 반드시 전달해 주세요.
+            {student.name} 학생의 새 비밀번호를 설정합니다. 변경 후 학생에게
+            반드시 전달해 주세요.
           </p>
           <div className="flex flex-col gap-1.5">
             <Input
@@ -323,11 +332,16 @@ export default function AdminStudentDetail() {
           </div>
           {pwResetDone && (
             <div className="rounded-xl border border-success-200 bg-success-50 px-3 py-2 text-body-sm text-success-700">
-              비밀번호가 변경되었습니다. 모달을 닫기 전에 새 비밀번호를 학생에게 전달해 주세요.
+              비밀번호가 변경되었습니다. 모달을 닫기 전에 새 비밀번호를 학생에게
+              전달해 주세요.
             </div>
           )}
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setPwModalOpen(false)}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setPwModalOpen(false)}
+            >
               닫기
             </Button>
             <Button
@@ -349,9 +363,13 @@ export default function AdminStudentDetail() {
             <SkillRadarChart data={radarData} color="#636e76" size="sm" />
           </div>
           <div className="mt-4 border-t border-[#e3dfd8] pt-3">
-            <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#8b8478]">종합 점수</p>
+            <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#8b8478]">
+              종합 점수
+            </p>
             <div className="mt-1 flex items-center gap-2">
-              <span className="text-[2rem] font-semibold text-[#303742]">{overallScore}</span>
+              <span className="text-[2rem] font-semibold text-[#303742]">
+                {overallScore}
+              </span>
               <span className="text-sm text-[#7a756c]">/100</span>
               <Badge variant="soft-amber">High Potential</Badge>
             </div>
@@ -365,7 +383,9 @@ export default function AdminStudentDetail() {
                 AI 관찰 인사이트 (AI Observation Insights)
               </p>
               <p className="mt-3 text-sm leading-relaxed text-[#5f5a53]">
-                {student.name} 수강생은 과제 완성도는 높지만 출석 변동이 있어 단기 루틴 코칭과 주간 피드백 체크를 병행하면 학습 지속성이 좋아집니다.
+                {student.name} 수강생은 과제 완성도는 높지만 출석 변동이 있어
+                단기 루틴 코칭과 주간 피드백 체크를 병행하면 학습 지속성이
+                좋아집니다.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge variant="soft-info">Analytical Learner</Badge>
@@ -389,17 +409,30 @@ export default function AdminStudentDetail() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
         <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-[1.8rem] text-[#2f333a]">Weekly Attendance Pulse</p>
+            <p className="text-[1.8rem] text-[#2f333a]">
+              Weekly Attendance Pulse
+            </p>
             <div className="flex gap-3 text-[11px] text-[#7a756c]">
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#5d666c]" />출석</span>
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#e0be4f]" />지각</span>
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#cfa5a2]" />결석</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-[#5d666c]" />
+                출석
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-[#e0be4f]" />
+                지각
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-[#cfa5a2]" />
+                결석
+              </span>
             </div>
           </div>
           <div className="grid grid-cols-6 gap-4">
             {weekColumns.map((label, idx) => (
               <div key={label} className="space-y-2 text-center">
-                <p className="text-[11px] font-semibold text-[#7b766c]">{label}</p>
+                <p className="text-[11px] font-semibold text-[#7b766c]">
+                  {label}
+                </p>
                 {[0, 1, 2, 3, 4].map((row) => {
                   const record = weekAttendance[idx + row];
                   const status = record?.status ?? 'empty';
@@ -419,17 +452,33 @@ export default function AdminStudentDetail() {
           <p className="text-[1.8rem] text-[#2f333a]">Archive & Artifacts</p>
           <div className="mt-4 space-y-2.5">
             {(student.files || []).slice(0, 4).map((file, i) => (
-              <div key={i} className="flex items-center justify-between rounded-xl border border-[#e5e1da] bg-white/85 px-3 py-2.5">
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-xl border border-[#e5e1da] bg-white/85 px-3 py-2.5"
+              >
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef0f2] text-[#57626d]">
-                    {file.type === 'resume' ? <FileText className="h-4 w-4" /> : <FolderOpen className="h-4 w-4" />}
+                    {file.type === 'resume' ? (
+                      <FileText className="h-4 w-4" />
+                    ) : (
+                      <FolderOpen className="h-4 w-4" />
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#353a42]">{file.name}</p>
-                    <p className="text-[11px] text-[#7f7a72]">{file.uploaded_at}</p>
+                    <p className="text-sm font-semibold text-[#353a42]">
+                      {file.name}
+                    </p>
+                    <p className="text-[11px] text-[#7f7a72]">
+                      {file.uploaded_at}
+                    </p>
                   </div>
                 </div>
-                <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#5b6674]">
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-[#5b6674]"
+                >
                   보기
                 </a>
               </div>

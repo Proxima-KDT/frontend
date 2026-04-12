@@ -323,7 +323,8 @@ export default function Attendance() {
     if (status === 'present') return { label: '출석', variant: 'soft-success' };
     if (status === 'late') return { label: '지각', variant: 'soft-warning' };
     if (status === 'absent') return { label: '결석', variant: 'soft-error' };
-    if (status === 'early_leave') return { label: '조퇴', variant: 'soft-amber' };
+    if (status === 'early_leave')
+      return { label: '조퇴', variant: 'soft-amber' };
     if (status === 'checked_in') return { label: '입실', variant: 'soft-info' };
     return { label: '-', variant: 'default' };
   };
@@ -357,7 +358,9 @@ export default function Attendance() {
   );
 
   const courseCompletion =
-    summary?.rate != null ? Math.round(Number(summary.rate)) : Math.round(monthStats.rate);
+    summary?.rate != null
+      ? Math.round(Number(summary.rate))
+      : Math.round(monthStats.rate);
   const attendedDays = summary?.attended ?? '—';
   const totalCourseDays = summary?.total_weekdays ?? '—';
 
@@ -397,7 +400,9 @@ export default function Attendance() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <div className="text-center">
-                <p className={`text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}>
+                <p
+                  className={`text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}
+                >
                   {monthTitleEn}
                 </p>
                 <p className="text-[0.75rem] text-[#8a847a]">
@@ -419,7 +424,11 @@ export default function Attendance() {
                 <div
                   key={d}
                   className={`pb-1 text-center text-[0.65rem] font-bold tracking-wider text-[#8a847a] ${
-                    d === '일' ? 'text-[#c97a7a]' : d === '토' ? 'text-[#7a9eb8]' : ''
+                    d === '일'
+                      ? 'text-[#c97a7a]'
+                      : d === '토'
+                        ? 'text-[#7a9eb8]'
+                        : ''
                   }`}
                 >
                   {d}
@@ -500,7 +509,12 @@ export default function Attendance() {
             </div>
             <button
               type="button"
-              onClick={() => logRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onClick={() =>
+                logRef.current?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                })
+              }
               className="shrink-0 rounded-xl border border-[#d4cfc4] bg-[#faf9f7] px-4 py-2 text-[0.8125rem] font-semibold text-[#3d3a36] transition hover:bg-[#f3f1ed]"
             >
               기록 보기
@@ -620,23 +634,33 @@ export default function Attendance() {
                 <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
                   PRESENT
                 </p>
-                <p className="mt-1 text-xl font-bold text-[#3d8f5a]">{monthStats.present}</p>
+                <p className="mt-1 text-xl font-bold text-[#3d8f5a]">
+                  {monthStats.present}
+                </p>
               </div>
               <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
-                <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">LATE</p>
-                <p className="mt-1 text-xl font-bold text-[#d9782c]">{monthStats.late}</p>
+                <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
+                  LATE
+                </p>
+                <p className="mt-1 text-xl font-bold text-[#d9782c]">
+                  {monthStats.late}
+                </p>
               </div>
               <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
                 <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
                   ABSENT
                 </p>
-                <p className="mt-1 text-xl font-bold text-[#d14b4b]">{monthStats.absent}</p>
+                <p className="mt-1 text-xl font-bold text-[#d14b4b]">
+                  {monthStats.absent}
+                </p>
               </div>
               <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
                 <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
                   조퇴
                 </p>
-                <p className="mt-1 text-xl font-bold text-[#c9a227]">{monthStats.earlyLeave}</p>
+                <p className="mt-1 text-xl font-bold text-[#c9a227]">
+                  {monthStats.earlyLeave}
+                </p>
               </div>
             </div>
           </div>
@@ -657,11 +681,15 @@ export default function Attendance() {
             <ul className="mt-4 space-y-2 text-[0.875rem] text-white/85">
               <li className="flex justify-between gap-4 border-b border-white/10 pb-2">
                 <span>출석일</span>
-                <span className="font-semibold tabular-nums">{attendedDays}</span>
+                <span className="font-semibold tabular-nums">
+                  {attendedDays}
+                </span>
               </li>
               <li className="flex justify-between gap-4">
                 <span>전체 수업일</span>
-                <span className="font-semibold tabular-nums">{totalCourseDays}</span>
+                <span className="font-semibold tabular-nums">
+                  {totalCourseDays}
+                </span>
               </li>
             </ul>
             {summary?.training_start && (
@@ -702,7 +730,9 @@ export default function Attendance() {
           <h2 className={`text-lg font-semibold text-[#1f1e1c] sm:text-xl`}>
             {viewYear}년 {viewMonth}월 출석 이력
           </h2>
-          <span className="text-[0.75rem] text-[#8a847a]">총 {tableData.length}건</span>
+          <span className="text-[0.75rem] text-[#8a847a]">
+            총 {tableData.length}건
+          </span>
         </div>
         <div className="max-h-64 overflow-y-auto rounded-xl border border-[#ebe8e3]">
           <Table columns={columns} data={tableData} />

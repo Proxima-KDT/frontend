@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { interviewApi } from '@/api/interview'
-import { useToast } from '@/context/ToastContext'
-import Card from '@/components/common/Card'
-import Button from '@/components/common/Button'
-import Badge from '@/components/common/Badge'
-import Select from '@/components/common/Select'
-import ScoreGauge from '@/components/charts/ScoreGauge'
-import CategoryScoreBar from '@/components/charts/CategoryScoreBar'
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { interviewApi } from '@/api/interview';
+import { useToast } from '@/context/ToastContext';
+import Card from '@/components/common/Card';
+import Button from '@/components/common/Button';
+import Badge from '@/components/common/Badge';
+import Select from '@/components/common/Select';
+import ScoreGauge from '@/components/charts/ScoreGauge';
+import CategoryScoreBar from '@/components/charts/CategoryScoreBar';
 import {
   Mic,
   MicOff,
@@ -24,285 +24,340 @@ import {
   ChevronDown,
   ChevronUp,
   Trophy,
-} from 'lucide-react'
+} from 'lucide-react';
 
 // ─── 기본 선택지 (옵션 로드 전 표시용) ───────────────────────────
 const DEFAULT_OPTIONS = {
   companies: [],
   positions: [],
   interview_types: [],
-}
+};
 
 // ─── TTS 헬퍼 ─────────────────────────────────────────────────────
 function speakText(text, onEnd) {
-  if (!window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = 'ko-KR'
-  utter.rate = 0.95
-  utter.pitch = 1
-  if (onEnd) utter.onend = onEnd
-  window.speechSynthesis.speak(utter)
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ko-KR';
+  utter.rate = 0.95;
+  utter.pitch = 1;
+  if (onEnd) utter.onend = onEnd;
+  window.speechSynthesis.speak(utter);
 }
 
 function stopSpeaking() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel()
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────
 export default function MockInterview() {
-  const [view, setView] = useState('setup')
+  const [view, setView] = useState('setup');
 
   // Options from API
-  const [options, setOptions] = useState(DEFAULT_OPTIONS)
+  const [options, setOptions] = useState(DEFAULT_OPTIONS);
 
   // Setup state
-  const [company, setCompany] = useState('')
-  const [position, setPosition] = useState('')
-  const [interviewType, setInterviewType] = useState('')
+  const [company, setCompany] = useState('');
+  const [position, setPosition] = useState('');
+  const [interviewType, setInterviewType] = useState('');
 
   // Interview state
-  const [messages, setMessages] = useState([])
-  const [currentQuestion, setCurrentQuestion] = useState('')
-  const [questionNumber, setQuestionNumber] = useState(1)
-  const [totalQuestions, setTotalQuestions] = useState(7)
-  const [sessionId, setSessionId] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [messages, setMessages] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [questionNumber, setQuestionNumber] = useState(1);
+  const [totalQuestions, setTotalQuestions] = useState(7);
+  const [sessionId, setSessionId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Voice state
-  const [isRecording, setIsRecording] = useState(false)
-  const [transcript, setTranscript] = useState('')
-  const [sttSupported, setSttSupported] = useState(true)
-  const [isTtsEnabled, setIsTtsEnabled] = useState(true)
-  const [isSpeaking, setIsSpeaking] = useState(false)
-  const [answerConfirmed, setAnswerConfirmed] = useState(false)
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [sttSupported, setSttSupported] = useState(true);
+  const [isTtsEnabled, setIsTtsEnabled] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [answerConfirmed, setAnswerConfirmed] = useState(false);
 
   // Report state
-  const [report, setReport] = useState(null)
-  const [isEnding, setIsEnding] = useState(false)
+  const [report, setReport] = useState(null);
+  const [isEnding, setIsEnding] = useState(false);
 
   // History state
-  const [setupTab, setSetupTab] = useState('new')
-  const [historyList, setHistoryList] = useState([])
-  const [historyLoading, setHistoryLoading] = useState(false)
-  const [expandedId, setExpandedId] = useState(null)
-  const [detailMap, setDetailMap] = useState({})
+  const [setupTab, setSetupTab] = useState('new');
+  const [historyList, setHistoryList] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
+  const [detailMap, setDetailMap] = useState({});
 
-  const recognitionRef = useRef(null)
-  const finalTranscriptRef = useRef('')
-  const messagesEndRef = useRef(null)
+  const recognitionRef = useRef(null);
+  const finalTranscriptRef = useRef('');
+  const messagesEndRef = useRef(null);
 
   // 드롭다운 옵션 로드
   useEffect(() => {
-    interviewApi.getOptions()
+    interviewApi
+      .getOptions()
       .then((data) => setOptions(data))
-      .catch(() => setOptions(DEFAULT_OPTIONS))
-  }, [])
+      .catch(() => setOptions(DEFAULT_OPTIONS));
+  }, []);
 
   // 모의면접 기록 조회 - setupTab이 'history'로 변경될 때 로드
   useEffect(() => {
-    if (setupTab !== 'history') return
-    setHistoryLoading(true)
-    interviewApi.getHistory()
+    if (setupTab !== 'history') return;
+    setHistoryLoading(true);
+    interviewApi
+      .getHistory()
       .then((data) => setHistoryList(data))
       .catch(() => setHistoryList([]))
-      .finally(() => setHistoryLoading(false))
-  }, [setupTab])
+      .finally(() => setHistoryLoading(false));
+  }, [setupTab]);
 
   // 기록 항목 상세 조회
   const handleExpandHistory = async (id) => {
-    if (expandedId === id) { setExpandedId(null); return }
-    setExpandedId(id)
-    if (detailMap[id]) return
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(id);
+    if (detailMap[id]) return;
     try {
-      const detail = await interviewApi.getHistoryDetail(id)
-      setDetailMap((prev) => ({ ...prev, [id]: detail }))
-    } catch { /* 실패 시 기본 상태 유지 */ }
-  }
+      const detail = await interviewApi.getHistoryDetail(id);
+      setDetailMap((prev) => ({ ...prev, [id]: detail }));
+    } catch {
+      /* 실패 시 기본 상태 유지 */
+    }
+  };
 
   // Web Speech API 초기화
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setSttSupported(false)
-      return
+      setSttSupported(false);
+      return;
     }
-    const recognition = new SpeechRecognition()
-    recognition.lang = 'ko-KR'
-    recognition.continuous = true
-    recognition.interimResults = true
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ko-KR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
     recognition.onresult = (e) => {
-      let interim = ''
+      let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) {
-          finalTranscriptRef.current += e.results[i][0].transcript
+          finalTranscriptRef.current += e.results[i][0].transcript;
         } else {
-          interim += e.results[i][0].transcript
+          interim += e.results[i][0].transcript;
         }
       }
-      setTranscript(finalTranscriptRef.current + interim)
-    }
+      setTranscript(finalTranscriptRef.current + interim);
+    };
 
     recognition.onend = () => {
-      if (recognitionRef.current?._active) recognition.start()
-    }
+      if (recognitionRef.current?._active) recognition.start();
+    };
 
-    recognitionRef.current = recognition
-  }, [])
+    recognitionRef.current = recognition;
+  }, []);
 
   // 새 질문 받을 때 TTS 실행
   useEffect(() => {
     if (currentQuestion && isTtsEnabled && view === 'interview') {
-      setIsSpeaking(true)
-      speakText(currentQuestion, () => setIsSpeaking(false))
+      setIsSpeaking(true);
+      speakText(currentQuestion, () => setIsSpeaking(false));
     }
-  }, [currentQuestion])
+  }, [currentQuestion]);
 
   // 메시지 끝으로 자동 스크롤
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // 녹음 시작/중지
   const toggleRecording = useCallback(() => {
     if (isRecording) {
-      recognitionRef.current._active = false
-      recognitionRef.current.stop()
-      setIsRecording(false)
-      setAnswerConfirmed(false)
+      recognitionRef.current._active = false;
+      recognitionRef.current.stop();
+      setIsRecording(false);
+      setAnswerConfirmed(false);
     } else {
-      finalTranscriptRef.current = ''
-      setTranscript('')
-      setAnswerConfirmed(false)
+      finalTranscriptRef.current = '';
+      setTranscript('');
+      setAnswerConfirmed(false);
       if (recognitionRef.current) {
-        recognitionRef.current._active = true
-        recognitionRef.current.start()
+        recognitionRef.current._active = true;
+        recognitionRef.current.start();
       }
-      setIsRecording(true)
+      setIsRecording(true);
     }
-  }, [isRecording])
+  }, [isRecording]);
 
   // 면접 시작
   const handleStartInterview = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const res = await interviewApi.start({ company, position, interview_type: interviewType })
-      const { session_id, first_question, total_questions } = res
+      const res = await interviewApi.start({
+        company,
+        position,
+        interview_type: interviewType,
+      });
+      const { session_id, first_question, total_questions } = res;
 
-      setSessionId(session_id)
-      setCurrentQuestion(first_question)
-      setQuestionNumber(1)
-      setTotalQuestions(total_questions ?? 7)
-      setMessages([{ role: 'ai', content: first_question }])
-      setTranscript('')
-      setAnswerConfirmed(false)
-      finalTranscriptRef.current = ''
-      setView('interview')
+      setSessionId(session_id);
+      setCurrentQuestion(first_question);
+      setQuestionNumber(1);
+      setTotalQuestions(total_questions ?? 7);
+      setMessages([{ role: 'ai', content: first_question }]);
+      setTranscript('');
+      setAnswerConfirmed(false);
+      finalTranscriptRef.current = '';
+      setView('interview');
     } catch {
-      showToast({ type: 'error', message: '모의면접 시작에 실패했습니다. 다시 시도해주세요.' })
+      showToast({
+        type: 'error',
+        message: '모의면접 시작에 실패했습니다. 다시 시도해주세요.',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // 답변 제출
   const handleSubmitAnswer = async () => {
-    if (!transcript.trim()) return
-    setIsLoading(true)
+    if (!transcript.trim()) return;
+    setIsLoading(true);
 
-    const userAnswer = transcript.trim()
-    const updatedMessages = [...messages, { role: 'user', content: userAnswer }]
-    setMessages(updatedMessages)
+    const userAnswer = transcript.trim();
+    const updatedMessages = [
+      ...messages,
+      { role: 'user', content: userAnswer },
+    ];
+    setMessages(updatedMessages);
 
     try {
-      const res = await interviewApi.answer({ session_id: sessionId, answer: userAnswer })
-      const { next_question, question_number, is_finished } = res
+      const res = await interviewApi.answer({
+        session_id: sessionId,
+        answer: userAnswer,
+      });
+      const { next_question, question_number, is_finished } = res;
 
-      finalTranscriptRef.current = ''
-      setTranscript('')
-      setAnswerConfirmed(false)
+      finalTranscriptRef.current = '';
+      setTranscript('');
+      setAnswerConfirmed(false);
 
       if (is_finished) {
-        const finalMessages = [...updatedMessages, { role: 'ai', content: '면접이 종료되었습니다. 수고하셨습니다!' }]
-        setMessages(finalMessages)
-        setCurrentQuestion('')
-        setIsEnding(true)
+        const finalMessages = [
+          ...updatedMessages,
+          { role: 'ai', content: '면접이 종료되었습니다. 수고하셨습니다!' },
+        ];
+        setMessages(finalMessages);
+        setCurrentQuestion('');
+        setIsEnding(true);
         try {
-          const reportData = await interviewApi.end({ session_id: sessionId })
-          setReport(reportData)
+          const reportData = await interviewApi.end({ session_id: sessionId });
+          setReport(reportData);
         } catch {
-          setReport({ total_score: 0, categories: [], summary: '리포트를 불러오지 못했습니다.', improvements: [] })
+          setReport({
+            total_score: 0,
+            categories: [],
+            summary: '리포트를 불러오지 못했습니다.',
+            improvements: [],
+          });
         }
-        setIsEnding(false)
-        setView('report')
+        setIsEnding(false);
+        setView('report');
       } else {
-        const newMessages = [...updatedMessages, { role: 'ai', content: next_question }]
-        setMessages(newMessages)
-        setCurrentQuestion(next_question)
-        setQuestionNumber(question_number)
+        const newMessages = [
+          ...updatedMessages,
+          { role: 'ai', content: next_question },
+        ];
+        setMessages(newMessages);
+        setCurrentQuestion(next_question);
+        setQuestionNumber(question_number);
       }
     } catch {
-      showToast({ type: 'error', message: '답변 제출에 실패했습니다. 다시 시도해주세요.' })
+      showToast({
+        type: 'error',
+        message: '답변 제출에 실패했습니다. 다시 시도해주세요.',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // 면접 강제 종료 → 리포트
   const handleEndInterview = async () => {
     if (recognitionRef.current) {
-      recognitionRef.current._active = false
-      recognitionRef.current.stop()
+      recognitionRef.current._active = false;
+      recognitionRef.current.stop();
     }
-    setIsRecording(false)
-    setIsEnding(true)
+    setIsRecording(false);
+    setIsEnding(true);
     try {
-      const reportData = await interviewApi.end({ session_id: sessionId })
-      setReport(reportData)
+      const reportData = await interviewApi.end({ session_id: sessionId });
+      setReport(reportData);
     } catch {
-      setReport({ total_score: 0, categories: [], summary: '리포트를 불러오지 못했습니다.', improvements: [] })
+      setReport({
+        total_score: 0,
+        categories: [],
+        summary: '리포트를 불러오지 못했습니다.',
+        improvements: [],
+      });
     }
-    setIsEnding(false)
-    setView('report')
-  }
+    setIsEnding(false);
+    setView('report');
+  };
 
   // 새 면접
   const handleNewInterview = () => {
-    setCompany('')
-    setPosition('')
-    setInterviewType('')
-    setMessages([])
-    setCurrentQuestion('')
-    setQuestionNumber(1)
-    setSessionId(null)
-    setTranscript('')
-    setReport(null)
-    setAnswerConfirmed(false)
-    finalTranscriptRef.current = ''
-    setHistoryList([])
-    setExpandedId(null)
-    setDetailMap({})
-    setSetupTab('new')
-    setView('setup')
-  }
+    setCompany('');
+    setPosition('');
+    setInterviewType('');
+    setMessages([]);
+    setCurrentQuestion('');
+    setQuestionNumber(1);
+    setSessionId(null);
+    setTranscript('');
+    setReport(null);
+    setAnswerConfirmed(false);
+    finalTranscriptRef.current = '';
+    setHistoryList([]);
+    setExpandedId(null);
+    setDetailMap({});
+    setSetupTab('new');
+    setView('setup');
+  };
 
-  const companyLabel = options.companies?.find((c) => c.value === company)?.label ?? company
-  const positionLabel = options.positions?.find((p) => p.value === position)?.label ?? position
-  const typeLabel = options.interview_types?.find((t) => t.value === interviewType)?.label ?? ''
+  const companyLabel =
+    options.companies?.find((c) => c.value === company)?.label ?? company;
+  const positionLabel =
+    options.positions?.find((p) => p.value === position)?.label ?? position;
+  const typeLabel =
+    options.interview_types?.find((t) => t.value === interviewType)?.label ??
+    '';
 
-  const { showToast } = useToast()
+  const { showToast } = useToast();
 
   // ─── 점수별 색상 매핑 ──────────────────────────────────────────
   function scoreColor(s) {
-    if (s >= 80) return { ring: 'ring-green-400', text: 'text-green-600', bg: 'bg-green-50' }
-    if (s >= 60) return { ring: 'ring-blue-400', text: 'text-blue-600', bg: 'bg-blue-50' }
-    if (s >= 40) return { ring: 'ring-orange-400', text: 'text-orange-600', bg: 'bg-orange-50' }
-    return { ring: 'ring-red-400', text: 'text-red-600', bg: 'bg-red-50' }
+    if (s >= 80)
+      return {
+        ring: 'ring-green-400',
+        text: 'text-green-600',
+        bg: 'bg-green-50',
+      };
+    if (s >= 60)
+      return { ring: 'ring-blue-400', text: 'text-blue-600', bg: 'bg-blue-50' };
+    if (s >= 40)
+      return {
+        ring: 'ring-orange-400',
+        text: 'text-orange-600',
+        bg: 'bg-orange-50',
+      };
+    return { ring: 'ring-red-400', text: 'text-red-600', bg: 'bg-red-50' };
   }
 
   function getLabel(list, val) {
-    return list?.find((o) => o.value === val)?.label ?? val
+    return list?.find((o) => o.value === val)?.label ?? val;
   }
 
   // ─── Setup View ──────────────────────────────────────────────────
@@ -339,64 +394,69 @@ export default function MockInterview() {
 
         {/* 새 모의면접 탭 */}
         {setupTab === 'new' && (
-        <Card>
-          <h2 className="text-h3 font-semibold text-gray-900 mb-4">면접 설정</h2>
+          <Card>
+            <h2 className="text-h3 font-semibold text-gray-900 mb-4">
+              면접 설정
+            </h2>
 
-          {!sttSupported && (
-            <div className="flex items-center gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-              <p className="text-body-sm text-amber-700">
-                이 브라우저는 음성 인식을 지원하지 않습니다.{' '}
-                <strong>Chrome</strong>에서 이용해주세요.
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <Select
-              label="지원 회사"
-              options={options.companies ?? []}
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              placeholder="회사를 선택하세요"
-            />
-            <Select
-              label="지원 포지션"
-              options={options.positions ?? []}
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              placeholder="포지션을 선택하세요"
-            />
-            <Select
-              label="면접 유형"
-              options={options.interview_types ?? []}
-              value={interviewType}
-              onChange={(e) => setInterviewType(e.target.value)}
-              placeholder="면접 유형을 선택하세요"
-            />
-
-            <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Mic className="w-4 h-4 text-blue-500" />
-                <span className="text-body-sm font-semibold text-blue-700">음성 전용 면접</span>
+            {!sttSupported && (
+              <div className="flex items-center gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+                <p className="text-body-sm text-amber-700">
+                  이 브라우저는 음성 인식을 지원하지 않습니다.{' '}
+                  <strong>Chrome</strong>에서 이용해주세요.
+                </p>
               </div>
-              <p className="text-body-sm text-blue-600">
-                마이크로 답변하고, AI가 질문을 음성으로 읽어줍니다. 실전 면접처럼 준비하세요.
-              </p>
-            </div>
+            )}
 
-            <Button
-              fullWidth
-              variant="warm"
-              icon={Play}
-              onClick={handleStartInterview}
-              disabled={!company || !position || !interviewType || isLoading}
-              loading={isLoading}
-            >
-              면접 시작
-            </Button>
-          </div>
-        </Card>
+            <div className="space-y-4">
+              <Select
+                label="지원 회사"
+                options={options.companies ?? []}
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="회사를 선택하세요"
+              />
+              <Select
+                label="지원 포지션"
+                options={options.positions ?? []}
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                placeholder="포지션을 선택하세요"
+              />
+              <Select
+                label="면접 유형"
+                options={options.interview_types ?? []}
+                value={interviewType}
+                onChange={(e) => setInterviewType(e.target.value)}
+                placeholder="면접 유형을 선택하세요"
+              />
+
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Mic className="w-4 h-4 text-blue-500" />
+                  <span className="text-body-sm font-semibold text-blue-700">
+                    음성 전용 면접
+                  </span>
+                </div>
+                <p className="text-body-sm text-blue-600">
+                  마이크로 답변하고, AI가 질문을 음성으로 읽어줍니다. 실전
+                  면접처럼 준비하세요.
+                </p>
+              </div>
+
+              <Button
+                fullWidth
+                variant="warm"
+                icon={Play}
+                onClick={handleStartInterview}
+                disabled={!company || !position || !interviewType || isLoading}
+                loading={isLoading}
+              >
+                면접 시작
+              </Button>
+            </div>
+          </Card>
         )}
 
         {/* 모의면접 기록 탭 */}
@@ -405,51 +465,85 @@ export default function MockInterview() {
             {historyLoading ? (
               <div className="flex items-center justify-center py-16 gap-3">
                 <Loader2 className="w-5 h-5 text-student-400 animate-spin" />
-                <span className="text-body-sm text-gray-400">기록을 불러오는 중...</span>
+                <span className="text-body-sm text-gray-400">
+                  기록을 불러오는 중...
+                </span>
               </div>
             ) : historyList.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-200 py-16 text-center">
                 <History className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-body text-gray-400">아직 모의면접 기록이 없습니다</p>
-                <p className="text-caption text-gray-300 mt-1">새 모의면접을 시작해보세요</p>
+                <p className="text-body text-gray-400">
+                  아직 모의면접 기록이 없습니다
+                </p>
+                <p className="text-caption text-gray-300 mt-1">
+                  새 모의면접을 시작해보세요
+                </p>
               </div>
             ) : (
               historyList.map((item) => {
-                const sc = scoreColor(item.score)
-                const isOpen = expandedId === item.id
-                const detail = detailMap[item.id]
-                const compLabel = getLabel(options.companies, item.company)
-                const posLabel = getLabel(options.positions, item.position)
-                const typeLabel2 = getLabel(options.interview_types, item.interview_type)
-                const dateStr = new Date(item.created_at).toLocaleDateString('ko-KR', {
-                  year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                })
+                const sc = scoreColor(item.score);
+                const isOpen = expandedId === item.id;
+                const detail = detailMap[item.id];
+                const compLabel = getLabel(options.companies, item.company);
+                const posLabel = getLabel(options.positions, item.position);
+                const typeLabel2 = getLabel(
+                  options.interview_types,
+                  item.interview_type,
+                );
+                const dateStr = new Date(item.created_at).toLocaleDateString(
+                  'ko-KR',
+                  {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  },
+                );
 
                 return (
-                  <div key={item.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+                  >
                     <button
                       className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors"
                       onClick={() => handleExpandHistory(item.id)}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`shrink-0 w-14 h-14 rounded-full ring-2 ${sc.ring} ${sc.bg} flex items-center justify-center`}>
-                          <span className={`text-body font-extrabold ${sc.text}`}>{item.score}</span>
+                        <div
+                          className={`shrink-0 w-14 h-14 rounded-full ring-2 ${sc.ring} ${sc.bg} flex items-center justify-center`}
+                        >
+                          <span
+                            className={`text-body font-extrabold ${sc.text}`}
+                          >
+                            {item.score}
+                          </span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span className="text-body font-bold text-gray-900">{compLabel}</span>
-                            <span className="text-caption text-gray-400">·</span>
-                            <span className="text-body-sm text-gray-600">{posLabel}</span>
+                            <span className="text-body font-bold text-gray-900">
+                              {compLabel}
+                            </span>
+                            <span className="text-caption text-gray-400">
+                              ·
+                            </span>
+                            <span className="text-body-sm text-gray-600">
+                              {posLabel}
+                            </span>
                             <span className="text-caption px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">
                               {typeLabel2}
                             </span>
                           </div>
-                          <p className="text-caption text-gray-400">{dateStr}</p>
+                          <p className="text-caption text-gray-400">
+                            {dateStr}
+                          </p>
                         </div>
-                        {isOpen
-                          ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
-                          : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-                        }
+                        {isOpen ? (
+                          <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                        )}
                       </div>
                     </button>
 
@@ -458,28 +552,41 @@ export default function MockInterview() {
                         {!detail ? (
                           <div className="flex items-center justify-center py-6 gap-2">
                             <Loader2 className="w-4 h-4 text-student-400 animate-spin" />
-                            <span className="text-body-sm text-gray-400">상세 기록을 불러오는 중...</span>
+                            <span className="text-body-sm text-gray-400">
+                              상세 기록을 불러오는 중...
+                            </span>
                           </div>
                         ) : (
                           <>
                             {(detail.categories?.length ?? 0) > 0 && (
                               <div>
-                                <p className="text-body-sm font-semibold text-gray-700 mb-3">영역별 점수</p>
+                                <p className="text-body-sm font-semibold text-gray-700 mb-3">
+                                  영역별 점수
+                                </p>
                                 <div className="space-y-2">
                                   {detail.categories.map((cat) => {
-                                    const catSc = scoreColor(cat.score)
+                                    const catSc = scoreColor(cat.score);
                                     return (
-                                      <div key={cat.name} className="flex items-center gap-3">
-                                        <span className="text-body-sm text-gray-600 w-24 shrink-0">{cat.name}</span>
+                                      <div
+                                        key={cat.name}
+                                        className="flex items-center gap-3"
+                                      >
+                                        <span className="text-body-sm text-gray-600 w-24 shrink-0">
+                                          {cat.name}
+                                        </span>
                                         <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                                           <div
                                             className={`h-full rounded-full ${catSc.bg.replace('bg-', 'bg-').replace('-50', '-400')}`}
                                             style={{ width: `${cat.score}%` }}
                                           />
                                         </div>
-                                        <span className={`text-body-sm font-bold w-8 text-right ${catSc.text}`}>{cat.score}</span>
+                                        <span
+                                          className={`text-body-sm font-bold w-8 text-right ${catSc.text}`}
+                                        >
+                                          {cat.score}
+                                        </span>
                                       </div>
-                                    )
+                                    );
                                   })}
                                 </div>
                               </div>
@@ -489,19 +596,30 @@ export default function MockInterview() {
                               <div className="p-4 bg-student-50 rounded-xl border border-student-100">
                                 <div className="flex items-center gap-1.5 mb-2">
                                   <Sparkles className="w-3.5 h-3.5 text-student-500" />
-                                  <p className="text-body-sm font-semibold text-student-700">AI 총평</p>
+                                  <p className="text-body-sm font-semibold text-student-700">
+                                    AI 총평
+                                  </p>
                                 </div>
-                                <p className="text-body-sm text-gray-700 leading-relaxed">{detail.summary}</p>
+                                <p className="text-body-sm text-gray-700 leading-relaxed">
+                                  {detail.summary}
+                                </p>
                               </div>
                             )}
 
                             {detail.improvements?.length > 0 && (
                               <div>
-                                <p className="text-body-sm font-semibold text-gray-700 mb-2">개선 포인트</p>
+                                <p className="text-body-sm font-semibold text-gray-700 mb-2">
+                                  개선 포인트
+                                </p>
                                 <ul className="space-y-1.5">
                                   {detail.improvements.map((tip, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-body-sm text-gray-600">
-                                      <span className="shrink-0 w-5 h-5 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-caption font-bold mt-0.5">{i + 1}</span>
+                                    <li
+                                      key={i}
+                                      className="flex items-start gap-2 text-body-sm text-gray-600"
+                                    >
+                                      <span className="shrink-0 w-5 h-5 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-caption font-bold mt-0.5">
+                                        {i + 1}
+                                      </span>
                                       {tip}
                                     </li>
                                   ))}
@@ -511,18 +629,28 @@ export default function MockInterview() {
 
                             {detail.questions?.length > 0 && (
                               <div>
-                                <p className="text-body-sm font-semibold text-gray-700 mb-3">모의면접 Q&A</p>
+                                <p className="text-body-sm font-semibold text-gray-700 mb-3">
+                                  모의면접 Q&A
+                                </p>
                                 <div className="space-y-3">
                                   {detail.questions.map((q, i) => (
                                     <div key={i} className="space-y-1.5">
                                       <div className="flex items-start gap-2">
-                                        <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-gray-100 text-gray-500">Q{i + 1}</span>
-                                        <p className="text-body-sm text-gray-700 leading-relaxed">{q}</p>
+                                        <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-gray-100 text-gray-500">
+                                          Q{i + 1}
+                                        </span>
+                                        <p className="text-body-sm text-gray-700 leading-relaxed">
+                                          {q}
+                                        </p>
                                       </div>
                                       {detail.answers?.[i] && (
                                         <div className="flex items-start gap-2 ml-1">
-                                          <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-student-100 text-student-600">A</span>
-                                          <p className="text-body-sm text-gray-600 leading-relaxed">{detail.answers[i]}</p>
+                                          <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-student-100 text-student-600">
+                                            A
+                                          </span>
+                                          <p className="text-body-sm text-gray-600 leading-relaxed">
+                                            {detail.answers[i]}
+                                          </p>
                                         </div>
                                       )}
                                     </div>
@@ -535,13 +663,13 @@ export default function MockInterview() {
                       </div>
                     )}
                   </div>
-                )
+                );
               })
             )}
           </div>
         )}
       </div>
-    )
+    );
   }
 
   // ─── Analyzing View ──────────────────────────────────────────────
@@ -555,8 +683,12 @@ export default function MockInterview() {
           <Loader2 className="absolute -inset-2 w-24 h-24 text-student-400 animate-spin" />
         </div>
         <div className="text-center space-y-2">
-          <p className="text-h3 font-bold text-gray-900">AI가 모의면접 분석을 하고 있습니다</p>
-          <p className="text-body-sm text-gray-500">응답 분석 및 종합 평가를 포함한 상세 리포트를 생성 중입니다...</p>
+          <p className="text-h3 font-bold text-gray-900">
+            AI가 모의면접 분석을 하고 있습니다
+          </p>
+          <p className="text-body-sm text-gray-500">
+            응답 분석 및 종합 평가를 포함한 상세 리포트를 생성 중입니다...
+          </p>
         </div>
         <div className="flex gap-1.5">
           {[0, 1, 2].map((i) => (
@@ -568,13 +700,14 @@ export default function MockInterview() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   // ─── Interview View ───────────────────────────────────────────────
   if (view === 'interview') {
-    const isLastQuestion = questionNumber >= totalQuestions
-    const canSubmit = transcript.trim().length > 0 && !isRecording && !isLoading
+    const isLastQuestion = questionNumber >= totalQuestions;
+    const canSubmit =
+      transcript.trim().length > 0 && !isRecording && !isLoading;
 
     return (
       <div className="flex flex-col h-[calc(100vh-8rem)]">
@@ -650,13 +783,16 @@ export default function MockInterview() {
                 {isRecording ? (
                   <>
                     <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-caption font-medium text-red-500">녹음 중...</span>
+                    <span className="text-caption font-medium text-red-500">
+                      녹음 중...
+                    </span>
                   </>
                 ) : (
                   <>
                     <Pencil className="w-3 h-3 text-gray-400" />
                     <span className="text-caption font-medium text-gray-400">
-                      음성인식 답변 또는 직접 입력으로 답변을 수정하여 제출하세요
+                      음성인식 답변 또는 직접 입력으로 답변을 수정하여
+                      제출하세요
                     </span>
                   </>
                 )}
@@ -665,8 +801,8 @@ export default function MockInterview() {
                 value={transcript}
                 readOnly={isRecording}
                 onChange={(e) => {
-                  finalTranscriptRef.current = e.target.value
-                  setTranscript(e.target.value)
+                  finalTranscriptRef.current = e.target.value;
+                  setTranscript(e.target.value);
                 }}
                 rows={3}
                 placeholder="(음성인식을 이용하지 않으면 직접 입력하세요)"
@@ -683,9 +819,9 @@ export default function MockInterview() {
             {transcript && !isRecording && (
               <button
                 onClick={() => {
-                  finalTranscriptRef.current = ''
-                  setTranscript('')
-                  setAnswerConfirmed(false)
+                  finalTranscriptRef.current = '';
+                  setTranscript('');
+                  setAnswerConfirmed(false);
                 }}
                 className="flex items-center gap-1.5 text-body-sm text-gray-400 hover:text-gray-600 transition-colors"
               >
@@ -736,7 +872,7 @@ export default function MockInterview() {
           )}
         </div>
       </div>
-    )
+    );
   }
 
   // ─── Report View ──────────────────────────────────────────────────
@@ -757,7 +893,9 @@ export default function MockInterview() {
 
       {/* 영역별 점수 */}
       <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-4">영역별 점수</h2>
+        <h2 className="text-h3 font-semibold text-gray-900 mb-4">
+          영역별 점수
+        </h2>
         <CategoryScoreBar categories={report.categories} />
       </Card>
 
@@ -767,15 +905,22 @@ export default function MockInterview() {
           <Sparkles className="w-4 h-4 text-[#6f8391]" />
           <h2 className="text-h3 font-semibold text-gray-900">AI 총평</h2>
         </div>
-        <p className="text-body-sm text-gray-700 leading-relaxed">{report.summary}</p>
+        <p className="text-body-sm text-gray-700 leading-relaxed">
+          {report.summary}
+        </p>
       </Card>
 
       {/* 개선 포인트 */}
       <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-3">개선 포인트</h2>
+        <h2 className="text-h3 font-semibold text-gray-900 mb-3">
+          개선 포인트
+        </h2>
         <ul className="space-y-2">
           {report.improvements.map((tip, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-body-sm text-gray-700">
+            <li
+              key={idx}
+              className="flex items-start gap-2 text-body-sm text-gray-700"
+            >
               <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#eef2f4] text-caption font-semibold text-[#4e5a61]">
                 {idx + 1}
               </span>
@@ -789,5 +934,5 @@ export default function MockInterview() {
         새 면접 시작
       </Button>
     </div>
-  )
+  );
 }

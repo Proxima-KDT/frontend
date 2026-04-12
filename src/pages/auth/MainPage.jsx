@@ -1,16 +1,16 @@
-import { useMemo, useState } from 'react'
-import { ArrowDownRight, Globe } from 'lucide-react'
+import { useMemo, useState } from 'react';
+import { ArrowDownRight, Globe } from 'lucide-react';
 
-const MENU_ITEMS = ['Index', 'Projects', 'Contact']
+const MENU_ITEMS = ['Index', 'Projects', 'Contact'];
 
 export default function MainPage() {
-  const [pointer, setPointer] = useState({ x: 0, y: 0, active: false })
-  const [textHovered, setTextHovered] = useState(false)
-  const [textPointer, setTextPointer] = useState({ x: 0, y: 0 })
+  const [pointer, setPointer] = useState({ x: 0, y: 0, active: false });
+  const [textHovered, setTextHovered] = useState(false);
+  const [textPointer, setTextPointer] = useState({ x: 0, y: 0 });
 
   const transforms = useMemo(() => {
     const move = (depth) =>
-      `translate3d(${pointer.x * depth}px, ${pointer.y * depth}px, 0)`
+      `translate3d(${pointer.x * depth}px, ${pointer.y * depth}px, 0)`;
 
     return {
       bg: move(1.4),
@@ -19,31 +19,31 @@ export default function MainPage() {
       orb: move(5.5),
       water: move(1.8),
       text: move(2.2),
-    }
-  }, [pointer.x, pointer.y])
+    };
+  }, [pointer.x, pointer.y]);
 
   const handleMove = (event) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2
-    setPointer({ x: x * 12, y: y * 12, active: true })
-  }
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+    setPointer({ x: x * 12, y: y * 12, active: true });
+  };
 
   const handleLeave = () => {
-    setPointer({ x: 0, y: 0, active: false })
-  }
+    setPointer({ x: 0, y: 0, active: false });
+  };
 
   const handleTextMove = (event) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2
-    setTextPointer({ x, y })
-  }
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+    setTextPointer({ x, y });
+  };
 
   const handleTextLeave = () => {
-    setTextHovered(false)
-    setTextPointer({ x: 0, y: 0 })
-  }
+    setTextHovered(false);
+    setTextPointer({ x: 0, y: 0 });
+  };
 
   return (
     <main
@@ -155,7 +155,9 @@ export default function MainPage() {
             transform: textHovered
               ? `translate(${textPointer.x * 5}px, ${textPointer.y * 3}px) rotate(${textPointer.x * 1.6}deg)`
               : 'none',
-            transition: textHovered ? 'transform 80ms linear' : 'transform 320ms ease-out',
+            transition: textHovered
+              ? 'transform 80ms linear'
+              : 'transform 320ms ease-out',
           }}
         >
           <h2
@@ -171,8 +173,12 @@ export default function MainPage() {
                 : '50% 50%',
               WebkitBackgroundClip: textHovered ? 'text' : 'border-box',
               backgroundClip: textHovered ? 'text' : 'border-box',
-              animation: textHovered ? 'text-wave-flow 1.6s linear infinite' : 'none',
-              filter: textHovered ? `drop-shadow(${textPointer.x * 2}px ${textPointer.y * 2}px 6px rgba(255,255,255,0.28))` : 'none',
+              animation: textHovered
+                ? 'text-wave-flow 1.6s linear infinite'
+                : 'none',
+              filter: textHovered
+                ? `drop-shadow(${textPointer.x * 2}px ${textPointer.y * 2}px 6px rgba(255,255,255,0.28))`
+                : 'none',
             }}
           >
             Creating the
@@ -190,8 +196,12 @@ export default function MainPage() {
                 : '50% 50%',
               WebkitBackgroundClip: textHovered ? 'text' : 'border-box',
               backgroundClip: textHovered ? 'text' : 'border-box',
-              animation: textHovered ? 'text-wave-flow 1.8s linear infinite' : 'none',
-              textShadow: textHovered ? `${textPointer.x * 5}px ${textPointer.y * 4}px 18px rgba(255,255,255,0.22)` : 'none',
+              animation: textHovered
+                ? 'text-wave-flow 1.8s linear infinite'
+                : 'none',
+              textShadow: textHovered
+                ? `${textPointer.x * 5}px ${textPointer.y * 4}px 18px rgba(255,255,255,0.22)`
+                : 'none',
             }}
           >
             unexpected
@@ -258,5 +268,5 @@ export default function MainPage() {
         `}
       </style>
     </main>
-  )
+  );
 }

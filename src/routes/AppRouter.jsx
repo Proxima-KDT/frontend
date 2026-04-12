@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
+import { useAuth } from '@/context/AuthContext';
 import { CourseProvider } from '@/context/CourseContext';
 
 // 강사 라우트용 래퍼 — CourseProvider 는 AppRouter 최상위에 위치.
@@ -78,8 +79,13 @@ const CourseManagement = lazy(() => import('@/pages/admin/CourseManagement'));
 // Common 페이지 (통합 AI 에이전트 — 모든 role 공통)
 const AIAgent = lazy(() => import('@/pages/common/AIAgent'));
 
-// 루트(/)는 항상 메인 랜딩 — 로그인 후 이동은 로그인 성공 시에만 처리
+// 루트(/)는 로그인 상태이면 role별 대시보드로, 아니면 메인 랜딩 표시
 function HomeRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user?.role === 'student') return <Navigate to="/student" replace />;
+  if (user?.role === 'teacher') return <Navigate to="/teacher" replace />;
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />;
   return <MainPage9 />;
 }
 
@@ -98,316 +104,316 @@ export default function AppRouter() {
     // CourseProvider 단일 인스턴스 — 네비게이션 시 언마운트 없이 유지.
     // role !== 'teacher' 이면 내부가 no-op이라 학생/관리자 페이지도 안전.
     <CourseProvider>
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        {/* Public */}
-        <Route path="/" element={<HomeRoute />} />
-        <Route path="/landing" element={<LandingPage />} />
-        <Route path="/main9" element={<MainPage9 />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public */}
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/main9" element={<MainPage9 />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
 
-        {/* Student */}
-        <Route
-          path="/student"
-          element={
-            <ProtectedRoute role="student">
-              <MyPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/dashboard"
-          element={
-            <ProtectedRoute role="student">
-              <StudentDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/problems"
-          element={
-            <ProtectedRoute role="student">
-              <ProblemList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/problems/:subjectId/:conceptId"
-          element={
-            <ProtectedRoute role="student">
-              <ConceptQuiz />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/problems/:subjectId"
-          element={
-            <ProtectedRoute role="student">
-              <SubjectDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/problems/:id"
-          element={
-            <ProtectedRoute role="student">
-              <ProblemDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/voice-feedback"
-          element={
-            <ProtectedRoute role="student">
-              <VoiceFeedback />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/mock-interview"
-          element={
-            <ProtectedRoute role="student">
-              <MockInterview />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/jobs"
-          element={
-            <ProtectedRoute role="student">
-              <JobMatching />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/attendance"
-          element={
-            <ProtectedRoute role="student">
-              <Attendance />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/questions"
-          element={
-            <ProtectedRoute role="student">
-              <StudentQuestions />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/equipment"
-          element={
-            <ProtectedRoute role="student">
-              <StudentEquipment />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/room-reservation"
-          element={
-            <ProtectedRoute role="student">
-              <RoomReservation />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/counseling-booking"
-          element={
-            <ProtectedRoute role="student">
-              <CounselingBooking />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/assignments"
-          element={
-            <ProtectedRoute role="student">
-              <Assignments />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/assessments"
-          element={
-            <ProtectedRoute role="student">
-              <Assessments />
-            </ProtectedRoute>
-          }
-        />
+          {/* Student */}
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute role="student">
+                <MyPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/dashboard"
+            element={
+              <ProtectedRoute role="student">
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/problems"
+            element={
+              <ProtectedRoute role="student">
+                <ProblemList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/problems/:subjectId/:conceptId"
+            element={
+              <ProtectedRoute role="student">
+                <ConceptQuiz />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/problems/:subjectId"
+            element={
+              <ProtectedRoute role="student">
+                <SubjectDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/problems/:id"
+            element={
+              <ProtectedRoute role="student">
+                <ProblemDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/voice-feedback"
+            element={
+              <ProtectedRoute role="student">
+                <VoiceFeedback />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/mock-interview"
+            element={
+              <ProtectedRoute role="student">
+                <MockInterview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/jobs"
+            element={
+              <ProtectedRoute role="student">
+                <JobMatching />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/attendance"
+            element={
+              <ProtectedRoute role="student">
+                <Attendance />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/questions"
+            element={
+              <ProtectedRoute role="student">
+                <StudentQuestions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/equipment"
+            element={
+              <ProtectedRoute role="student">
+                <StudentEquipment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/room-reservation"
+            element={
+              <ProtectedRoute role="student">
+                <RoomReservation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/counseling-booking"
+            element={
+              <ProtectedRoute role="student">
+                <CounselingBooking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/assignments"
+            element={
+              <ProtectedRoute role="student">
+                <Assignments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/assessments"
+            element={
+              <ProtectedRoute role="student">
+                <Assessments />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Teacher */}
-        <Route
-          path="/teacher"
-          element={
-            <TeacherRoute>
-              <TeacherDashboard />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/students/:id"
-          element={
-            <TeacherRoute>
-              <StudentDetail />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/questions"
-          element={
-            <TeacherRoute>
-              <TeacherQuestions />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/counseling"
-          element={
-            <TeacherRoute>
-              <Counseling />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/counseling-schedule"
-          element={
-            <TeacherRoute>
-              <CounselingSchedule />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/attendance-check"
-          element={
-            <TeacherRoute>
-              <AttendanceCheck />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/assignments"
-          element={
-            <TeacherRoute>
-              <AssignmentManagement />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/assessments"
-          element={
-            <TeacherRoute>
-              <AssessmentManagement />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/problems"
-          element={
-            <TeacherRoute>
-              <ProblemManagement />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/teacher/curriculum"
-          element={
-            <TeacherRoute>
-              <TeacherCurriculum />
-            </TeacherRoute>
-          }
-        />
+          {/* Teacher */}
+          <Route
+            path="/teacher"
+            element={
+              <TeacherRoute>
+                <TeacherDashboard />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/students/:id"
+            element={
+              <TeacherRoute>
+                <StudentDetail />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/questions"
+            element={
+              <TeacherRoute>
+                <TeacherQuestions />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/counseling"
+            element={
+              <TeacherRoute>
+                <Counseling />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/counseling-schedule"
+            element={
+              <TeacherRoute>
+                <CounselingSchedule />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/attendance-check"
+            element={
+              <TeacherRoute>
+                <AttendanceCheck />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/assignments"
+            element={
+              <TeacherRoute>
+                <AssignmentManagement />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/assessments"
+            element={
+              <TeacherRoute>
+                <AssessmentManagement />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/problems"
+            element={
+              <TeacherRoute>
+                <ProblemManagement />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="/teacher/curriculum"
+            element={
+              <TeacherRoute>
+                <TeacherCurriculum />
+              </TeacherRoute>
+            }
+          />
 
-        {/* Admin */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/equipment"
-          element={
-            <ProtectedRoute role="admin">
-              <EquipmentManagement />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/students/:id"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminStudentDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/room-reservation"
-          element={
-            <ProtectedRoute role="admin">
-              <RoomReservationManagement />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/counseling-schedule"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminCounselingSchedule />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/room-use"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminRoomReservation />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/register/student"
-          element={
-            <ProtectedRoute role="admin">
-              <RegisterStudent />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/register/teacher"
-          element={
-            <ProtectedRoute role="admin">
-              <RegisterTeacher />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/courses"
-          element={
-            <ProtectedRoute role="admin">
-              <CourseManagement />
-            </ProtectedRoute>
-          }
-        />
+          {/* Admin */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/equipment"
+            element={
+              <ProtectedRoute role="admin">
+                <EquipmentManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/students/:id"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminStudentDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/room-reservation"
+            element={
+              <ProtectedRoute role="admin">
+                <RoomReservationManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/counseling-schedule"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminCounselingSchedule />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/room-use"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminRoomReservation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/register/student"
+            element={
+              <ProtectedRoute role="admin">
+                <RegisterStudent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/register/teacher"
+            element={
+              <ProtectedRoute role="admin">
+                <RegisterTeacher />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/courses"
+            element={
+              <ProtectedRoute role="admin">
+                <CourseManagement />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* 통합 AI 에이전트 — 모든 role 공통 (role 별 UI 자동 분기) */}
-        <Route
-          path="/ai-agent"
-          element={
-            <ProtectedRoute>
-              <AIAgent />
-            </ProtectedRoute>
-          }
-        />
+          {/* 통합 AI 에이전트 — 모든 role 공통 (role 별 UI 자동 분기) */}
+          <Route
+            path="/ai-agent"
+            element={
+              <ProtectedRoute>
+                <AIAgent />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* 404 */}
-        <Route path="/404" element={<NotFoundPage />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
-      </Routes>
-    </Suspense>
+          {/* 404 */}
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
+        </Routes>
+      </Suspense>
     </CourseProvider>
   );
 }

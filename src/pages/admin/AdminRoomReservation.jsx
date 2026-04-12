@@ -515,7 +515,8 @@ export default function AdminRoomReservation() {
           자습실 / 회의실 예약
         </h1>
         <p className="mt-1 text-[0.95rem] text-[#6b6560]">
-          고요함 속에 피어나는 지성, 최적의 공간을 예약해 학습 흐름을 유지하세요.
+          고요함 속에 피어나는 지성, 최적의 공간을 예약해 학습 흐름을
+          유지하세요.
         </p>
       </header>
 
@@ -616,9 +617,7 @@ export default function AdminRoomReservation() {
                 </span>
               </div>
               <div className="flex items-end gap-1">
-                <span
-                  className={`text-[2rem] font-semibold text-[#2c2b28]`}
-                >
+                <span className={`text-[2rem] font-semibold text-[#2c2b28]`}>
                   {available}
                 </span>
                 <span className="mb-1 text-sm text-[#b0aaa1]">/ {total}</span>
@@ -631,9 +630,7 @@ export default function AdminRoomReservation() {
 
       {/* ── 날짜 선택 칩 바 ─────────────────────────────────────── */}
       <div>
-        <p
-          className={`mb-2 text-[1.55rem] font-semibold text-[#2c2b28]`}
-        >
+        <p className={`mb-2 text-[1.55rem] font-semibold text-[#2c2b28]`}>
           예약일 선택
         </p>
         <div className="overflow-x-auto -mx-1 px-1">

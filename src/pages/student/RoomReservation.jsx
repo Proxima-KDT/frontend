@@ -529,11 +529,14 @@ export default function RoomReservation() {
       style={{ backgroundColor: pageBg }}
     >
       <header>
-        <h1 className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}>
+        <h1
+          className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}
+        >
           자습실 / 회의실 예약
         </h1>
         <p className="mt-1 text-[0.95rem] text-[#6b6560]">
-          고요함 속에 피어나는 지성, 최적의 공간을 예약해 학습 흐름을 유지하세요.
+          고요함 속에 피어나는 지성, 최적의 공간을 예약해 학습 흐름을
+          유지하세요.
         </p>
       </header>
 
@@ -614,7 +617,11 @@ export default function RoomReservation() {
         ].map(({ label, total, available, icon, bg, iconColor }) => {
           const StatIcon = icon;
           return (
-            <Card key={label} padding="p-5" className="rounded-2xl border border-[#eceae4] !bg-white shadow-[0_2px_20px_rgba(60,52,40,0.04)]">
+            <Card
+              key={label}
+              padding="p-5"
+              className="rounded-2xl border border-[#eceae4] !bg-white shadow-[0_2px_20px_rgba(60,52,40,0.04)]"
+            >
               <div className="flex items-center gap-2 mb-2">
                 <StatIcon size={16} className="text-[#6f6860]" />
                 <span
@@ -758,7 +765,10 @@ export default function RoomReservation() {
           </p>
         </Card>
       ) : (
-        <Card padding="p-0" className="overflow-hidden rounded-2xl border border-[#eceae4]">
+        <Card
+          padding="p-0"
+          className="overflow-hidden rounded-2xl border border-[#eceae4]"
+        >
           {/* 범례 */}
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-[#f0ede8] bg-[#fbfaf7]">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6b6560]">

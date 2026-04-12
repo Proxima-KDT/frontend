@@ -193,9 +193,7 @@ function FileUploadArea({ files, onFilesChange }) {
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
         <p className="text-body-sm text-gray-600">
           파일을 드래그하거나{' '}
-          <span className="text-[#4e5a61] font-semibold">
-            클릭하여 업로드
-          </span>
+          <span className="text-[#4e5a61] font-semibold">클릭하여 업로드</span>
         </p>
         <p className="text-caption text-gray-400 mt-1">
           PDF, ZIP, 이미지 등 최대 100MB
@@ -402,7 +400,10 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
             <p className="text-body-sm font-semibold text-gray-700 mb-2">
               {isGraded ? '항목별 채점 결과' : '평가 기준 (루브릭)'}
             </p>
-            <RubricTable rubric={assessment.rubric} totalScore={isGraded ? assessment.score : undefined} />
+            <RubricTable
+              rubric={assessment.rubric}
+              totalScore={isGraded ? assessment.score : undefined}
+            />
           </div>
 
           {/* 채점완료: 결과 요약 + 피드백 */}
@@ -414,7 +415,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                 passed={assessment.passed}
               />
               {assessment.feedback && (
-                  <div className="flex-1 rounded-xl border border-[#e5ece0] bg-[#f3f6f1] p-4">
+                <div className="flex-1 rounded-xl border border-[#e5ece0] bg-[#f3f6f1] p-4">
                   <p className="mb-1 text-body-sm font-semibold text-[#5e7455]">
                     강사 피드백
                   </p>
@@ -612,7 +613,9 @@ export default function Assessments() {
       {/* 타임라인 안내 */}
       <div className="flex items-center justify-between">
         <h2 className="text-h2 font-bold text-[#2c2b28]">진행 중인 단계</h2>
-        <p className="text-sm font-semibold text-[#8b857b]">총 {assessments.length}단계</p>
+        <p className="text-sm font-semibold text-[#8b857b]">
+          총 {assessments.length}단계
+        </p>
       </div>
 
       {/* 평가 목록 */}
