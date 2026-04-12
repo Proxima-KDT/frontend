@@ -60,21 +60,28 @@ const ROLE_CONFIG = {
 };
 
 // ----------------------------------------------------------------------
-// 경량 마크다운 렌더러 (외부 라이브러리 없이 **bold**, - 불릿, 줄바꿈 처리)
+// 경량 마크다운 렌더러
+// 지원: # ## ### 헤딩, **bold**, *italic*, `code`, - * 불릿, 1. 숫자목록, --- 구분선
 // ----------------------------------------------------------------------
 
 function applyInline(text, key) {
-  // **bold** 처리
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  // **bold**, *italic*, `code` 순서로 처리
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
   return (
     <span key={key}>
-      {parts.map((part, i) =>
-        part.startsWith('**') && part.endsWith('**') ? (
-          <strong key={i}>{part.slice(2, -2)}</strong>
-        ) : (
-          part
-        ),
-      )}
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**'))
+          return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+        if (part.startsWith('*') && part.endsWith('*'))
+          return <em key={i} className="italic">{part.slice(1, -1)}</em>;
+        if (part.startsWith('`') && part.endsWith('`'))
+          return (
+            <code key={i} className="px-1 py-0.5 rounded bg-gray-100 text-gray-800 font-mono text-[0.8em]">
+              {part.slice(1, -1)}
+            </code>
+          );
+        return part;
+      })}
     </span>
   );
 }
@@ -87,7 +94,42 @@ function MarkdownContent({ text }) {
   while (i < lines.length) {
     const line = lines[i];
 
-    // 불릿 리스트 (- 또는 *)
+    // ### 헤딩 (h1~h3)
+    const h3 = line.match(/^### (.+)/);
+    const h2 = line.match(/^## (.+)/);
+    const h1 = line.match(/^# (.+)/);
+    if (h3) {
+      elements.push(
+        <p key={`h3-${i}`} className="text-body font-bold text-gray-900 mt-2 mb-0.5">
+          {applyInline(h3[1], i)}
+        </p>,
+      );
+      i++; continue;
+    }
+    if (h2) {
+      elements.push(
+        <p key={`h2-${i}`} className="text-body-md font-bold text-gray-900 mt-3 mb-1">
+          {applyInline(h2[1], i)}
+        </p>,
+      );
+      i++; continue;
+    }
+    if (h1) {
+      elements.push(
+        <p key={`h1-${i}`} className="text-h3 font-bold text-gray-900 mt-3 mb-1">
+          {applyInline(h1[1], i)}
+        </p>,
+      );
+      i++; continue;
+    }
+
+    // --- 구분선
+    if (/^[-*_]{3,}$/.test(line.trim())) {
+      elements.push(<hr key={`hr-${i}`} className="my-2 border-gray-200" />);
+      i++; continue;
+    }
+
+    // 불릿 리스트 (- 또는 * 로 시작)
     if (/^[-*] /.test(line)) {
       const items = [];
       while (i < lines.length && /^[-*] /.test(lines[i])) {
@@ -103,17 +145,41 @@ function MarkdownContent({ text }) {
           ))}
         </ul>,
       );
-    } else if (line.trim() === '') {
-      elements.push(<div key={`br-${i}`} className="h-1.5" />);
-      i++;
-    } else {
-      elements.push(
-        <p key={`p-${i}`} className="text-body-sm leading-relaxed break-words">
-          {applyInline(line, i)}
-        </p>,
-      );
-      i++;
+      continue;
     }
+
+    // 숫자 목록 (1. 2. 3.)
+    if (/^\d+\. /.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\. /, ''));
+        i++;
+      }
+      elements.push(
+        <ol key={`ol-${i}`} className="list-decimal list-inside space-y-0.5 my-1 pl-1">
+          {items.map((item, j) => (
+            <li key={j} className="text-body-sm leading-relaxed">
+              {applyInline(item, j)}
+            </li>
+          ))}
+        </ol>,
+      );
+      continue;
+    }
+
+    // 빈 줄
+    if (line.trim() === '') {
+      elements.push(<div key={`br-${i}`} className="h-1.5" />);
+      i++; continue;
+    }
+
+    // 일반 단락
+    elements.push(
+      <p key={`p-${i}`} className="text-body-sm leading-relaxed break-words">
+        {applyInline(line, i)}
+      </p>,
+    );
+    i++;
   }
   return <div className="space-y-0.5">{elements}</div>;
 }

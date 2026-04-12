@@ -1,15 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, UserX, FolderOpen } from 'lucide-react';
+import { Users, UserX, FolderOpen, Search, X } from 'lucide-react';
 import { adminApi } from '@/api/admin';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
 
-const ADMIN_COLOR = '#8B5CF6'; // --color-admin-500
+const ADMIN_COLOR = '#8B5CF6';
 
-// 컴포넌트 밖에 선언 — 렌더마다 재생성 방지
 const RADAR_MAP = {
   출결: '출결',
   AI_말하기: 'AI말하기',
@@ -18,10 +17,27 @@ const RADAR_MAP = {
   프로젝트_과제_시험: '프로젝트',
 };
 
+function HighlightText({ text, query }) {
+  if (!query.trim() || !text) return <span>{text}</span>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <span>{text}</span>;
+  return (
+    <span>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-200 text-yellow-900 rounded-sm px-0.5 not-italic">
+        {text.slice(idx, idx + query.length)}
+      </mark>
+      {text.slice(idx + query.length)}
+    </span>
+  );
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const searchRef = useRef(null);
 
   useEffect(() => {
     adminApi
@@ -50,6 +66,14 @@ export default function AdminDashboard() {
       })),
     [students],
   );
+
+  const filteredStudents = useMemo(() => {
+    if (!search.trim()) return processedStudents;
+    const q = search.trim().toLowerCase();
+    return processedStudents.filter(
+      (s) => s.name?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q),
+    );
+  }, [processedStudents, search]);
 
   const stats = [
     {
@@ -98,72 +122,108 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* 수강생 카드 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {processedStudents.map((student) => {
-          const hasPortfolio = student.files?.some(
-            (f) => f.type === 'portfolio',
-          );
-          const hasResume = student.files?.some((f) => f.type === 'resume');
-          return (
-            <Card
-              key={student.id}
-              hoverable
-              onClick={() => navigate(`/admin/students/${student.id}`)}
-            >
-              {/* 헤더 */}
-              <div className="flex items-start gap-4 mb-4">
-                <div className="shrink-0 w-20 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-md">
-                  {student.avatar_url ? (
-                    <img
-                      src={student.avatar_url}
-                      alt={student.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-admin-400 to-admin-600 flex items-center justify-center">
-                      <span className="text-white text-xl font-bold">
-                        {student.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 pt-1">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h3 className="text-body font-semibold text-gray-900 truncate">
-                      {student.name}
-                    </h3>
-                    {hasPortfolio && (
-                      <Badge variant="success">포트폴리오 있음</Badge>
-                    )}
-                    {hasResume && <Badge variant="info">이력서 있음</Badge>}
-                  </div>
-                  {/* 출석률 — 멘토의 핵심 지표 */}
-                  <ProgressBar
-                    value={student.attendance_rate}
-                    label="출석률"
-                    color={
-                      student.attendance_rate < 80
-                        ? 'bg-error-500'
-                        : 'bg-admin-500'
-                    }
-                    size="sm"
-                  />
-                </div>
-              </div>
+      {/* 검색창 */}
+      {!loading && students.length > 0 && (
+        <div className="mb-5">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              ref={searchRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="수강생 이름으로 검색"
+              className="w-full h-10 pl-9 pr-9 rounded-xl border border-gray-200 bg-white text-body-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-admin-400 focus:ring-2 focus:ring-admin-100 transition-all"
+            />
+            {search && (
+              <button
+                onClick={() => { setSearch(''); searchRef.current?.focus(); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="검색어 지우기"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          {search.trim() && (
+            <p className="text-caption text-gray-400 mt-2 ml-1">
+              <span className="text-admin-600 font-semibold">'{search.trim()}'</span> 검색 결과 —{' '}
+              <span className="font-semibold text-gray-600">{filteredStudents.length}명</span>
+              {filteredStudents.length === 0 && ' (결과 없음)'}
+            </p>
+          )}
+        </div>
+      )}
 
-              {/* 역량 레이더 */}
-              <div className="border-t border-gray-100 pt-4">
-                <SkillRadarChart
-                  data={student.radarData}
-                  color={ADMIN_COLOR}
-                  size="mini"
-                />
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+      {/* 수강생 카드 그리드 */}
+      {filteredStudents.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+            <Search className="w-7 h-7 text-gray-300" />
+          </div>
+          <p className="text-body font-semibold text-gray-500">
+            {search.trim() ? `'${search.trim()}'에 해당하는 수강생이 없습니다` : '수강생이 없습니다'}
+          </p>
+          {search.trim() && (
+            <button
+              onClick={() => setSearch('')}
+              className="mt-3 text-body-sm text-admin-500 hover:text-admin-700 font-medium transition-colors"
+            >
+              검색 초기화
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredStudents.map((student) => {
+            const hasPortfolio = student.files?.some((f) => f.type === 'portfolio');
+            const hasResume = student.files?.some((f) => f.type === 'resume');
+            return (
+              <Card
+                key={student.id}
+                hoverable
+                onClick={() => navigate(`/admin/students/${student.id}`)}
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="shrink-0 w-20 h-24 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+                    {student.avatar_url ? (
+                      <img
+                        src={student.avatar_url}
+                        alt={student.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-admin-400 to-admin-600 flex items-center justify-center">
+                        <span className="text-white text-xl font-bold">
+                          {student.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h3 className="text-body font-semibold text-gray-900 truncate">
+                        <HighlightText text={student.name} query={search} />
+                      </h3>
+                      {hasPortfolio && <Badge variant="success">포트폴리오 있음</Badge>}
+                      {hasResume && <Badge variant="info">이력서 있음</Badge>}
+                    </div>
+                    <ProgressBar
+                      value={student.attendance_rate}
+                      label="출석률"
+                      color={student.attendance_rate < 80 ? 'bg-error-500' : 'bg-admin-500'}
+                      size="sm"
+                    />
+                  </div>
+                </div>
+                <div className="border-t border-gray-100 pt-4">
+                  <SkillRadarChart data={student.radarData} color={ADMIN_COLOR} size="mini" />
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

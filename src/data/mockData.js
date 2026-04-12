@@ -3884,6 +3884,13 @@ export const teacherMenuItems = [
     group: '홈',
   },
   {
+    key: 'curriculum',
+    label: '커리큘럼',
+    icon: 'Map',
+    path: '/teacher/curriculum',
+    group: '수업 관리',
+  },
+  {
     key: 'attendance-check',
     label: '출석 확인',
     icon: 'UserCheck',
@@ -3947,6 +3954,13 @@ export const adminMenuItems = [
     group: '수강생 관리',
   },
   {
+    key: 'courses',
+    label: '강의 목록/시간표',
+    icon: 'BookOpenCheck',
+    path: '/admin/courses',
+    group: '강의 관리',
+  },
+  {
     key: 'equipment',
     label: '장비 관리',
     icon: 'Monitor',
@@ -3969,7 +3983,7 @@ export const adminMenuItems = [
   },
   {
     key: 'room-use',
-    label: '자습실/회의실 예약',
+    label: '회의실 예약',
     icon: 'DoorOpen',
     path: '/admin/room-use',
     group: '시설물 이용',

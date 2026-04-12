@@ -32,4 +32,21 @@ export const profileApi = {
         },
       ];
     }),
+
+  getFiles: () =>
+    axiosInstance.get('/api/profile/files').then((r) => r.data.files ?? []),
+
+  uploadFile: (file, fileType) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('file_type', fileType);
+    return axiosInstance
+      .post('/api/profile/files', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data);
+  },
+
+  deleteFile: (fileId) =>
+    axiosInstance.delete(`/api/profile/files/${fileId}`).then((r) => r.data),
 };

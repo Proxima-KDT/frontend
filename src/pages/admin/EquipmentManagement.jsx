@@ -5,6 +5,11 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Wrench,
+  Pencil,
+  Trash2,
+  History,
+  ImagePlus,
+  X,
 } from 'lucide-react';
 import { adminApi } from '@/api/admin';
 import Card from '@/components/common/Card';
@@ -100,11 +105,24 @@ export default function EquipmentManagement() {
     serial_no: '',
     category: '노트북',
   });
+  const [addImagePreview, setAddImagePreview] = useState(null);
+  const [addImageFile, setAddImageFile] = useState(null);
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   const [equipHistory, setEquipHistory] = useState([]);
   const [requests, setRequests] = useState([]);
   const [rejectModal, setRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+
+  // 편집 모달 상태
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', serial_no: '', category: '노트북', image_url: '' });
+  const [editImagePreview, setEditImagePreview] = useState(null);
+  const [editImageFile, setEditImageFile] = useState(null);
+
+  // 삭제 모달 상태
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     adminApi
@@ -151,6 +169,82 @@ export default function EquipmentManagement() {
       .getEquipmentHistory(equip.id)
       .then((data) => setEquipHistory(data))
       .catch(() => setEquipHistory([]));
+  };
+
+  const handleOpenEdit = (equip) => {
+    setEditTarget(equip);
+    setEditForm({
+      name: equip.name,
+      serial_no: equip.serial_no,
+      category: equip.category || '노트북',
+      image_url: equip.image_url || '',
+    });
+    setEditImagePreview(equip.image_url || null);
+    setEditImageFile(null);
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      let updatedImageUrl = editForm.image_url;
+      // 1) 새 파일이 있으면 먼저 업로드
+      if (editImageFile) {
+        const fd = new FormData();
+        fd.append('file', editImageFile);
+        const res = await adminApi.uploadEquipmentImage(editTarget.id, fd);
+        updatedImageUrl = res.image_url;
+      }
+      // 2) 장비 정보 업데이트
+      const updated = await adminApi.updateEquipment(editTarget.id, {
+        name: editForm.name,
+        serial_no: editForm.serial_no,
+        category: editForm.category,
+        image_url: updatedImageUrl || undefined,
+      });
+      setEquipment((prev) => prev.map((e) => (e.id === editTarget.id ? { ...e, ...updated } : e)));
+      setShowEditModal(false);
+      setEditTarget(null);
+      showToast({ type: 'success', message: '장비 정보가 수정되었습니다.' });
+    } catch (err) {
+      const msg = err?.response?.data?.detail || '수정에 실패했습니다.';
+      showToast({ message: msg, type: 'error' });
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return;
+    adminApi
+      .deleteEquipment(deleteTarget.id)
+      .then(() => {
+        setEquipment((prev) => prev.filter((e) => e.id !== deleteTarget.id));
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
+        showToast({ type: 'success', message: '장비가 삭제되었습니다.' });
+      })
+      .catch((err) => {
+        const msg = err?.response?.data?.detail || '삭제에 실패했습니다.';
+        showToast({ message: msg, type: 'error' });
+      });
+  };
+
+  // 이미지 파일 선택 핸들러 (편집용)
+  const handleEditImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setEditImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  // 이미지 파일 선택 핸들러 (등록용)
+  const handleAddImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAddImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setAddImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
   };
 
   const requestColumns = [
@@ -207,6 +301,21 @@ export default function EquipmentManagement() {
 
   const columns = [
     {
+      key: 'image_url',
+      label: '',
+      render: (val, row) => {
+        if (val) {
+          return <img src={val} alt={row.name} className="w-10 h-10 rounded-lg object-cover border border-gray-200" />;
+        }
+        const iconMap = { '노트북': '💻', '모니터': '🖥️', '태블릿': '📱', '주변기기': '🖱️' };
+        return (
+          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg">
+            {iconMap[row.category] || '📦'}
+          </div>
+        );
+      },
+    },
+    {
       key: 'name',
       label: '장비명',
       render: (val) => <span className="font-medium text-gray-900">{val}</span>,
@@ -228,6 +337,40 @@ export default function EquipmentManagement() {
       key: 'borrower',
       label: '사용자',
       render: (val) => val || <span className="text-gray-400">-</span>,
+    },
+    {
+      key: 'actions',
+      label: '',
+      render: (_, row) => (
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleOpenHistory(row)}
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            title="이력"
+          >
+            <History size={15} />
+          </button>
+          <button
+            onClick={() => row.status !== 'borrowed' && handleOpenEdit(row)}
+            disabled={row.status === 'borrowed'}
+            className={`p-1.5 rounded-lg transition-colors ${
+              row.status === 'borrowed'
+                ? 'text-gray-200 cursor-not-allowed'
+                : 'hover:bg-blue-50 text-gray-400 hover:text-blue-600'
+            }`}
+            title={row.status === 'borrowed' ? '대여 중인 장비는 편집할 수 없습니다' : '편집'}
+          >
+            <Pencil size={15} />
+          </button>
+          <button
+            onClick={() => { setDeleteTarget(row); setShowDeleteModal(true); }}
+            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+            title="삭제"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      ),
     },
   ];
 
@@ -273,11 +416,7 @@ export default function EquipmentManagement() {
         </Card>
       ) : (
         <Card padding="p-0">
-          <Table
-            columns={columns}
-            data={filtered}
-            onRowClick={handleOpenHistory}
-          />
+          <Table columns={columns} data={filtered} />
         </Card>
       )}
 
@@ -318,31 +457,156 @@ export default function EquipmentManagement() {
               setAddForm((p) => ({ ...p, category: e.target.value }))
             }
           />
+          {/* 사진 업로드 */}
+          <div>
+            <label className="block text-body-sm font-medium text-gray-700 mb-1.5">사진 (선택)</label>
+            <div className="flex items-center gap-3">
+              {addImagePreview ? (
+                <div className="relative">
+                  <img src={addImagePreview} alt="preview" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                  <button
+                    onClick={() => { setAddImagePreview(null); setAddImageFile(null); }}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              ) : (
+                <label className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-admin-400 hover:bg-admin-50 transition-colors">
+                  <ImagePlus size={20} className="text-gray-400" />
+                  <span className="text-[10px] text-gray-400">사진 추가</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAddImageChange} />
+                </label>
+              )}
+              <p className="text-caption text-gray-400">JPG, PNG, WebP 지원<br/>권장 크기: 200×200px</p>
+            </div>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" onClick={() => setShowAddModal(false)}>
               취소
             </Button>
             <Button
-              onClick={() => {
-                adminApi
-                  .createEquipment(addForm)
-                  .then((created) => {
-                    setEquipment((prev) => [...prev, created]);
-                    setAddForm({ name: '', serial_no: '', category: '노트북' });
-                    setShowAddModal(false);
-                    showToast({
-                      type: 'success',
-                      message: '장비가 등록되었습니다.',
-                    });
-                  })
-                  .catch((err) => {
-                    const msg =
-                      err?.response?.data?.detail || '등록에 실패했습니다.';
-                    showToast({ message: msg, type: 'error' });
-                  });
+              onClick={async () => {
+                try {
+                  const created = await adminApi.createEquipment({ name: addForm.name, serial_no: addForm.serial_no, category: addForm.category });
+                  let finalEquip = created;
+                  if (addImageFile) {
+                    const fd = new FormData();
+                    fd.append('file', addImageFile);
+                    const imgRes = await adminApi.uploadEquipmentImage(created.id, fd);
+                    finalEquip = { ...created, image_url: imgRes.image_url };
+                  }
+                  setEquipment((prev) => [...prev, finalEquip]);
+                  setAddForm({ name: '', serial_no: '', category: '노트북' });
+                  setAddImageFile(null);
+                  setAddImagePreview(null);
+                  setShowAddModal(false);
+                  showToast({ type: 'success', message: '장비가 등록되었습니다.' });
+                } catch (err) {
+                  const msg = err?.response?.data?.detail || '등록에 실패했습니다.';
+                  showToast({ message: msg, type: 'error' });
+                }
               }}
             >
               등록
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 장비 편집 모달 */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => { setShowEditModal(false); setEditTarget(null); }}
+        title="장비 편집"
+        persistent
+      >
+        <div className="space-y-4">
+          {/* 사진 업로드 */}
+          <div>
+            <label className="block text-body-sm font-medium text-gray-700 mb-1.5">사진</label>
+            <div className="flex items-center gap-3">
+              {editImagePreview ? (
+                <div className="relative">
+                  <img src={editImagePreview} alt="preview" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                  <button
+                    onClick={() => { setEditImagePreview(null); setEditImageFile(null); setEditForm((p) => ({ ...p, image_url: '' })); }}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              ) : (
+                <label className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-admin-400 hover:bg-admin-50 transition-colors">
+                  <ImagePlus size={20} className="text-gray-400" />
+                  <span className="text-[10px] text-gray-400">사진 추가</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleEditImageChange} />
+                </label>
+              )}
+              <p className="text-caption text-gray-400">JPG, PNG, WebP 지원<br/>권장 크기: 200×200px</p>
+            </div>
+          </div>
+          <Input
+            label="장비명"
+            value={editForm.name}
+            onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+          />
+          <Input
+            label="시리얼 번호"
+            value={editForm.serial_no}
+            onChange={(e) => setEditForm((p) => ({ ...p, serial_no: e.target.value }))}
+          />
+          <Select
+            label="분류"
+            options={[
+              { value: '노트북', label: '노트북' },
+              { value: '모니터', label: '모니터' },
+              { value: '태블릿', label: '태블릿' },
+              { value: '주변기기', label: '주변기기' },
+            ]}
+            value={editForm.category}
+            onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="ghost" onClick={() => { setShowEditModal(false); setEditTarget(null); }}>
+              취소
+            </Button>
+            <Button onClick={handleEditSubmit}>저장</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 장비 삭제 확인 모달 */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+        title="장비 삭제"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
+            <Trash2 size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-body-sm font-medium text-red-700">정말 삭제하시겠습니까?</p>
+              <p className="text-caption text-red-500 mt-0.5">
+                <span className="font-semibold">{deleteTarget?.name}</span> 장비가 영구적으로 삭제됩니다.
+              </p>
+            </div>
+          </div>
+          {deleteTarget?.status === 'borrowed' && (
+            <p className="text-caption text-orange-600 bg-orange-50 p-2 rounded-lg">
+              ⚠️ 대여 중인 장비는 삭제할 수 없습니다.
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => { setShowDeleteModal(false); setDeleteTarget(null); }}>
+              취소
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteConfirm}
+              disabled={deleteTarget?.status === 'borrowed'}
+            >
+              삭제
             </Button>
           </div>
         </div>

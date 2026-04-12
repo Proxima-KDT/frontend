@@ -46,6 +46,26 @@ export const adminApi = {
   getCourses: () =>
     axiosInstance.get('/api/admin/courses').then((r) => r.data),
 
+  // 강의 CRUD
+  createCourse: (data) =>
+    axiosInstance.post('/api/admin/courses', data).then((r) => r.data),
+  updateCourse: (courseId, data) =>
+    axiosInstance.put(`/api/admin/courses/${courseId}`, data).then((r) => r.data),
+  deleteCourse: (courseId) =>
+    axiosInstance.delete(`/api/admin/courses/${courseId}`).then((r) => r.data),
+
+  // 기수 CRUD
+  createCohort: (courseId, data) =>
+    axiosInstance.post(`/api/admin/courses/${courseId}/cohorts`, data).then((r) => r.data),
+  updateCohort: (cohortId, data) =>
+    axiosInstance.put(`/api/admin/cohorts/${cohortId}`, data).then((r) => r.data),
+  deleteCohort: (cohortId) =>
+    axiosInstance.delete(`/api/admin/cohorts/${cohortId}`).then((r) => r.data),
+
+  // 강사 목록 (과정 배정용)
+  getTeachers: () =>
+    axiosInstance.get('/api/admin/teachers').then((r) => r.data),
+
   // 관리자 비밀번호 재발급
   updateUserPassword: (userId, newPassword) =>
     axiosInstance
@@ -84,6 +104,23 @@ export const adminApi = {
   updateEquipmentStatus: (equipmentId, data) =>
     axiosInstance
       .put(`/api/admin/equipment/${equipmentId}/status`, data)
+      .then((r) => r.data),
+
+  updateEquipment: (equipmentId, data) =>
+    axiosInstance
+      .put(`/api/admin/equipment/${equipmentId}`, data)
+      .then((r) => r.data),
+
+  deleteEquipment: (equipmentId) =>
+    axiosInstance
+      .delete(`/api/admin/equipment/${equipmentId}`)
+      .then((r) => r.data),
+
+  uploadEquipmentImage: (equipmentId, formData) =>
+    axiosInstance
+      .post(`/api/admin/equipment/${equipmentId}/image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
       .then((r) => r.data),
 
   // ── 강의실 관리 ────────────────────────────────────

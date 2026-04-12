@@ -327,7 +327,7 @@ export default function CounselingBooking() {
       <div>
         <h1 className="text-h2 font-bold text-gray-900">면담 신청</h1>
         <p className="text-body-sm text-gray-500 mt-1">
-          담당 강사님 또는 멘토님과 1:1 면담을 예약하세요.
+          담당 강사님과 1:1 면담을 예약하세요.
         </p>
       </div>
 

@@ -7,6 +7,14 @@ import {
   BookOpen,
   CalendarDays,
   Hash,
+  Clock,
+  User,
+  UserCheck,
+  FileText,
+  FolderOpen,
+  Upload,
+  Trash2,
+  ExternalLink,
 } from 'lucide-react';
 import { profileApi } from '@/api/profile';
 import { useToast } from '@/context/ToastContext';
@@ -178,6 +186,8 @@ export default function MyPage() {
   const [skillScores, setSkillScores] = useState([]);
   const [selectedJobs, setSelectedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [files, setFiles] = useState([]);
+  const [fileUploading, setFileUploading] = useState(false);
 
   useEffect(() => {
     Promise.all([profileApi.getMe(), profileApi.getSkillScores()])
@@ -185,10 +195,37 @@ export default function MyPage() {
         setProfile(prof);
         setSkillScores(scores);
         setSelectedJobs(prof.target_jobs ?? []);
+        // 메인 과정(기수 있는) 학생만 파일 로드
+        if (prof.cohort_number) {
+          profileApi.getFiles().then(setFiles).catch(() => {});
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleFileUpload(file, fileType) {
+    setFileUploading(true);
+    try {
+      const newFile = await profileApi.uploadFile(file, fileType);
+      setFiles((prev) => [newFile, ...prev]);
+      showToast({ type: 'success', message: '파일이 업로드되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '파일 업로드에 실패했습니다.' });
+    } finally {
+      setFileUploading(false);
+    }
+  }
+
+  async function handleFileDelete(fileId) {
+    try {
+      await profileApi.deleteFile(fileId);
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+      showToast({ type: 'success', message: '파일이 삭제되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '파일 삭제에 실패했습니다.' });
+    }
+  }
 
   const overallScore = useMemo(() => {
     if (!skillScores.length) return 0;
@@ -309,7 +346,31 @@ export default function MyPage() {
                       {profile.course_start_date.replaceAll('-', '.')} ~ {profile.course_end_date.replaceAll('-', '.')}
                     </span>
                   )}
+                  {profile.daily_start_time && profile.daily_end_time && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-student-200 text-caption text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      {profile.daily_start_time} ~ {profile.daily_end_time}
+                    </span>
+                  )}
                 </div>
+                {(profile.teacher_name || profile.mentor_name) && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {profile.teacher_name && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white border border-student-200 text-caption text-gray-600">
+                        <User className="w-3 h-3 text-student-400" />
+                        <span className="text-gray-400">담당강사</span>
+                        <span className="font-medium">{profile.teacher_name}</span>
+                      </span>
+                    )}
+                    {profile.mentor_name && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white border border-student-200 text-caption text-gray-600">
+                        <UserCheck className="w-3 h-3 text-student-400" />
+                        <span className="text-gray-400">담당멘토</span>
+                        <span className="font-medium">{profile.mentor_name}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -371,6 +432,99 @@ export default function MyPage() {
           </div>
         </div>
       </Card>
+
+      {/* ── 이력서 / 포트폴리오 (메인 과정 학생만) ── */}
+      {profile?.cohort_number && (
+        <Card>
+          <h2 className="text-h3 font-bold text-gray-900 mb-5">이력서 / 포트폴리오</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              { type: 'resume', label: '이력서', icon: FileText, color: 'blue', accept: '.pdf,.doc,.docx' },
+              { type: 'portfolio', label: '포트폴리오', icon: FolderOpen, color: 'purple', accept: '.pdf,.doc,.docx,.ppt,.pptx' },
+            ].map(({ type, label, icon: Icon, color, accept }) => {
+              const typeFiles = files.filter((f) => f.type === type);
+              return (
+                <div key={type} className={`rounded-2xl border-2 border-${color}-100 bg-${color}-50/30 p-4`}>
+                  {/* 섹션 헤더 */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-lg bg-${color}-100 flex items-center justify-center`}>
+                        <Icon className={`w-4 h-4 text-${color}-600`} />
+                      </div>
+                      <span className="text-body-sm font-semibold text-gray-800">{label}</span>
+                      <span className={`text-caption px-1.5 py-0.5 rounded-full bg-${color}-100 text-${color}-700 font-medium`}>
+                        {typeFiles.length}
+                      </span>
+                    </div>
+                    {/* 업로드 버튼 */}
+                    <label className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-${color}-500 text-white text-caption font-medium cursor-pointer hover:bg-${color}-600 transition-colors ${fileUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                      <Upload className="w-3 h-3" />
+                      업로드
+                      <input
+                        type="file"
+                        accept={accept}
+                        className="hidden"
+                        disabled={fileUploading}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleFileUpload(f, type);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {/* 파일 목록 */}
+                  {typeFiles.length > 0 ? (
+                    <div className="space-y-2">
+                      {typeFiles.map((f) => (
+                        <div key={f.id} className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-gray-100 group">
+                          <div className={`w-7 h-7 rounded-lg bg-${color}-50 flex items-center justify-center shrink-0`}>
+                            <Icon className={`w-3.5 h-3.5 text-${color}-500`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-caption font-medium text-gray-800 truncate">{f.name}</p>
+                            {f.uploaded_at && (
+                              <p className="text-[10px] text-gray-400">{f.uploaded_at.replaceAll('-', '.')}</p>
+                            )}
+                          </div>
+                          <a
+                            href={f.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 rounded-md text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                            title="보기"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            onClick={() => handleFileDelete(f.id)}
+                            className="p-1 rounded-md text-gray-300 hover:text-error-500 hover:bg-error-50 transition-colors"
+                            title="삭제"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                      <Icon className="w-8 h-8 text-gray-200 mb-2" />
+                      <p className="text-caption text-gray-400">등록된 {label}가 없습니다</p>
+                      <p className="text-[10px] text-gray-300 mt-0.5">
+                        {type === 'resume' ? 'PDF, DOC, DOCX' : 'PDF, DOC, DOCX, PPT, PPTX'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-gray-400 mt-3 text-center">
+            파일당 최대 10MB · 강사 및 멘토에게 공개됩니다
+          </p>
+        </Card>
+      )}
     </div>
   );
 }

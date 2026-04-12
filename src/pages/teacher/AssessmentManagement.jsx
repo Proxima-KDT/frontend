@@ -462,13 +462,33 @@ export default function AssessmentManagement() {
                       </span>
                     )}
                     {student.status !== 'pending' && (
-                      <button
-                        onClick={() => handleDownloadFile(current, student)}
-                        className="p-1.5 rounded-lg hover:bg-white text-gray-500 cursor-pointer transition-colors shrink-0"
-                        title="제출 파일 다운로드"
-                      >
-                        <Download className="w-4 h-4" />
-                      </button>
+                      <div className="relative group shrink-0">
+                        <button
+                          onClick={() =>
+                            student.files?.length > 0
+                              ? handleDownloadFile(current, student)
+                              : undefined
+                          }
+                          disabled={!student.files?.length}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            student.files?.length > 0
+                              ? 'hover:bg-white text-gray-500 cursor-pointer'
+                              : 'text-gray-300 cursor-not-allowed'
+                          }`}
+                          title={
+                            student.files?.length > 0
+                              ? '제출 파일 다운로드'
+                              : '파일 미첨부'
+                          }
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        {!student.files?.length && (
+                          <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-700 px-2 py-0.5 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            파일 미첨부
+                          </span>
+                        )}
+                      </div>
                     )}
                     <div className="flex gap-1.5 shrink-0">
                       {student.status === 'submitted' && (

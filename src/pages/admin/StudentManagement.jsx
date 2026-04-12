@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, X } from 'lucide-react';
 import { adminApi } from '@/api/admin';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -9,11 +9,27 @@ import { useToast } from '@/context/ToastContext';
 const roleVariant = { student: 'student', teacher: 'teacher', admin: 'admin' };
 const roleLabel = { student: '학생', teacher: '강사', admin: '관리자' };
 
+function HighlightText({ text, query }) {
+  if (!query.trim() || !text) return <span>{text}</span>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <span>{text}</span>;
+  return (
+    <span>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-200 text-yellow-900 rounded-sm px-0.5 not-italic">
+        {text.slice(idx, idx + query.length)}
+      </mark>
+      {text.slice(idx + query.length)}
+    </span>
+  );
+}
+
 export default function StudentManagement() {
   const { showToast } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const searchRef = useRef(null);
 
   useEffect(() => {
     adminApi
@@ -29,7 +45,9 @@ export default function StudentManagement() {
   }, []);
 
   const filtered = users.filter(
-    (u) => u.name?.includes(search) || u.email?.includes(search),
+    (u) =>
+      u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleRoleChange = (user, newRole) => {
@@ -55,12 +73,16 @@ export default function StudentManagement() {
       label: '이름',
       render: (val, row) => (
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-caption font-semibold">
-            {val[0]}
+          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-caption font-semibold shrink-0">
+            {val?.[0]}
           </div>
           <div>
-            <span className="font-medium text-gray-900 block">{val}</span>
-            <span className="text-caption text-gray-500">{row.email}</span>
+            <span className="font-medium text-gray-900 block">
+              <HighlightText text={val} query={search} />
+            </span>
+            <span className="text-caption text-gray-500">
+              <HighlightText text={row.email} query={search} />
+            </span>
           </div>
         </div>
       ),
@@ -118,15 +140,34 @@ export default function StudentManagement() {
       <h1 className="text-h1 font-bold text-gray-900 mb-6">학생 관리</h1>
 
       {/* 검색 */}
-      <div className="relative mb-4 max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="이름 또는 이메일로 검색"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 text-body-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-colors"
-        />
+      <div className="mb-5">
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            ref={searchRef}
+            type="text"
+            placeholder="이름 또는 이메일로 검색"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 pl-9 pr-9 rounded-xl border border-gray-200 bg-white text-body-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all"
+          />
+          {search && (
+            <button
+              onClick={() => { setSearch(''); searchRef.current?.focus(); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="검색어 지우기"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        {search.trim() && (
+          <p className="text-caption text-gray-400 mt-2 ml-1">
+            <span className="text-primary-600 font-semibold">'{search.trim()}'</span> 검색 결과 —{' '}
+            <span className="font-semibold text-gray-600">{filtered.length}명</span>
+            {filtered.length === 0 && ' (결과 없음)'}
+          </p>
+        )}
       </div>
 
       <Card padding="p-0">
@@ -134,7 +175,7 @@ export default function StudentManagement() {
       </Card>
 
       <p className="text-caption text-gray-400 mt-4 text-center">
-        전체 {filtered.length}명
+        전체 {filtered.length}명 / {users.length}명
       </p>
     </div>
   );

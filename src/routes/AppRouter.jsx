@@ -54,6 +54,7 @@ const AssessmentManagement = lazy(
 const ProblemManagement = lazy(
   () => import('@/pages/teacher/ProblemManagement'),
 );
+const TeacherCurriculum = lazy(() => import('@/pages/teacher/Curriculum'));
 
 // Admin 페이지
 const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'));
@@ -72,6 +73,7 @@ const AdminRoomReservation = lazy(
 );
 const RegisterStudent = lazy(() => import('@/pages/admin/RegisterStudent'));
 const RegisterTeacher = lazy(() => import('@/pages/admin/RegisterTeacher'));
+const CourseManagement = lazy(() => import('@/pages/admin/CourseManagement'));
 
 // Common 페이지 (통합 AI 에이전트 — 모든 role 공통)
 const AIAgent = lazy(() => import('@/pages/common/AIAgent'));
@@ -312,6 +314,14 @@ export default function AppRouter() {
             </TeacherRoute>
           }
         />
+        <Route
+          path="/teacher/curriculum"
+          element={
+            <TeacherRoute>
+              <TeacherCurriculum />
+            </TeacherRoute>
+          }
+        />
 
         {/* Admin */}
         <Route
@@ -375,6 +385,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute role="admin">
               <RegisterTeacher />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/courses"
+          element={
+            <ProtectedRoute role="admin">
+              <CourseManagement />
             </ProtectedRoute>
           }
         />
