@@ -36,4 +36,10 @@ export const aiAgentApi = {
     axiosInstance
       .post(`/api/ai-agent/workflow/resume/${threadId}`, { approved, edits })
       .then((r) => r.data),
+
+  /** 최근 대화 이력 조회. limit 기본값 20. */
+  history: (limit = 20) =>
+    axiosInstance
+      .get(`/api/ai-agent/history?limit=${limit}`)
+      .then((r) => r.data),
 };

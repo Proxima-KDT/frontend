@@ -61,6 +61,14 @@ export default function Counseling() {
 
   const selectedStudent = students.find((s) => s.id === selectedStudentId);
 
+  // 과정별 학생 그룹핑 (course_name 기준)
+  const studentsByCourse = students.reduce((acc, s) => {
+    const key = s.course_name || '과정 미배정';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(s);
+    return acc;
+  }, {});
+
   const validateAndStart = (file) => {
     if (!file) return;
     if (!selectedStudentId) {
@@ -207,10 +215,15 @@ export default function Counseling() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-body-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teacher-400 bg-white"
               >
                 <option value="">학생을 선택하세요</option>
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
+                {Object.entries(studentsByCourse).map(([courseName, courseStudents]) => (
+                  <optgroup key={courseName} label={`📚 ${courseName}`}>
+                    {courseStudents.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                        {s.cohort_number ? ` (${s.cohort_number}기)` : ''}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

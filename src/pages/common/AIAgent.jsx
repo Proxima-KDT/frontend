@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useCourse } from '@/context/CourseContext';
 import { aiAgentApi } from '@/api/ai-agent';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import * as Icons from 'lucide-react';
+
+// localStorage 키: ai-briefing-{wfName}-{YYYY-MM-DD}
+const today = () => new Date().toISOString().slice(0, 10);
+const briefingKey = (name) => `ai-briefing-${name}-${today()}`;
 
 // ----------------------------------------------------------------------
 // role 별 UI 설정 — title/chip/workflow 모두 여기서 분기
@@ -55,6 +60,65 @@ const ROLE_CONFIG = {
 };
 
 // ----------------------------------------------------------------------
+// 경량 마크다운 렌더러 (외부 라이브러리 없이 **bold**, - 불릿, 줄바꿈 처리)
+// ----------------------------------------------------------------------
+
+function applyInline(text, key) {
+  // **bold** 처리
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <span key={key}>
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**') ? (
+          <strong key={i}>{part.slice(2, -2)}</strong>
+        ) : (
+          part
+        ),
+      )}
+    </span>
+  );
+}
+
+function MarkdownContent({ text }) {
+  const lines = text.split('\n');
+  const elements = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // 불릿 리스트 (- 또는 *)
+    if (/^[-*] /.test(line)) {
+      const items = [];
+      while (i < lines.length && /^[-*] /.test(lines[i])) {
+        items.push(lines[i].slice(2));
+        i++;
+      }
+      elements.push(
+        <ul key={`ul-${i}`} className="list-disc list-inside space-y-0.5 my-1 pl-1">
+          {items.map((item, j) => (
+            <li key={j} className="text-body-sm leading-relaxed">
+              {applyInline(item, j)}
+            </li>
+          ))}
+        </ul>,
+      );
+    } else if (line.trim() === '') {
+      elements.push(<div key={`br-${i}`} className="h-1.5" />);
+      i++;
+    } else {
+      elements.push(
+        <p key={`p-${i}`} className="text-body-sm leading-relaxed break-words">
+          {applyInline(line, i)}
+        </p>,
+      );
+      i++;
+    }
+  }
+  return <div className="space-y-0.5">{elements}</div>;
+}
+
+// ----------------------------------------------------------------------
 // 공용 서브 컴포넌트 (같은 파일 내에 정의)
 // ----------------------------------------------------------------------
 
@@ -69,9 +133,13 @@ function MessageBubble({ message }) {
             : 'bg-white border border-gray-200 text-gray-900'
         }`}
       >
-        <p className="text-body-sm whitespace-pre-wrap break-words">
-          {message.content}
-        </p>
+        {isUser ? (
+          <p className="text-body-sm whitespace-pre-wrap break-words">
+            {message.content}
+          </p>
+        ) : (
+          <MarkdownContent text={message.content} />
+        )}
         {message.toolCalls && message.toolCalls.length > 0 && (
           <details className="mt-2 text-caption opacity-80">
             <summary className="cursor-pointer select-none">
@@ -117,7 +185,7 @@ function SummaryCard({ card }) {
   );
 }
 
-function WorkflowResultModal({ result, loading, onApprove, onReject, onClose }) {
+function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, onRerun }) {
   const isInterrupted = Boolean(result?.interrupted);
   const drafts = result?.result?.draft_notifications || [];
   const summary = result?.result?.summary;
@@ -224,24 +292,44 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose }) 
           )}
         </div>
 
-        {isInterrupted && (
-          <div className="px-6 py-4 border-t border-gray-200 flex gap-2 justify-end">
+        <div className="px-6 py-4 border-t border-gray-200 flex gap-2 justify-between">
+          {/* 다시 생성 — 캐시 삭제 후 재실행 */}
+          {!isInterrupted && onRerun && (
             <button
-              onClick={onReject}
+              onClick={onRerun}
               disabled={loading}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 text-sm flex items-center gap-1"
             >
-              거절
+              <Icons.RefreshCw className="w-3.5 h-3.5" />
+              다시 생성
             </button>
+          )}
+          {isInterrupted ? (
+            <div className="flex gap-2 ml-auto">
+              <button
+                onClick={onReject}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                거절
+              </button>
+              <button
+                onClick={onApprove}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 font-medium"
+              >
+                {loading ? '처리 중...' : '승인하고 발송'}
+              </button>
+            </div>
+          ) : (
             <button
-              onClick={onApprove}
-              disabled={loading}
-              className="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 font-medium"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm ml-auto"
             >
-              {loading ? '처리 중...' : '승인하고 발송'}
+              닫기
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -253,6 +341,7 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose }) 
 
 export default function AIAgent() {
   const { user, role } = useAuth();
+  const { selectedCourseId } = useCourse();
   const config = ROLE_CONFIG[role] || ROLE_CONFIG.student;
 
   // 채팅 상태
@@ -260,13 +349,16 @@ export default function AIAgent() {
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   // 사이드 패널
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
 
-  // Workflow
-  const [workflowResult, setWorkflowResult] = useState(null);
+  // Workflow — activeModal: 현재 열린 모달 { result, name }
+  //            cachedResults: localStorage 기반 오늘 결과 캐시 { [wfName]: result }
+  const [activeModal, setActiveModal] = useState(null);
+  const [cachedResults, setCachedResults] = useState({});
   const [workflowLoading, setWorkflowLoading] = useState(null);
 
   const messagesEndRef = useRef(null);
@@ -287,6 +379,49 @@ export default function AIAgent() {
       }
     };
     load();
+    return () => {
+      cancelled = true;
+    };
+  }, [role]);
+
+  // 오늘 workflow 결과 캐시 복원 (role 바뀌거나 날짜 바뀌면 재로드)
+  useEffect(() => {
+    const loaded = {};
+    (config.workflows || []).forEach((wf) => {
+      try {
+        const raw = localStorage.getItem(briefingKey(wf.name));
+        if (raw) loaded[wf.name] = JSON.parse(raw);
+      } catch {
+        /* noop */
+      }
+    });
+    setCachedResults(loaded);
+  }, [role]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 이전 대화 이력 복원 (role 바뀔 때마다 해당 role 이력 다시 로드)
+  useEffect(() => {
+    let cancelled = false;
+    setHistoryLoading(true);
+    setMessages([]);
+    aiAgentApi
+      .history(20)
+      .then((data) => {
+        if (cancelled) return;
+        if (data.messages?.length > 0) {
+          setMessages(
+            data.messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+              toolCalls: m.tool_calls || [],
+              durationMs: m.duration_ms,
+            })),
+          );
+        }
+      })
+      .catch(() => {/* 이력 로드 실패 시 빈 채팅으로 시작 */})
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -365,50 +500,80 @@ export default function AIAgent() {
     }
   }, [speech]);
 
-  const runWorkflow = useCallback(async (name) => {
-    setWorkflowLoading(name);
-    setError(null);
-    try {
-      const result = await aiAgentApi.runWorkflow(name, {});
-      setWorkflowResult(result);
-    } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Workflow 실행 실패');
-    } finally {
-      setWorkflowLoading(null);
-    }
-  }, []);
+  const runWorkflow = useCallback(
+    async (name) => {
+      setWorkflowLoading(name);
+      setError(null);
+      try {
+        const params = selectedCourseId ? { course_id: selectedCourseId } : {};
+        const result = await aiAgentApi.runWorkflow(name, params);
+        // 오늘 날짜 키로 localStorage 저장
+        try {
+          localStorage.setItem(briefingKey(name), JSON.stringify(result));
+        } catch {
+          /* noop */
+        }
+        setCachedResults((prev) => ({ ...prev, [name]: result }));
+        setActiveModal({ result, name });
+      } catch (e) {
+        setError(e.response?.data?.detail || e.message || 'Workflow 실행 실패');
+      } finally {
+        setWorkflowLoading(null);
+      }
+    },
+    [selectedCourseId],
+  );
 
   const approveWorkflow = useCallback(async () => {
-    if (!workflowResult?.thread_id) return;
+    if (!activeModal?.result?.thread_id) return;
     setWorkflowLoading('resume');
     try {
       const result = await aiAgentApi.resumeWorkflow(
-        workflowResult.thread_id,
+        activeModal.result.thread_id,
         true,
       );
-      setWorkflowResult(result);
+      setActiveModal((prev) => ({ ...prev, result }));
     } catch (e) {
       setError(e.response?.data?.detail || e.message || '승인 실패');
     } finally {
       setWorkflowLoading(null);
     }
-  }, [workflowResult]);
+  }, [activeModal]);
 
   const rejectWorkflow = useCallback(async () => {
-    if (!workflowResult?.thread_id) return;
+    if (!activeModal?.result?.thread_id) return;
     setWorkflowLoading('resume');
     try {
       const result = await aiAgentApi.resumeWorkflow(
-        workflowResult.thread_id,
+        activeModal.result.thread_id,
         false,
       );
-      setWorkflowResult(result);
+      setActiveModal((prev) => ({ ...prev, result }));
     } catch (e) {
       setError(e.response?.data?.detail || e.message || '거절 실패');
     } finally {
       setWorkflowLoading(null);
     }
-  }, [workflowResult]);
+  }, [activeModal]);
+
+  const rerunWorkflow = useCallback(
+    (name) => {
+      // 캐시 삭제 후 재실행
+      try {
+        localStorage.removeItem(briefingKey(name));
+      } catch {
+        /* noop */
+      }
+      setCachedResults((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+      setActiveModal(null);
+      runWorkflow(name);
+    },
+    [runWorkflow],
+  );
 
   const reloadSummary = useCallback(async () => {
     setSummaryLoading(true);
@@ -424,9 +589,9 @@ export default function AIAgent() {
 
   // ---- Render ----
   return (
-    <div className="p-4 md:p-6 min-h-[calc(100vh-4rem)]">
+    <div className="p-4 md:p-6 h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="mb-4 shrink-0 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-h2 font-bold text-gray-900 flex items-center gap-2">
             <Icons.Sparkles className="w-6 h-6 text-violet-500" />
@@ -447,15 +612,32 @@ export default function AIAgent() {
       </div>
 
       {/* Main layout: col on mobile, row on lg+ */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
         {/* Chat Panel */}
-        <div className="flex-1 lg:order-1 bg-white rounded-2xl border border-gray-200 flex flex-col min-h-[560px]">
+        <div className="flex-1 lg:order-1 bg-white rounded-2xl border border-gray-200 flex flex-col min-h-0">
           {/* Workflow buttons (강사/관리자만) */}
           {config.workflows.length > 0 && (
-            <div className="px-4 py-3 border-b border-gray-200 flex flex-wrap gap-2">
+            <div className="px-4 py-3 border-b border-gray-200 flex flex-wrap gap-2 items-center">
               {config.workflows.map((wf) => {
                 const Icon = Icons[wf.icon] || Icons.Play;
                 const running = workflowLoading === wf.name;
+                const cached = cachedResults[wf.name];
+
+                if (cached) {
+                  // 오늘 결과 있음 → 초록 "완료" 버튼 (클릭 시 모달 재오픈)
+                  return (
+                    <button
+                      key={wf.name}
+                      onClick={() => setActiveModal({ result: cached, name: wf.name })}
+                      disabled={workflowLoading !== null}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-caption font-medium hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Icons.CheckCircle2 className="w-3.5 h-3.5" />
+                      {wf.label} 완료
+                    </button>
+                  );
+                }
+
                 return (
                   <button
                     key={wf.name}
@@ -472,8 +654,25 @@ export default function AIAgent() {
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50">
-            {messages.length === 0 && (
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50/50">
+            {historyLoading ? (
+              <div className="space-y-3 py-4">
+                {[80, 55, 90, 60].map((w, i) => (
+                  <div
+                    key={i}
+                    className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className="h-10 rounded-2xl bg-gray-200 animate-pulse"
+                      style={{ width: `${w}%` }}
+                    />
+                  </div>
+                ))}
+                <p className="text-center text-caption text-gray-400 pt-2">
+                  이전 대화를 불러오는 중...
+                </p>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="text-center py-12">
                 <Icons.MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-3" />
                 <p className="text-body-sm text-gray-500 mb-4">
@@ -492,7 +691,7 @@ export default function AIAgent() {
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
             {messages.map((m, i) => (
               <MessageBubble key={i} message={m} />
             ))}
@@ -614,13 +813,14 @@ export default function AIAgent() {
       </div>
 
       {/* Workflow result modal */}
-      {workflowResult && (
+      {activeModal && (
         <WorkflowResultModal
-          result={workflowResult}
+          result={activeModal.result}
           loading={workflowLoading === 'resume'}
           onApprove={approveWorkflow}
           onReject={rejectWorkflow}
-          onClose={() => setWorkflowResult(null)}
+          onClose={() => setActiveModal(null)}
+          onRerun={() => rerunWorkflow(activeModal.name)}
         />
       )}
     </div>
