@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Code2,
@@ -30,21 +30,21 @@ const iconMap = {
 
 const courseTagMap = {
   'course-langchain': {
-    label: 'AI 영상',
+    label: 'AI ?곸긽',
     color: 'bg-violet-100 text-violet-700',
   },
-  'course-bigdata': { label: '빅데이터', color: 'bg-teal-100 text-teal-700' },
+  'course-bigdata': { label: '鍮낅뜲?댄꽣', color: 'bg-teal-100 text-teal-700' },
   'course-python-ai': {
-    label: '파이썬 AI',
+    label: '?뚯씠??AI',
     color: 'bg-orange-100 text-orange-700',
   },
   'course-dbms': { label: 'DBMS', color: 'bg-blue-100 text-blue-700' },
 }
 
 const statusMap = {
-  completed: { label: '학습 완료', className: 'bg-[#e9eff3] text-[#4f6475]' },
-  in_progress: { label: '학습 중', className: 'bg-[#f4ecd7] text-[#7a6330]' },
-  upcoming: { label: '예정', className: 'bg-[#efede7] text-[#8d877e]' },
+  completed: { label: '?숈뒿 ?꾨즺', className: 'bg-[#e9eff3] text-[#4f6475]' },
+  in_progress: { label: '?숈뒿 以?, className: 'bg-[#f4ecd7] text-[#7a6330]' },
+  upcoming: { label: '?덉젙', className: 'bg-[#efede7] text-[#8d877e]' },
 }
 
 function getSubjectStatus(progress) {
@@ -77,8 +77,8 @@ export default function ProblemList() {
         style={{ backgroundColor: '#F7F5F0' }}
       >
         <div>
-          <h1 className="text-h1 font-bold text-gray-900">개념 학습 & 문제풀이</h1>
-          <p className="text-body-sm text-gray-500 mt-1">커리큘럼에 맞는 개념을 학습하고 문제를 풀어보세요</p>
+          <h1 className="text-h1 font-bold text-gray-900">媛쒕뀗 ?숈뒿 & 臾몄젣???/h1>
+          <p className="text-body-sm text-gray-500 mt-1">而ㅻ━?섎읆??留욌뒗 媛쒕뀗???숈뒿?섍퀬 臾몄젣瑜???대낫?몄슂</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1,2,3,4].map((i) => <Skeleton key={i} width="100%" height="120px" rounded="rounded-2xl" />)}
@@ -93,16 +93,16 @@ export default function ProblemList() {
       style={{ backgroundColor: '#F7F5F0' }}
     >
       <div>
-        <h1 className="text-h1 font-bold text-gray-900">개념 학습 & 문제풀이</h1>
+        <h1 className="text-h1 font-bold text-gray-900">媛쒕뀗 ?숈뒿 & 臾몄젣???/h1>
         <p className="text-body-sm text-gray-500 mt-1">
-          커리큘럼에 맞는 개념을 학습하고 문제를 풀어보세요
+          而ㅻ━?섎읆??留욌뒗 媛쒕뀗???숈뒿?섍퀬 臾몄젣瑜???대낫?몄슂
         </p>
       </div>
 
       {subjects.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
           <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-body text-gray-400">등록된 과목이 없습니다</p>
+          <p className="text-body text-gray-400">?깅줉??怨쇰ぉ???놁뒿?덈떎</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -160,10 +160,10 @@ export default function ProblemList() {
                     <div className="flex items-center justify-between mt-1.5">
                       <span className="text-caption text-gray-400">
                         <BookOpen className="w-3.5 h-3.5 inline mr-1" />
-                        {subject.concepts?.length ?? 0}개 개념 · {progress.total}문제
+                        {subject.concepts?.length ?? 0}媛?媛쒕뀗 쨌 {progress.total}臾몄젣
                       </span>
                       <span className="text-caption font-medium text-gray-600">
-                        {progress.solved}/{progress.total} 완료
+                        {progress.solved}/{progress.total} ?꾨즺
                       </span>
                     </div>
                   </div>

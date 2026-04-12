@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+﻿import { useState, useMemo, useEffect, useCallback } from 'react';
 import { roomsApi } from '@/api/rooms';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -49,14 +49,14 @@ const TIME_SLOTS = [
 
 const roomTypeMeta = {
   study: {
-    label: '자습실',
+    label: '?먯뒿??,
     icon: BookOpen,
     bg: 'bg-[#e8eef2]',
     iconColor: 'text-[#4e5a61]',
     badgeVariant: 'info',
   },
   meeting: {
-    label: '회의실',
+    label: '?뚯쓽??,
     icon: Building2,
     bg: 'bg-[#ede8ee]',
     iconColor: 'text-[#6b5b73]',
@@ -66,10 +66,10 @@ const roomTypeMeta = {
 
 const amenityIcons = {
   WiFi: Wifi,
-  대형모니터: Monitor,
-  프로젝터: Projector,
-  에어컨: Wind,
-  화이트보드: PenLine,
+  ??뺣え?덊꽣: Monitor,
+  ?꾨줈?앺꽣: Projector,
+  ?먯뼱而? Wind,
+  ?붿씠?몃낫?? PenLine,
 };
 
 function AmenityTag({ label }) {
@@ -82,7 +82,7 @@ function AmenityTag({ label }) {
   );
 }
 
-// 방 정보 카드 (타입별 그룹 섹션과 단독 탭 뷰 양쪽에서 공유)
+// 諛??뺣낫 移대뱶 (??낅퀎 洹몃９ ?뱀뀡怨??⑤룆 ??酉??묒そ?먯꽌 怨듭쑀)
 function RoomInfoCard({ room, isAvailableNow }) {
   const meta = roomTypeMeta[room.type];
   const Icon = meta.icon;
@@ -106,25 +106,23 @@ function RoomInfoCard({ room, isAvailableNow }) {
             <p className="font-semibold text-gray-900 text-sm">{room.name}</p>
             <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
               <MapPin size={10} />
-              <span>{room.floor}층</span>
-              <span>·</span>
+              <span>{room.floor}痢?/span>
+              <span>쨌</span>
               <Users size={10} />
-              <span>최대 {room.capacity}인</span>
+              <span>理쒕? {room.capacity}??/span>
             </div>
           </div>
         </div>
         {room.status === 'closed' ? (
           <Badge variant="warning" size="sm">
-            운영 중단
+            ?댁쁺 以묐떒
           </Badge>
         ) : isAvailableNow ? (
           <Badge variant="success" size="sm">
-            지금 가능
-          </Badge>
+            吏湲?媛??          </Badge>
         ) : (
           <Badge variant="default" size="sm">
-            사용 중
-          </Badge>
+            ?ъ슜 以?          </Badge>
         )}
       </div>
       <div className="flex flex-wrap gap-1">
@@ -136,7 +134,7 @@ function RoomInfoCard({ room, isAvailableNow }) {
   );
 }
 
-const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+const DAY_LABELS = ['??, '??, '??, '??, '紐?, '湲?, '??];
 
 function generateWeekDates(todayStr) {
   return Array.from({ length: 7 }, (_, i) => {
@@ -149,8 +147,8 @@ function generateWeekDates(todayStr) {
     const dow = d.getDay();
     const isWeekend = dow === 0 || dow === 6;
     let dayLabel;
-    if (i === 0) dayLabel = '오늘';
-    else if (i === 1) dayLabel = '내일';
+    if (i === 0) dayLabel = '?ㅻ뒛';
+    else if (i === 1) dayLabel = '?댁씪';
     else dayLabel = DAY_LABELS[dow];
     return { date: dateStr, dayLabel, dayNum: Number(dd), isWeekend };
   });
@@ -194,10 +192,10 @@ export default function RoomReservation() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [myResTab, setMyResTab] = useState('today');
-  const [showRules, setShowRules] = useState(true);
+  const [showRules, setShowRules] = useState(false);
   const [selectedDate, setSelectedDate] = useState(TODAY);
 
-  // 방 목록 및 내 예약 초기 로드
+  // 諛?紐⑸줉 諛????덉빟 珥덇린 濡쒕뱶
   useEffect(() => {
     Promise.all([roomsApi.getList(), roomsApi.getMyReservations()])
       .then(([roomsData, reservationsData]) => {
@@ -208,9 +206,8 @@ export default function RoomReservation() {
       .finally(() => setRoomsLoading(false));
   }, []);
 
-  // 날짜 변경 시 슬롯 새로 로드
-  // DB에서 TIME 컬럼이 "HH:MM:SS" 형식으로 오기 때문에 "HH:MM"으로 정규화
-  const loadSlots = useCallback(async (date, roomList) => {
+  // ?좎쭨 蹂寃????щ’ ?덈줈 濡쒕뱶
+  // DB?먯꽌 TIME 而щ읆??"HH:MM:SS" ?뺤떇?쇰줈 ?ㅺ린 ?뚮Ц??"HH:MM"?쇰줈 ?뺢퇋??  const loadSlots = useCallback(async (date, roomList) => {
     if (!roomList.length) return;
     setSlotsLoading(true);
     try {
@@ -246,13 +243,12 @@ export default function RoomReservation() {
     if (date !== TODAY) setShowAvailableNow(false);
   };
 
-  // 슬롯 상태 결정: available | mine | reserved | closed | past
+  // ?щ’ ?곹깭 寃곗젙: available | mine | reserved | closed | past
   const getSlotStatus = (roomId, timeSlot) => {
     const room = rooms.find((r) => r.id === roomId);
     if (room.status === 'closed') return 'closed';
 
-    // past는 오늘 기준으로만 적용 — 미래 날짜는 모든 슬롯 예약 가능
-    if (selectedDate === TODAY) {
+    // past???ㅻ뒛 湲곗??쇰줈留??곸슜 ??誘몃옒 ?좎쭨??紐⑤뱺 ?щ’ ?덉빟 媛??    if (selectedDate === TODAY) {
       const slotHour = parseInt(timeSlot.split(':')[0], 10);
       if (slotHour < CURRENT_HOUR) return 'past';
     }
@@ -268,7 +264,7 @@ export default function RoomReservation() {
     return 'reserved';
   };
 
-  // 지금 이용 가능한 방 id 목록 (현재 시간 슬롯 기준)
+  // 吏湲??댁슜 媛?ν븳 諛?id 紐⑸줉 (?꾩옱 ?쒓컙 ?щ’ 湲곗?)
   const currentTimeSlot = `${String(CURRENT_HOUR).padStart(2, '0')}:00`;
   const availableNowIds = useMemo(() => {
     return rooms
@@ -284,7 +280,7 @@ export default function RoomReservation() {
       .map((r) => r.id);
   }, [bookedSlots, currentTimeSlot]);
 
-  // 탭 + 빠른 필터로 표시할 방 목록
+  // ??+ 鍮좊Ⅸ ?꾪꽣濡??쒖떆??諛?紐⑸줉
   const filteredRooms = useMemo(() => {
     let list = rooms;
     if (activeTab === 'study') list = list.filter((r) => r.type === 'study');
@@ -292,8 +288,7 @@ export default function RoomReservation() {
       list = list.filter((r) => r.type === 'meeting');
     if (showAvailableNow)
       list = list.filter((r) => availableNowIds.includes(r.id));
-    // 자습실 먼저(A→D)·회의실 뒤, 같은 타입은 이름 순
-    return [...list].sort((a, b) => {
+    // ?먯뒿??癒쇱?(A?묭)쨌?뚯쓽???? 媛숈? ??낆? ?대쫫 ??    return [...list].sort((a, b) => {
       if (a.type !== b.type) return a.type === 'study' ? -1 : 1;
       return (a.name || '').localeCompare(b.name || '', 'ko', {
         numeric: true,
@@ -302,7 +297,7 @@ export default function RoomReservation() {
     });
   }, [rooms, activeTab, showAvailableNow, availableNowIds]);
 
-  // 통계 요약
+  // ?듦퀎 ?붿빟
   const stats = useMemo(() => {
     const openRooms = rooms.filter((r) => r.status !== 'closed');
     const studyRooms = openRooms.filter((r) => r.type === 'study');
@@ -319,7 +314,7 @@ export default function RoomReservation() {
     };
   }, [availableNowIds]);
 
-  // 셀 클릭 → 예약 모달
+  // ? ?대┃ ???덉빟 紐⑤떖
   const handleCellClick = (room, timeSlot) => {
     const status = getSlotStatus(room.id, timeSlot);
     if (status !== 'available') return;
@@ -328,16 +323,15 @@ export default function RoomReservation() {
     setShowReserveModal(true);
   };
 
-  // 예약 확정
+  // ?덉빟 ?뺤젙
   const handleConfirmReserve = async () => {
-    // 선택한 날짜의 기존 예약 건수 프론트 선제 검증
-    const todayReservations = myReservations.filter(
+    // ?좏깮???좎쭨??湲곗〈 ?덉빟 嫄댁닔 ?꾨줎???좎젣 寃利?    const todayReservations = myReservations.filter(
       (r) => r.date === selectedDate && r.status !== 'cancelled',
     );
     if (todayReservations.length >= 3) {
       showToast({
         type: 'error',
-        message: '하루 최대 3건까지만 예약할 수 있습니다.',
+        message: '?섎（ 理쒕? 3嫄닿퉴吏留??덉빟?????덉뒿?덈떎.',
       });
       setShowReserveModal(false);
       setSelectedCell(null);
@@ -351,11 +345,11 @@ export default function RoomReservation() {
         date: selectedDate,
         start_time: selectedCell.timeSlot,
         end_time: endTime,
-        purpose: purpose || '개인 사용',
+        purpose: purpose || '媛쒖씤 ?ъ슜',
       });
-      // 내 예약 목록 업데이트
+      // ???덉빟 紐⑸줉 ?낅뜲?댄듃
       setMyReservations((prev) => [newReservation, ...prev]);
-      // 타임테이블 즉시 반영 (새 슬롯을 낙관적으로 추가)
+      // ??꾪뀒?대툝 利됱떆 諛섏쁺 (???щ’???숆??곸쑝濡?異붽?)
       setBookedSlots((prev) => [
         ...prev,
         {
@@ -365,17 +359,17 @@ export default function RoomReservation() {
           end_time: endTime,
           is_mine: true,
           reserved_by: user?.id,
-          purpose: purpose || '개인 사용',
+          purpose: purpose || '媛쒖씤 ?ъ슜',
         },
       ]);
       showToast({
         type: 'success',
-        message: `${selectedCell.room.name} ${selectedCell.timeSlot} 예약이 확정되었습니다.`,
+        message: `${selectedCell.room.name} ${selectedCell.timeSlot} ?덉빟???뺤젙?섏뿀?듬땲??`,
       });
     } catch (err) {
       const msg =
         err?.response?.data?.detail ||
-        '예약에 실패했습니다. 다시 시도해주세요.';
+        '?덉빟???ㅽ뙣?덉뒿?덈떎. ?ㅼ떆 ?쒕룄?댁＜?몄슂.';
       showToast({ type: 'error', message: msg });
     } finally {
       setShowReserveModal(false);
@@ -383,7 +377,7 @@ export default function RoomReservation() {
     }
   };
 
-  // 예약 취소 클릭
+  // ?덉빟 痍⑥냼 ?대┃
   const openCancelModal = (reservation) => {
     setCancelTarget(reservation);
     setShowCancelModal(true);
@@ -392,9 +386,9 @@ export default function RoomReservation() {
   const handleConfirmCancel = async () => {
     try {
       await roomsApi.cancelReservation(cancelTarget.id);
-      // 취소된 예약은 목록에서 즉시 제거
+      // 痍⑥냼???덉빟? 紐⑸줉?먯꽌 利됱떆 ?쒓굅
       setMyReservations((prev) => prev.filter((r) => r.id !== cancelTarget.id));
-      // 타임테이블에서 해당 슬롯 즉시 제거
+      // ??꾪뀒?대툝?먯꽌 ?대떦 ?щ’ 利됱떆 ?쒓굅
       setBookedSlots((prev) =>
         prev.filter(
           (s) =>
@@ -405,16 +399,16 @@ export default function RoomReservation() {
             ),
         ),
       );
-      showToast({ type: 'success', message: '예약이 취소되었습니다.' });
+      showToast({ type: 'success', message: '?덉빟??痍⑥냼?섏뿀?듬땲??' });
     } catch {
-      showToast({ type: 'error', message: '예약 취소에 실패했습니다.' });
+      showToast({ type: 'error', message: '?덉빟 痍⑥냼???ㅽ뙣?덉뒿?덈떎.' });
     } finally {
       setShowCancelModal(false);
       setCancelTarget(null);
     }
   };
 
-  // 내 예약 탭 필터 (오늘/예정만 - 지난 예약 탭 제거)
+  // ???덉빟 ???꾪꽣 (?ㅻ뒛/?덉젙留?- 吏???덉빟 ???쒓굅)
   const myResFiltered = useMemo(() => {
     if (myResTab === 'today')
       return myReservations.filter(
@@ -427,7 +421,7 @@ export default function RoomReservation() {
     return myReservations.filter((r) => r.status !== 'cancelled');
   }, [myResTab, myReservations]);
 
-  // ─── 셀 스타일 ────────────────────────────────────────────────────────────
+  // ??? ? ?ㅽ???????????????????????????????????????????????????????????????
   const getCellStyle = (status) => {
     switch (status) {
       case 'available':
@@ -455,20 +449,20 @@ export default function RoomReservation() {
     );
     switch (status) {
       case 'available':
-        return <span className="text-[0.7rem] font-semibold">예약 가능</span>;
+        return <span className="text-[0.7rem] font-semibold">?덉빟 媛??/span>;
       case 'mine':
         return (
           <span className="flex flex-col items-center gap-0.5">
             <CheckCircle size={12} />
-            <span className="text-[0.7rem] font-semibold">내 예약</span>
+            <span className="text-[0.7rem] font-semibold">???덉빟</span>
           </span>
         );
       case 'reserved':
-        return <span className="text-xs">{slot?.reserved_by ?? '예약됨'}</span>;
+        return <span className="text-xs">{slot?.reserved_by ?? '?덉빟??}</span>;
       case 'closed':
-        return <span className="text-xs">운영 중단</span>;
+        return <span className="text-xs">?댁쁺 以묐떒</span>;
       case 'past':
-        return <span className="text-xs">종료</span>;
+        return <span className="text-xs">醫낅즺</span>;
       default:
         return null;
     }
@@ -477,25 +471,25 @@ export default function RoomReservation() {
   const tabItems = [
     {
       key: 'all',
-      label: '전체',
+      label: '?꾩껜',
       count: rooms.filter((r) => r.status !== 'closed').length,
     },
     {
       key: 'study',
-      label: '자습실',
+      label: '?먯뒿??,
       count: rooms.filter((r) => r.type === 'study').length,
     },
     {
       key: 'meeting',
-      label: '회의실',
+      label: '?뚯쓽??,
       count: rooms.filter((r) => r.type === 'meeting' && r.status !== 'closed')
         .length,
     },
   ];
 
   const myResTabItems = [
-    { key: 'today', label: '오늘' },
-    { key: 'upcoming', label: '예정' },
+    { key: 'today', label: '?ㅻ뒛' },
+    { key: 'upcoming', label: '?덉젙' },
   ];
 
   const statusBadge = (status) => {
@@ -503,20 +497,19 @@ export default function RoomReservation() {
       case 'confirmed':
         return (
           <Badge variant="success" size="sm">
-            예약 확정
+            ?덉빟 ?뺤젙
           </Badge>
         );
       case 'completed':
         return (
           <Badge variant="default" size="sm">
-            이용 완료
+            ?댁슜 ?꾨즺
           </Badge>
         );
       case 'cancelled':
         return (
           <Badge variant="warning" size="sm">
-            취소됨
-          </Badge>
+            痍⑥냼??          </Badge>
         );
       default:
         return null;
@@ -530,14 +523,14 @@ export default function RoomReservation() {
     >
       <header>
         <h1 className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}>
-          자습실 / 회의실 예약
+          ?먯뒿??/ ?뚯쓽???덉빟
         </h1>
         <p className="mt-1 text-[0.95rem] text-[#6b6560]">
-          고요함 속에 피어나는 지성, 최적의 공간을 예약해 학습 흐름을 유지하세요.
+          怨좎슂???띿뿉 ?쇱뼱?섎뒗 吏?? 理쒖쟻??怨듦컙???덉빟???숈뒿 ?먮쫫???좎??섏꽭??
         </p>
       </header>
 
-      {/* ── 이용 규칙 배너 ──────────────────────────────────────────────── */}
+      {/* ?? ?댁슜 洹쒖튃 諛곕꼫 ???????????????????????????????????????????????? */}
       <div className="overflow-hidden rounded-2xl border border-[#eceae4] bg-white">
         <button
           onClick={() => setShowRules((v) => !v)}
@@ -545,7 +538,7 @@ export default function RoomReservation() {
         >
           <div className="flex items-center gap-2 text-sm font-semibold text-[#4e5a61]">
             <Info size={16} />
-            시설 이용 규칙 안내
+            ?쒖꽕 ?댁슜 洹쒖튃 ?덈궡
           </div>
           {showRules ? (
             <ChevronUp size={16} className="text-[#7d8b93]" />
@@ -558,16 +551,16 @@ export default function RoomReservation() {
             {[
               {
                 icon: Clock,
-                text: '이용 시간: 09:00 ~ 21:00 (1시간 단위 예약)',
+                text: '?댁슜 ?쒓컙: 09:00 ~ 21:00 (1?쒓컙 ?⑥쐞 ?덉빟)',
               },
-              { icon: CalendarCheck, text: '1인 최대 3건/일 예약 가능' },
+              { icon: CalendarCheck, text: '1??理쒕? 3嫄????덉빟 媛?? },
               {
                 icon: XCircle,
-                text: '예약 후 노쇼(미이용) 시 당일 예약 기능 제한',
+                text: '?덉빟 ???몄눥(誘몄씠?? ???뱀씪 ?덉빟 湲곕뒫 ?쒗븳',
               },
-              { icon: Building2, text: '회의실은 반드시 2인 이상 이용' },
-              { icon: DoorOpen, text: '이용 종료 후 원상복구 및 전원 끄기' },
-              { icon: CheckCircle, text: '예약은 이용 30분 전까지 취소 가능' },
+              { icon: Building2, text: '?뚯쓽?ㅼ? 諛섎뱶??2???댁긽 ?댁슜' },
+              { icon: DoorOpen, text: '?댁슜 醫낅즺 ???먯긽蹂듦뎄 諛??꾩썝 ?꾧린' },
+              { icon: CheckCircle, text: '?덉빟? ?댁슜 30遺??꾧퉴吏 痍⑥냼 媛?? },
             ].map(({ icon, text }, i) => {
               const RuleIcon = icon;
               return (
@@ -584,11 +577,11 @@ export default function RoomReservation() {
         )}
       </div>
 
-      {/* ── 통계 요약 카드 ───────────────────────────────────────────────── */}
+      {/* ?? ?듦퀎 ?붿빟 移대뱶 ????????????????????????????????????????????????? */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           {
-            label: '전체 이용 가능',
+            label: '?꾩껜 ?댁슜 媛??,
             total: stats.total,
             available: stats.availableNow,
             icon: DoorOpen,
@@ -596,7 +589,7 @@ export default function RoomReservation() {
             iconColor: 'text-[#7f786d]',
           },
           {
-            label: '자습실',
+            label: '?먯뒿??,
             total: stats.studyTotal,
             available: stats.studyAvailable,
             icon: BookOpen,
@@ -604,7 +597,7 @@ export default function RoomReservation() {
             iconColor: 'text-[#6f8391]',
           },
           {
-            label: '회의실',
+            label: '?뚯쓽??,
             total: stats.meetingTotal,
             available: stats.meetingAvailable,
             icon: Building2,
@@ -619,9 +612,9 @@ export default function RoomReservation() {
                 <StatIcon size={16} className="text-[#6f6860]" />
                 <span
                   className={`text-xs font-medium ${
-                    label === '회의실'
+                    label === '?뚯쓽??
                       ? 'text-[#5c4d66]'
-                      : label === '자습실'
+                      : label === '?먯뒿??
                         ? 'text-[#4e5a61]'
                         : 'text-[#8a847a]'
                   }`}
@@ -635,16 +628,16 @@ export default function RoomReservation() {
                 </span>
                 <span className="text-sm text-[#b0aaa1] mb-1">/ {total}</span>
               </div>
-              <p className="mt-1 text-xs text-[#9c988e]">현재 이용 가능</p>
+              <p className="mt-1 text-xs text-[#9c988e]">?꾩옱 ?댁슜 媛??/p>
             </Card>
           );
         })}
       </div>
 
-      {/* ── 날짜 선택 칩 바 ─────────────────────────────────────── */}
+      {/* ?? ?좎쭨 ?좏깮 移?諛???????????????????????????????????????? */}
       <div>
         <p className={`mb-2 text-[1.55rem] font-semibold text-[#2c2b28]`}>
-          예약일 선택
+          ?덉빟???좏깮
         </p>
         <div className="overflow-x-auto -mx-1 px-1">
           <div className="flex gap-2 pb-1" style={{ minWidth: 'max-content' }}>
@@ -677,7 +670,7 @@ export default function RoomReservation() {
         </div>
       </div>
 
-      {/* ── 탭 + 빠른 필터 ─────────────────────────────────────── */}
+      {/* ?? ??+ 鍮좊Ⅸ ?꾪꽣 ??????????????????????????????????????? */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1 w-fit">
           {tabItems.map((tab) => (
@@ -705,7 +698,7 @@ export default function RoomReservation() {
             selectedDate === TODAY && setShowAvailableNow((v) => !v)
           }
           disabled={selectedDate !== TODAY}
-          title={selectedDate !== TODAY ? '오늘 날짜에만 사용 가능' : undefined}
+          title={selectedDate !== TODAY ? '?ㅻ뒛 ?좎쭨?먮쭔 ?ъ슜 媛?? : undefined}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
             selectedDate !== TODAY
               ? 'bg-[#f2f0ec] text-[#b0aaa1] border-[#e4e1d8] cursor-not-allowed opacity-60'
@@ -722,8 +715,7 @@ export default function RoomReservation() {
                 : 'text-[#4e5a61]'
             }
           />
-          지금 이용 가능
-          {selectedDate === TODAY && (
+          吏湲??댁슜 媛??          {selectedDate === TODAY && (
             <span
               className={`text-xs rounded-full px-1.5 ${
                 showAvailableNow
@@ -736,30 +728,28 @@ export default function RoomReservation() {
                 : activeTab === 'meeting'
                   ? stats.meetingAvailable
                   : stats.availableNow}
-              개
-            </span>
+              媛?            </span>
           )}
         </button>
       </div>
 
-      {/* ── 타임테이블 ──────────────────────────────────────────────────── */}
+      {/* ?? ??꾪뀒?대툝 ???????????????????????????????????????????????????? */}
       {roomsLoading ? (
         <Card padding="p-12" className="text-center">
-          <p className="text-[#a39c92]">방 목록을 불러오는 중...</p>
+          <p className="text-[#a39c92]">諛?紐⑸줉??遺덈윭?ㅻ뒗 以?..</p>
         </Card>
       ) : filteredRooms.length === 0 ? (
         <Card padding="p-12" className="text-center">
           <Zap size={32} className="mx-auto mb-3 text-[#c5bfb4]" />
           <p className="font-medium text-[#7f786d]">
-            현재 이용 가능한 방이 없습니다
+            ?꾩옱 ?댁슜 媛?ν븳 諛⑹씠 ?놁뒿?덈떎
           </p>
           <p className="mt-1 text-sm text-[#a39c92]">
-            필터를 해제하거나 다른 탭을 선택해 보세요
-          </p>
+            ?꾪꽣瑜??댁젣?섍굅???ㅻⅨ ??쓣 ?좏깮??蹂댁꽭??          </p>
         </Card>
       ) : (
         <Card padding="p-0" className="overflow-hidden rounded-2xl border border-[#eceae4]">
-          {/* 범례 */}
+          {/* 踰붾? */}
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-[#f0ede8] bg-[#fbfaf7]">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6b6560]">
               <Calendar size={13} className="text-[#8a847a]" />
@@ -771,12 +761,12 @@ export default function RoomReservation() {
               )}
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs text-[#9c988e] font-medium">범례:</span>
+              <span className="text-xs text-[#9c988e] font-medium">踰붾?:</span>
               {[
-                { color: 'bg-[#f5fafd] border-[#dfeef7]', label: '예약 가능' },
-                { color: 'bg-[#4e5a61] border-[#4e5a61]', label: '내 예약' },
-                { color: 'bg-[#f1f0ec] border-[#e6e2d9]', label: '예약됨' },
-                { color: 'bg-[#f8f7f4] border-[#efede8]', label: '종료' },
+                { color: 'bg-[#f5fafd] border-[#dfeef7]', label: '?덉빟 媛?? },
+                { color: 'bg-[#4e5a61] border-[#4e5a61]', label: '???덉빟' },
+                { color: 'bg-[#f1f0ec] border-[#e6e2d9]', label: '?덉빟?? },
+                { color: 'bg-[#f8f7f4] border-[#efede8]', label: '醫낅즺' },
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-1">
                   <div className={`w-3 h-3 rounded border ${color}`} />
@@ -802,7 +792,7 @@ export default function RoomReservation() {
                   {filteredRooms.map((room) => {
                     const meta = roomTypeMeta[room.type];
                     const Icon = meta.icon;
-                    // 자습실→회의실 경계에 구분선 추가
+                    // ?먯뒿?ㅲ넂?뚯쓽??寃쎄퀎??援щ텇??異붽?
                     const isFirstMeeting =
                       activeTab === 'all' &&
                       room.type === 'meeting' &&
@@ -831,13 +821,13 @@ export default function RoomReservation() {
                           <div className="flex items-center gap-1 text-[#a39c92]">
                             <MapPin size={9} />
                             <span>{room.floor}F</span>
-                            <span>·</span>
+                            <span>쨌</span>
                             <Users size={9} />
-                            <span>{room.capacity}인</span>
+                            <span>{room.capacity}??/span>
                           </div>
                           {room.status === 'closed' && (
                             <span className="text-[10px] font-medium text-[#a67d70]">
-                              운영 중단
+                              ?댁쁺 以묐떒
                             </span>
                           )}
                         </div>
@@ -858,7 +848,7 @@ export default function RoomReservation() {
                         isCurrent ? 'bg-[#fdf8ea]' : 'hover:bg-[#fbfaf7]'
                       }
                     >
-                      {/* 시간 레이블 */}
+                      {/* ?쒓컙 ?덉씠釉?*/}
                       <td className="sticky left-0 z-10 whitespace-nowrap border-b border-r border-[#eceae4] bg-inherit px-3 py-2 font-medium text-[#8a847a]">
                         <div className="flex items-center gap-1.5">
                           {slot}
@@ -869,7 +859,7 @@ export default function RoomReservation() {
                           )}
                         </div>
                       </td>
-                      {/* 방별 셀 */}
+                      {/* 諛⑸퀎 ? */}
                       {filteredRooms.map((room) => {
                         const status = getSlotStatus(room.id, slot);
                         const isFirstMeeting =
@@ -896,7 +886,7 @@ export default function RoomReservation() {
         </Card>
       )}
 
-      {/* ── 방 카드 (편의시설 확인) ────────────────────────────────── */}
+      {/* ?? 諛?移대뱶 (?몄쓽?쒖꽕 ?뺤씤) ?????????????????????????????????? */}
       <div>
         {activeTab === 'all' ? (
           <div className="space-y-5">
@@ -916,8 +906,7 @@ export default function RoomReservation() {
                     >
                       {meta.label}
                       <span className="ml-1.5 text-xs font-normal text-gray-400">
-                        {typeRooms.length}개
-                      </span>
+                        {typeRooms.length}媛?                      </span>
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -946,11 +935,11 @@ export default function RoomReservation() {
         )}
       </div>
 
-      {/* ── 내 예약 목록 ─────────────────────────────────────────────────── */}
+      {/* ?? ???덉빟 紐⑸줉 ??????????????????????????????????????????????????? */}
       <div>
-        <h2 className="mb-3 text-base font-semibold text-[#2c2b28]">내 예약</h2>
+        <h2 className="mb-3 text-base font-semibold text-[#2c2b28]">???덉빟</h2>
 
-        {/* 내 예약 탭 */}
+        {/* ???덉빟 ??*/}
         <div className="mb-4 flex w-fit gap-1 rounded-xl bg-[#efede7] p-1">
           {myResTabItems.map((tab) => (
             <button
@@ -970,7 +959,7 @@ export default function RoomReservation() {
         {myResFiltered.length === 0 ? (
           <Card padding="p-8" className="bg-[#faf9f6] text-center">
             <CalendarCheck size={28} className="mx-auto mb-2 text-[#c5bfb4]" />
-            <p className="text-sm text-[#a39c92]">예약 내역이 없습니다</p>
+            <p className="text-sm text-[#a39c92]">?덉빟 ?댁뿭???놁뒿?덈떎</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -1015,7 +1004,7 @@ export default function RoomReservation() {
                         onClick={() => openCancelModal(res)}
                         className="shrink-0 text-[#a33b39] hover:bg-[#f9eeed]"
                       >
-                        취소
+                        痍⑥냼
                       </Button>
                     )}
                   </div>
@@ -1026,29 +1015,29 @@ export default function RoomReservation() {
         )}
       </div>
 
-      {/* ── 예약 확인 모달 ───────────────────────────────────────────────── */}
+      {/* ?? ?덉빟 ?뺤씤 紐⑤떖 ????????????????????????????????????????????????? */}
       {showReserveModal && selectedCell && (
         <Modal
           isOpen={showReserveModal}
           onClose={() => setShowReserveModal(false)}
-          title="예약 확인"
+          title="?덉빟 ?뺤씤"
         >
           <div className="space-y-4">
             <div className="space-y-2 rounded-xl bg-[#faf9f6] p-4 text-sm">
               <div className="flex justify-between">
-                <span className="text-[#8a847a]">공간</span>
+                <span className="text-[#8a847a]">怨듦컙</span>
                 <span className="font-semibold text-[#2c2b28]">
                   {selectedCell.room.name}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#8a847a]">날짜</span>
+                <span className="text-[#8a847a]">?좎쭨</span>
                 <span className="font-semibold text-[#2c2b28]">
                   {selectedDate}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#8a847a]">시간</span>
+                <span className="text-[#8a847a]">?쒓컙</span>
                 <span className="font-semibold text-[#2c2b28]">
                   {selectedCell.timeSlot} ~{' '}
                   {TIME_SLOTS[TIME_SLOTS.indexOf(selectedCell.timeSlot) + 1] ??
@@ -1056,22 +1045,21 @@ export default function RoomReservation() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#8a847a]">위치</span>
+                <span className="text-[#8a847a]">?꾩튂</span>
                 <span className="font-semibold text-[#2c2b28]">
-                  {selectedCell.room.floor}층
-                </span>
+                  {selectedCell.room.floor}痢?                </span>
               </div>
             </div>
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#5c5852]">
-                사용 목적{' '}
-                <span className="font-normal text-[#a39c92]">(선택)</span>
+                ?ъ슜 紐⑹쟻{' '}
+                <span className="font-normal text-[#a39c92]">(?좏깮)</span>
               </label>
               <textarea
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
-                placeholder="예: 개인 공부, 팀 프로젝트 회의, 면접 준비 등"
+                placeholder="?? 媛쒖씤 怨듬?, ? ?꾨줈?앺듃 ?뚯쓽, 硫댁젒 以鍮???
                 rows={3}
                 className="w-full resize-none rounded-xl border border-[#d9d3c8] px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#d8d2c6]"
               />
@@ -1083,22 +1071,22 @@ export default function RoomReservation() {
                 fullWidth
                 onClick={() => setShowReserveModal(false)}
               >
-                취소
+                痍⑥냼
               </Button>
               <Button fullWidth onClick={handleConfirmReserve}>
-                예약 확정
+                ?덉빟 ?뺤젙
               </Button>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* ── 예약 취소 확인 모달 ─────────────────────────────────────────── */}
+      {/* ?? ?덉빟 痍⑥냼 ?뺤씤 紐⑤떖 ??????????????????????????????????????????? */}
       {showCancelModal && cancelTarget && (
         <Modal
           isOpen={showCancelModal}
           onClose={() => setShowCancelModal(false)}
-          title="예약 취소"
+          title="?덉빟 痍⑥냼"
         >
           <div className="space-y-4">
             <p className="text-sm text-[#6b6560]">
@@ -1106,7 +1094,7 @@ export default function RoomReservation() {
                 {cancelTarget.room_name}
               </span>{' '}
               ({cancelTarget.date} {cancelTarget.start_time} ~{' '}
-              {cancelTarget.end_time}) 예약을 취소하시겠습니까?
+              {cancelTarget.end_time}) ?덉빟??痍⑥냼?섏떆寃좎뒿?덇퉴?
             </p>
             <div className="flex gap-2">
               <Button
@@ -1114,14 +1102,13 @@ export default function RoomReservation() {
                 fullWidth
                 onClick={() => setShowCancelModal(false)}
               >
-                아니요
-              </Button>
+                ?꾨땲??              </Button>
               <Button
                 fullWidth
                 className="bg-red-500 hover:bg-red-600 text-white"
                 onClick={handleConfirmCancel}
               >
-                예약 취소
+                ?덉빟 痍⑥냼
               </Button>
             </div>
           </div>

@@ -3,14 +3,10 @@ import { equipmentApi } from '@/api/equipment';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
-import Badge from '@/components/common/Badge';
 import Button from '@/components/common/Button';
-import Tabs from '@/components/common/Tabs';
 import Modal from '@/components/common/Modal';
 import { Monitor, Laptop, Tablet, Keyboard } from 'lucide-react';
-
-const pageBg = '#F7F5F0';
-const categoryMeta = {
+const pageBg = '#F7F5F0';const categoryMeta = {
   노트북: {
     icon: Laptop,
     bg: 'bg-[#eef2f4]',
@@ -36,6 +32,68 @@ const categoryMeta = {
     activeBorder: 'border-[#d8d2c7]',
   },
 };
+
+const equipmentThumbs = [
+  {
+    key: 'macbook',
+    src: 'https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1200',
+  },
+  {
+    key: '맥북',
+    src: 'https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1200',
+  },
+  {
+    key: 'monitor',
+    src: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    key: '모니터',
+    src: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    key: 'ipad',
+    src: 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    key: 'tablet',
+    src: 'https://images.unsplash.com/photo-1587033411391-5d9e51cce126?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    key: 'mouse',
+    src: 'https://images.unsplash.com/photo-1613141412501-9012977f1969?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    key: '마우스',
+    src: 'https://images.unsplash.com/photo-1613141412501-9012977f1969?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    key: '키보드',
+    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Computer_keyboard.svg/1280px-Computer_keyboard.svg.png',
+  },
+  {
+    key: 'wacom',
+    src: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=900&q=80',
+  },
+];
+
+function getEquipmentThumb(item) {
+  const txt = `${item.name || ''} ${item.serial_no || ''}`.toLowerCase();
+  for (const t of equipmentThumbs) {
+    if (txt.includes(t.key.toLowerCase())) return t.src;
+  }
+  return 'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=900&q=80';
+}
+
+function handleThumbError(e) {
+  const fallbackSrc = e.currentTarget.dataset.fallback;
+  if (fallbackSrc && e.currentTarget.src !== fallbackSrc) {
+    e.currentTarget.src = fallbackSrc;
+    return;
+  }
+  e.currentTarget.onerror = null;
+  e.currentTarget.src =
+    'https://dummyimage.com/1200x800/efede7/9c988e&text=No+Image';
+}
 
 export default function Equipment() {
   const { user } = useAuth();
@@ -132,15 +190,30 @@ export default function Equipment() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'available':
-        return { label: '대여 가능', variant: 'success' };
+        return {
+          label: '대여 가능',
+          className: 'bg-[#e9eff3] text-[#4f6475] border border-[#dbe6ed]',
+        };
       case 'borrowed':
-        return { label: '대여중', variant: 'info' };
+        return {
+          label: '대여중',
+          className: 'bg-[#f4ecd7] text-[#7a6330] border border-[#ebdfbf]',
+        };
       case 'maintenance':
-        return { label: '수리중', variant: 'warning' };
+        return {
+          label: '수리중',
+          className: 'bg-[#efede7] text-[#8d877e] border border-[#e0dbd1]',
+        };
       case 'retired':
-        return { label: '폐기', variant: 'default' };
+        return {
+          label: '폐기',
+          className: 'bg-[#efede7] text-[#8d877e] border border-[#e0dbd1]',
+        };
       default:
-        return { label: status, variant: 'default' };
+        return {
+          label: status,
+          className: 'bg-[#efede7] text-[#8d877e] border border-[#e0dbd1]',
+        };
     }
   };
 
@@ -149,7 +222,7 @@ export default function Equipment() {
     // 내가 신청 중인 장비 (관리자 승인 대기)
     if (item.status === 'available' && pendingEquipmentIds.has(item.id)) {
       return (
-        <Button size="sm" fullWidth disabled>
+        <Button size="sm" fullWidth disabled className="!bg-[#eceae4] !text-[#9c988e]">
           신청중
         </Button>
       );
@@ -157,7 +230,7 @@ export default function Equipment() {
     switch (item.status) {
       case 'available':
         return (
-          <Button size="sm" fullWidth onClick={() => openBorrowModal(item)}>
+          <Button size="sm" fullWidth className="!bg-[#4e5a61] hover:!bg-[#424d53] active:!bg-[#384248]" onClick={() => openBorrowModal(item)}>
             대여 신청
           </Button>
         );
@@ -167,24 +240,25 @@ export default function Equipment() {
             variant="secondary"
             size="sm"
             fullWidth
+            className="!border-[#cfc8bc] !bg-white !text-[#5c5852] hover:!bg-[#f7f6f2]"
             onClick={() => openReturnModal(item)}
           >
             반납
           </Button>
         ) : (
-          <Button size="sm" fullWidth disabled>
+          <Button size="sm" fullWidth disabled className="!bg-[#efe7d6] !text-[#7a6330]">
             대여중
           </Button>
         );
       case 'maintenance':
         return (
-          <Button size="sm" fullWidth disabled>
+          <Button size="sm" fullWidth disabled className="!bg-[#eceae4] !text-[#9c988e]">
             수리중
           </Button>
         );
       case 'retired':
         return (
-          <Button size="sm" fullWidth disabled>
+          <Button size="sm" fullWidth disabled className="!bg-[#eceae4] !text-[#9c988e]">
             폐기
           </Button>
         );
@@ -198,7 +272,14 @@ export default function Equipment() {
       className="space-y-6 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
       style={{ backgroundColor: pageBg }}
     >
-      <h1 className="text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]">장비 대여</h1>
+      <header>
+        <h1 className={`text-[2.1rem] font-semibold text-[#2c2b28]`}>
+          장비 대여
+        </h1>
+        <p className="mt-1 text-sm text-[#8a847a]">
+          필요한 장비를 확인하고 대여를 신청하세요.
+        </p>
+      </header>
 
       {/* 카테고리 요약 카드 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -216,7 +297,7 @@ export default function Equipment() {
               hoverable
               onClick={() => setActiveCategory(isActive ? 'all' : cat)}
               padding="p-4"
-              className={`cursor-pointer transition-all duration-150 ${isActive ? `ring-2 ring-offset-1 ${meta.activeBorder} border-transparent` : ''}`}
+              className={`cursor-pointer rounded-2xl border-[#eceae4] bg-white transition-all duration-150 ${isActive ? `ring-2 ring-offset-1 ${meta.activeBorder} border-transparent` : ''}`}
             >
               <div className="flex items-center gap-3">
                 <div
@@ -225,10 +306,10 @@ export default function Equipment() {
                   <Icon className={`w-5 h-5 ${meta.iconColor}`} />
                 </div>
                 <div>
-                  <p className="text-body-sm font-semibold text-[#2c2b28]">
+                  <p className="text-body-sm font-semibold text-gray-900">
                     {cat}
                   </p>
-                  <p className="text-caption text-[#9c988e]">
+                  <p className="text-caption text-gray-500">
                     총 {total}개 · 가능 {available}개
                   </p>
                 </div>
@@ -239,21 +320,32 @@ export default function Equipment() {
       </div>
 
       {/* 카테고리 탭 필터 */}
-      <Tabs
-        tabs={categoryTabs}
-        activeTab={activeCategory}
-        onChange={setActiveCategory}
-      />
+      <div className="inline-flex flex-wrap gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1">
+        {categoryTabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveCategory(tab.key)}
+            className={`rounded-full px-4 py-1.5 text-xs font-medium ${
+              activeCategory === tab.key
+                ? 'bg-white text-[#2c2b28] shadow-sm'
+                : 'text-[#8a847a] hover:text-[#5c5852]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       {/* 장비 카드 그리드 */}
       {filtered.length === 0 ? (
-        <div className="py-16 text-center text-[#9c988e] text-body-sm">
+        <div className="py-16 text-center text-gray-400 text-body-sm">
           해당 카테고리의 장비가 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((item) => {
-            const { label: statusLabel, variant: statusVariant } =
+            const { label: statusLabel, className: statusClassName } =
               getStatusBadge(item.status);
             const meta = categoryMeta[item.category] || {
               icon: Keyboard,
@@ -263,8 +355,22 @@ export default function Equipment() {
             const CategoryIcon = meta.icon;
 
             return (
-              <Card key={item.id}>
+              <Card key={item.id} className="rounded-2xl border-[#eceae4] bg-white shadow-[0_2px_20px_rgba(60,52,40,0.05)]">
                 <div className="space-y-3">
+                  <div className="h-32 w-full overflow-hidden rounded-xl bg-gray-50">
+                    <img
+                      src={getEquipmentThumb(item)}
+                      data-fallback="https://images.unsplash.com/photo-1517336714739-489689fd1ca8?auto=format&fit=crop&w=1200&q=80"
+                      alt={item.name}
+                      onError={handleThumbError}
+                      className={`h-full w-full ${
+                        item.name?.includes('키보드')
+                          ? 'object-contain p-3'
+                          : 'object-cover'
+                      }`}
+                      loading="lazy"
+                    />
+                  </div>
                   <div className="flex items-start gap-3">
                     <div
                       className={`flex-shrink-0 w-10 h-10 rounded-xl ${meta.bg} flex items-center justify-center`}
@@ -272,22 +378,26 @@ export default function Equipment() {
                       <CategoryIcon className={`w-5 h-5 ${meta.iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-body font-semibold text-[#2c2b28] truncate">
+                      <h3 className="text-body font-semibold text-gray-900 truncate">
                         {item.name}
                       </h3>
-                      <p className="text-caption text-[#9c988e] mt-0.5">
+                      <p className="text-caption text-gray-400 mt-0.5">
                         {item.serial_no}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="default">{item.category}</Badge>
-                    <Badge variant={statusVariant}>{statusLabel}</Badge>
+                    <span className="inline-flex items-center rounded-full border border-[#e0dbd1] bg-[#f7f5f0] px-2.5 py-1 text-xs font-semibold text-[#7f786d]">
+                      {item.category}
+                    </span>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${statusClassName}`}>
+                      {statusLabel}
+                    </span>
                   </div>
 
                   {/* 고정 높이 - 대여자 없을 때 여백 유지 */}
-                  <p className="text-caption text-[#9c988e] h-4">
+                  <p className="text-caption text-gray-500 h-4">
                     {item.status === 'borrowed' && item.borrower_name && (
                       <>
                         대여자: {item.borrower_name}
@@ -312,30 +422,29 @@ export default function Equipment() {
         onClose={closeModal}
         title="장비 대여 신청"
         maxWidth="max-w-sm"
-        persistent
       >
         {modal.item && (
           <div className="space-y-4">
-            <div className="p-3 bg-[#f7f6f2] rounded-xl space-y-1">
-              <p className="text-body-sm font-semibold text-[#2c2b28]">
+            <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+              <p className="text-body-sm font-semibold text-gray-900">
                 {modal.item.name}
               </p>
-              <p className="text-caption text-[#9c988e]">
+              <p className="text-caption text-gray-500">
                 {modal.item.serial_no} · {modal.item.category}
               </p>
             </div>
 
             <div>
-              <label className="block text-body-sm font-medium text-[#6b6560] mb-1">
+              <label className="block text-body-sm font-medium text-gray-700 mb-1">
                 신청 사유{' '}
-                <span className="text-[#9c988e] font-normal">(선택)</span>
+                <span className="text-gray-400 font-normal">(선택)</span>
               </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="대여 목적을 간략히 작성해주세요"
                 rows={3}
-                className="w-full px-3 py-2 rounded-lg border border-[#e6e2d9] text-body-sm outline-none resize-none focus:border-[#c9a962] focus:ring-2 focus:ring-[#c9a962]/20 transition-colors bg-white"
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-body-sm outline-none resize-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-colors"
               />
             </div>
 
@@ -362,20 +471,19 @@ export default function Equipment() {
         onClose={closeModal}
         title="장비 반납"
         maxWidth="max-w-sm"
-        persistent
       >
         {modal.item && (
           <div className="space-y-4">
-            <div className="p-3 bg-[#f7f6f2] rounded-xl space-y-1">
-              <p className="text-body-sm font-semibold text-[#2c2b28]">
+            <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+              <p className="text-body-sm font-semibold text-gray-900">
                 {modal.item.name}
               </p>
-              <p className="text-caption text-[#9c988e]">
+              <p className="text-caption text-gray-500">
                 {modal.item.serial_no} · {modal.item.category}
               </p>
             </div>
 
-            <p className="text-body-sm text-[#6b6560]">
+            <p className="text-body-sm text-gray-700">
               해당 장비를 반납하겠습니까?
             </p>
 

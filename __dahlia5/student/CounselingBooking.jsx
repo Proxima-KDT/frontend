@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+﻿import { useState, useMemo, useEffect } from 'react';
 import { counselingApi } from '@/api/counseling';
 import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
@@ -24,20 +24,20 @@ const TODAY = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '
 const TODAY_DATE = new Date(TODAY);
 
 const MONTH_NAMES = [
-  '1월',
-  '2월',
-  '3월',
-  '4월',
-  '5월',
-  '6월',
-  '7월',
-  '8월',
-  '9월',
-  '10월',
-  '11월',
-  '12월',
+  '1??,
+  '2??,
+  '3??,
+  '4??,
+  '5??,
+  '6??,
+  '7??,
+  '8??,
+  '9??,
+  '10??,
+  '11??,
+  '12??,
 ];
-const DAYS_OF_WEEK = ['월', '화', '수', '목', '금', '토', '일'];
+const DAYS_OF_WEEK = ['??, '??, '??, '紐?, '湲?, '??, '??];
 
 const TIME_SLOTS = [
   '09:00',
@@ -90,10 +90,10 @@ const roleMeta = {
 const defaultRoleMeta = roleMeta.teacher;
 
 const statusConfig = {
-  confirmed: { label: '예약 확정', variant: 'success' },
-  pending: { label: '검토 중', variant: 'warning' },
-  completed: { label: '완료', variant: 'default' },
-  cancelled: { label: '취소됨', variant: 'error' },
+  confirmed: { label: '?덉빟 ?뺤젙', variant: 'success' },
+  pending: { label: '寃??以?, variant: 'warning' },
+  completed: { label: '?꾨즺', variant: 'default' },
+  cancelled: { label: '痍⑥냼??, variant: 'error' },
 };
 
 function formatMonthTitle(year, month) {
@@ -121,8 +121,7 @@ function formatDateStr(year, month, day) {
 function generateCalendarDays(year, month) {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-  // Mon-based: Sun(0)→6, Mon(1)→0, …
-  const startDow = (firstDay.getDay() + 6) % 7;
+  // Mon-based: Sun(0)??, Mon(1)??, ??  const startDow = (firstDay.getDay() + 6) % 7;
   const days = [];
   for (let i = 0; i < startDow; i++) days.push(null);
   for (let d = 1; d <= lastDay.getDate(); d++) days.push(d);
@@ -138,8 +137,7 @@ export default function CounselingBooking() {
   const now = new Date();
   const THIS_YEAR = now.getFullYear();
   const THIS_MONTH = now.getMonth();
-  // 다음달까지만 예약 가능
-  const MAX_YEAR = THIS_MONTH === 11 ? THIS_YEAR + 1 : THIS_YEAR;
+  // ?ㅼ쓬?ш퉴吏留??덉빟 媛??  const MAX_YEAR = THIS_MONTH === 11 ? THIS_YEAR + 1 : THIS_YEAR;
   const MAX_MONTH = THIS_MONTH === 11 ? 0 : THIS_MONTH + 1;
   const [currentYear, setCurrentYear] = useState(THIS_YEAR);
   const [currentMonth, setCurrentMonth] = useState(THIS_MONTH);
@@ -152,11 +150,11 @@ export default function CounselingBooking() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [myResTab, setMyResTab] = useState('upcoming');
 
-  // 슬롯을 특정 월단위로 가져와 누적하는 함수
+  // ?щ’???뱀젙 ?붾떒?꾨줈 媛?몄? ?꾩쟻?섎뒗 ?⑥닔
   const fetchMonthSlots = (counselorId, y, m) => {
     const key = `${y}-${m}`;
     counselingApi
-      .getSlots(counselorId, y, m + 1) // JS month 0-based → API 1-based
+      .getSlots(counselorId, y, m + 1) // JS month 0-based ??API 1-based
       .then((data) => {
         setSlots((prev) => ({ ...prev, ...data }));
         setLoadedMonths((prev) => new Set([...prev, key]));
@@ -178,7 +176,7 @@ export default function CounselingBooking() {
       .catch(() => {});
   }, []);
 
-  // 상담사 변경 시: 현재월 + 다음달 슬롯 모두 로드
+  // ?곷떞??蹂寃??? ?꾩옱??+ ?ㅼ쓬???щ’ 紐⑤몢 濡쒕뱶
   useEffect(() => {
     if (!selectedCounselorId) return;
     setSlots({});
@@ -214,8 +212,7 @@ export default function CounselingBooking() {
   }, [bookings, selectedCounselorId]);
 
   function prevMonth() {
-    // 현재월보다 이전으로 못 감
-    if (currentYear === THIS_YEAR && currentMonth === THIS_MONTH) return;
+    // ?꾩옱?붾낫???댁쟾?쇰줈 紐?媛?    if (currentYear === THIS_YEAR && currentMonth === THIS_MONTH) return;
     let newYear = currentYear;
     let newMonth = currentMonth;
     if (currentMonth === 0) {
@@ -231,8 +228,7 @@ export default function CounselingBooking() {
   }
 
   function nextMonth() {
-    // 다음달보다 이후로 못 감
-    if (currentYear === MAX_YEAR && currentMonth === MAX_MONTH) return;
+    // ?ㅼ쓬?щ낫???댄썑濡?紐?媛?    if (currentYear === MAX_YEAR && currentMonth === MAX_MONTH) return;
     let newYear = currentYear;
     let newMonth = currentMonth;
     if (currentMonth === 11) {
@@ -245,7 +241,7 @@ export default function CounselingBooking() {
     setCurrentMonth(newMonth);
     setSelectedDate(null);
     setSelectedTime(null);
-    // 해당 월이 캐시되지 않았으면 페치
+    // ?대떦 ?붿씠 罹먯떆?섏? ?딆븯?쇰㈃ ?섏튂
     const key = `${newYear}-${newMonth}`;
     if (selectedCounselorId && !loadedMonths.has(key)) {
       fetchMonthSlots(selectedCounselorId, newYear, newMonth);
@@ -289,9 +285,9 @@ export default function CounselingBooking() {
         bookingReason.trim(),
       );
       setBookings((prev) => [...prev, newBooking]);
-      showToast({ type: 'success', message: '상담 예약이 완료되었습니다.' });
+      showToast({ type: 'success', message: '?곷떞 ?덉빟???꾨즺?섏뿀?듬땲??' });
     } catch {
-      showToast({ type: 'error', message: '예약에 실패했습니다.' });
+      showToast({ type: 'error', message: '?덉빟???ㅽ뙣?덉뒿?덈떎.' });
     } finally {
       setBookingLoading(false);
       setShowModal(false);
@@ -313,9 +309,9 @@ export default function CounselingBooking() {
     try {
       await counselingApi.cancel(cancelTargetId);
       setBookings((prev) => prev.filter((b) => b.id !== cancelTargetId));
-      showToast({ type: 'success', message: '예약이 취소되었습니다.' });
+      showToast({ type: 'success', message: '?덉빟??痍⑥냼?섏뿀?듬땲??' });
     } catch {
-      showToast({ type: 'error', message: '예약 취소에 실패했습니다.' });
+      showToast({ type: 'error', message: '?덉빟 痍⑥냼???ㅽ뙣?덉뒿?덈떎.' });
     }
     setCancelTargetId(null);
   }
@@ -341,20 +337,20 @@ export default function CounselingBooking() {
         <h1
           className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}
         >
-          면담 예약
+          硫대떞 ?덉빟
         </h1>
         <p className="mt-1 text-[0.95rem] text-[#6b6560]">
-          멘토 및 학업 매니저와의 1:1 세션을 통해 학습 방향을 설계하고 필요한 지원을 받으세요.
+          硫섑넗 諛??숈뾽 留ㅻ땲????1:1 ?몄뀡???듯빐 ?숈뒿 諛⑺뼢???ㅺ퀎?섍퀬 ?꾩슂??吏?먯쓣 諛쏆쑝?몄슂.
         </p>
       </header>
 
-      {/* ── 멘토 선택 ── */}
+      {/* ?? 硫섑넗 ?좏깮 ?? */}
       <section>
         <div className="mb-3">
           <h2
             className={`text-[1.4rem] font-semibold text-[#2c2b28]`}
           >
-            멘토 선택
+            硫섑넗 ?좏깮
           </h2>
         </div>
 
@@ -387,7 +383,7 @@ export default function CounselingBooking() {
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       <span className="rounded-full bg-[#f0eeeb] px-2 py-0.5 text-[0.62rem] font-semibold text-[#6b6560]">
-                        {c.role === 'teacher' ? '학업 상담' : '진로 상담'}
+                        {c.role === 'teacher' ? '?숈뾽 ?곷떞' : '吏꾨줈 ?곷떞'}
                       </span>
                     </div>
                   </div>
@@ -401,7 +397,7 @@ export default function CounselingBooking() {
         </div>
       </section>
 
-      {/* ── 캘린더 + 시간 선택 ── */}
+      {/* ?? 罹섎┛??+ ?쒓컙 ?좏깮 ?? */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
         <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
           <div className="mb-4 flex items-center justify-between px-1">
@@ -414,7 +410,7 @@ export default function CounselingBooking() {
                 onClick={prevMonth}
                 disabled={currentYear === THIS_YEAR && currentMonth === THIS_MONTH}
                 className="rounded-xl p-2 hover:bg-[#faf9f7] disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="이전 달"
+                aria-label="?댁쟾 ??
               >
                 <ChevronLeft className="h-5 w-5 text-[#8a847a]" />
               </button>
@@ -423,7 +419,7 @@ export default function CounselingBooking() {
                 onClick={nextMonth}
                 disabled={currentYear === MAX_YEAR && currentMonth === MAX_MONTH}
                 className="rounded-xl p-2 hover:bg-[#faf9f7] disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="다음 달"
+                aria-label="?ㅼ쓬 ??
               >
                 <ChevronRight className="h-5 w-5 text-[#8a847a]" />
               </button>
@@ -495,15 +491,13 @@ export default function CounselingBooking() {
           <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-[#f0ede8] pt-4">
             <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
               <div className="h-3 w-3 rounded-md border border-[#e6e2d9] bg-[#f7f6f2]" />
-              예약 가능
-            </div>
+              ?덉빟 媛??            </div>
             <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
               <div className="h-3 w-3 rounded-md bg-[#4e5a61]" />
-              선택됨
-            </div>
+              ?좏깮??            </div>
             <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
               <div className="h-3 w-3 rounded-md bg-white ring-2 ring-[#c9a962]" />
-              오늘
+              ?ㅻ뒛
             </div>
           </div>
         </Card>
@@ -511,7 +505,7 @@ export default function CounselingBooking() {
         <div className="space-y-4">
           <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
             <h3 className={`mb-3 text-[1.25rem] font-semibold text-[#2c2b28]`}>
-              시간 선택
+              ?쒓컙 ?좏깮
             </h3>
             {selectedDate ? (
               <div className="space-y-2">
@@ -535,17 +529,16 @@ export default function CounselingBooking() {
                       <span>{toAmPm(t)}</span>
                       {isSelected ? (
                         <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#4e5a61] bg-[#4e5a61] text-white">
-                          ✓
-                        </span>
+                          ??                        </span>
                       ) : null}
                     </button>
                   );
                 })}
 
                 <p className="pt-2 text-[0.72rem] text-[#a8a29e]">
-                  선택: {selectedDate?.replace(/-/g, '.')}
+                  ?좏깮: {selectedDate?.replace(/-/g, '.')}
                   {selectedTime ? ` ${toAmPm(selectedTime)}` : ''}
-                  {selectedCounselor?.name ? ` · ${selectedCounselor.name}` : ''}
+                  {selectedCounselor?.name ? ` 쨌 ${selectedCounselor.name}` : ''}
                 </p>
 
                 <div className="pt-2">
@@ -559,7 +552,7 @@ export default function CounselingBooking() {
                     }}
                     disabled={!selectedTime}
                   >
-                    예약 확정하기
+                    ?덉빟 ?뺤젙?섍린
                   </Button>
                 </div>
               </div>
@@ -567,10 +560,9 @@ export default function CounselingBooking() {
               <div className="rounded-2xl border border-[#efede8] bg-[#fbfaf7] p-6 text-center">
                 <Calendar className="mx-auto mb-3 h-9 w-9 text-[#c9c4bc]" />
                 <p className="text-sm font-semibold text-[#6b6560]">
-                  날짜를 먼저 선택해 주세요
-                </p>
+                  ?좎쭨瑜?癒쇱? ?좏깮??二쇱꽭??                </p>
                 <p className="mt-1 text-xs text-[#a8a29e]">
-                  선택 가능한 날짜에만 시간 목록이 표시됩니다.
+                  ?좏깮 媛?ν븳 ?좎쭨?먮쭔 ?쒓컙 紐⑸줉???쒖떆?⑸땲??
                 </p>
               </div>
             )}
@@ -581,17 +573,17 @@ export default function CounselingBooking() {
               Quick Guide
             </p>
             <p className="mt-2 text-[0.85rem] leading-relaxed text-[#4a3b12]">
-              준비물: 질문 리스트를 미리 작성해 오시면 면담이 더 효율적입니다.
+              以鍮꾨Ъ: 吏덈Ц 由ъ뒪?몃? 誘몃━ ?묒꽦???ㅼ떆硫?硫대떞?????⑥쑉?곸엯?덈떎.
             </p>
           </Card>
         </div>
       </section>
 
-      {/* ── 내 면담 예약 내역 ── */}
+      {/* ?? ??硫대떞 ?덉빟 ?댁뿭 ?? */}
       <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className={`text-[1.7rem] font-semibold text-[#2c2b28]`}>
-            내 면담 예약
+            ??硫대떞 ?덉빟
           </h2>
           <div className="flex gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1">
             <button
@@ -600,7 +592,7 @@ export default function CounselingBooking() {
                 myResTab === 'upcoming',
               )}`}
             >
-              예정
+              ?덉젙
             </button>
             <button
               onClick={() => setMyResTab('past')}
@@ -608,17 +600,17 @@ export default function CounselingBooking() {
                 myResTab === 'past',
               )}`}
             >
-              지난 면담
+              吏??硫대떞
             </button>
           </div>
         </div>
 
         <div className="hidden grid-cols-[1.2fr_1.4fr_0.8fr_0.8fr_0.5fr] gap-3 px-3 pb-2 text-[0.72rem] font-semibold tracking-[0.08em] text-[#a8a29e] sm:grid">
-          <span>멘토</span>
-          <span>일시</span>
-          <span>유형</span>
-          <span>상태</span>
-          <span>액션</span>
+          <span>硫섑넗</span>
+          <span>?쇱떆</span>
+          <span>?좏삎</span>
+          <span>?곹깭</span>
+          <span>?≪뀡</span>
         </div>
 
         <div className="space-y-2">
@@ -627,10 +619,10 @@ export default function CounselingBooking() {
               icon={Calendar}
               title={
                 myResTab === 'upcoming'
-                  ? '예정된 면담이 없습니다'
-                  : '지난 면담 기록이 없습니다'
+                  ? '?덉젙??硫대떞???놁뒿?덈떎'
+                  : '吏??硫대떞 湲곕줉???놁뒿?덈떎'
               }
-              description="면담 예약 내역이 여기에 표시됩니다."
+              description="硫대떞 ?덉빟 ?댁뿭???ш린???쒖떆?⑸땲??"
             />
           ) : (
             (myResTab === 'upcoming' ? activeBookings : pastBookings).map((b) => {
@@ -654,7 +646,7 @@ export default function CounselingBooking() {
                   <p className="text-sm text-[#3d3a36]">
                     {b.date.replace(/-/g, '.')} {b.time}
                   </p>
-                  <p className="text-sm text-[#3d3a36]">{b.reason || '진로 상담'}</p>
+                  <p className="text-sm text-[#3d3a36]">{b.reason || '吏꾨줈 ?곷떞'}</p>
                   <div>
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[0.62rem] font-bold tracking-wide ${
@@ -676,10 +668,9 @@ export default function CounselingBooking() {
                         type="button"
                         onClick={() => handleCancelBooking(b.id)}
                         className="rounded-lg px-2 py-1 text-sm text-[#8a847a] hover:bg-[#f2f1ed] hover:text-[#5c5852]"
-                        title="취소"
+                        title="痍⑥냼"
                       >
-                        ⋯
-                      </button>
+                        ??                      </button>
                     ) : (
                       <span className="text-[#c1bcb3]">-</span>
                     )}
@@ -691,17 +682,17 @@ export default function CounselingBooking() {
         </div>
       </Card>
 
-      {/* ── 취소 확인 모달 ── */}
+      {/* ?? 痍⑥냼 ?뺤씤 紐⑤떖 ?? */}
       <Modal
         isOpen={cancelTargetId !== null}
         onClose={() => setCancelTargetId(null)}
-        title="면담 예약 취소"
+        title="硫대떞 ?덉빟 痍⑥냼"
       >
         <div className="space-y-4">
           <p className="text-body-sm text-gray-600">
-            예약을 취소하면 되돌릴 수 없습니다.
+            ?덉빟??痍⑥냼?섎㈃ ?섎룎由????놁뒿?덈떎.
             <br />
-            정말 취소하시겠습니까?
+            ?뺣쭚 痍⑥냼?섏떆寃좎뒿?덇퉴?
           </p>
           <div className="flex gap-3">
             <Button
@@ -710,31 +701,30 @@ export default function CounselingBooking() {
               className="flex-1"
               onClick={() => setCancelTargetId(null)}
             >
-              돌아가기
-            </Button>
+              ?뚯븘媛湲?            </Button>
             <Button
               variant="danger"
               size="md"
               className="flex-1"
               onClick={handleCancelConfirm}
             >
-              예약 취소
+              ?덉빟 痍⑥냼
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* ── 예약 확인 모달 ── */}
+      {/* ?? ?덉빟 ?뺤씤 紐⑤떖 ?? */}
       <Modal
         isOpen={showModal}
         onClose={handleCloseModal}
-        title="면담 예약 확인"
+        title="硫대떞 ?덉빟 ?뺤씤"
       >
         <div className="space-y-4">
-          {/* 예약 요약 */}
+          {/* ?덉빟 ?붿빟 */}
           <div className="space-y-2.5 rounded-2xl border border-[#e8edf3] bg-[#f5f9fd] p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#7d8ea6]">상담 대상</span>
+              <span className="text-sm text-[#7d8ea6]">?곷떞 ???/span>
               <span className="text-sm font-semibold text-[#1f2f46]">
                 {selectedCounselor?.name}{' '}
                 <span className="font-normal text-[#6f7f96]">
@@ -743,35 +733,35 @@ export default function CounselingBooking() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#7d8ea6]">일시</span>
+              <span className="text-sm text-[#7d8ea6]">?쇱떆</span>
               <span className="text-sm font-semibold text-[#1f2f46]">
                 {selectedDate?.replace(/-/g, '.')} {selectedTime}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#7d8ea6]">소요 시간</span>
-              <span className="text-sm font-semibold text-[#1f2f46]">30분</span>
+              <span className="text-sm text-[#7d8ea6]">?뚯슂 ?쒓컙</span>
+              <span className="text-sm font-semibold text-[#1f2f46]">30遺?/span>
             </div>
           </div>
 
-          {/* 면담 사유 */}
+          {/* 硫대떞 ?ъ쑀 */}
           <Textarea
-            label="면담 사유"
-            placeholder="면담 목적이나 상담하고 싶은 내용을 간략히 작성해주세요."
+            label="硫대떞 ?ъ쑀"
+            placeholder="硫대떞 紐⑹쟻?대굹 ?곷떞?섍퀬 ?띠? ?댁슜??媛꾨왂???묒꽦?댁＜?몄슂."
             value={bookingReason}
             onChange={(e) => setBookingReason(e.target.value)}
             rows={3}
             maxLength={200}
           />
 
-          {/* 액션 버튼 */}
+          {/* ?≪뀡 踰꾪듉 */}
           <div className="flex gap-3">
             <Button
               size="md"
               className="flex-1 !rounded-2xl !border !border-[#d7dfe8] !bg-white !text-[#4e5a61] hover:!bg-[#f7f9fb]"
               onClick={handleCloseModal}
             >
-              닫기
+              ?リ린
             </Button>
             <Button
               size="md"
@@ -779,7 +769,7 @@ export default function CounselingBooking() {
               onClick={handleBookingConfirm}
               disabled={!bookingReason.trim()}
             >
-              예약 확정
+              ?덉빟 ?뺤젙
             </Button>
           </div>
         </div>
