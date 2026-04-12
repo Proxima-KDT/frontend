@@ -4,12 +4,10 @@ import {
   BriefcaseBusiness,
   ChevronDown,
   X,
-  BookOpen,
+  GraduationCap,
+  Lightbulb,
   CalendarDays,
   Hash,
-  Clock,
-  User,
-  UserCheck,
   FileText,
   FolderOpen,
   Upload,
@@ -17,11 +15,16 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { profileApi } from '@/api/profile';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import Card from '@/components/common/Card';
 import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
 import Skeleton from '@/components/common/Skeleton';
+import {
+  SKILL_LABEL_MAP,
+  toDisplaySkillLabel,
+  SKILL_BAR_BG_CLASSES,
+} from '@/utils/skillDisplay';
 
 const JOB_POSITIONS = [
   { value: 'frontend_developer', label: '프론트엔드 개발자' },
@@ -34,55 +37,35 @@ const JOB_POSITIONS = [
   { value: 'qa_engineer', label: 'QA 엔지니어' },
 ];
 
-// 점수에 따른 티어 정보 계산 (0-39: Beginner, 40-59: Intermediate, 60-79: Advanced, 80-100: Master)
 function getTierInfo(score) {
   if (score >= 80)
     return {
       label: 'MASTER',
-      color: 'text-[#2a2a2a]',
-      border: 'border-[#2a2a2a]',
-      bg: 'bg-[#faf9f7]',
-      score: 'text-[#2a2a2a]',
-      badge: 'bg-[#2a2a2a]',
+      badgeClass: 'bg-[#2a2a2a]',
     };
   if (score >= 60)
     return {
       label: 'ADVANCED',
-      color: 'text-[#3d3d3d]',
-      border: 'border-[#3d3d3d]',
-      bg: 'bg-[#faf9f7]',
-      score: 'text-[#3d3d3d]',
-      badge: 'bg-[#3d3d3d]',
+      badgeClass: 'bg-[#3d3d3d]',
     };
   if (score >= 40)
     return {
       label: 'INTERMEDIATE',
-      color: 'text-[#5c5c5c]',
-      border: 'border-[#5c5c5c]',
-      bg: 'bg-[#faf9f7]',
-      score: 'text-[#5c5c5c]',
-      badge: 'bg-[#5c5c5c]',
+      badgeClass: 'bg-[#5c5c5c]',
     };
   return {
     label: 'BEGINNER',
-    color: 'text-[#6b6b6b]',
-    border: 'border-[#6b6b6b]',
-    bg: 'bg-[#faf9f7]',
-    score: 'text-[#6b6b6b]',
-    badge: 'bg-[#6b6b6b]',
+    badgeClass: 'bg-[#6b6b6b]',
   };
 }
 
-// 역량 항목별 프로그레스 바 색상
-const SKILL_COLORS = [
-  'bg-[#4a5f7a]',
-  'bg-[#5c7a4e]',
-  'bg-[#7a5c7a]',
-  'bg-[#9a6220]',
-  'bg-[#944848]',
-];
+function getRankHint(score) {
+  if (score >= 80) return '전체 상위 약 5%';
+  if (score >= 60) return '전체 상위 약 8%';
+  if (score >= 40) return '전체 상위 약 25%';
+  return '전체 상위 약 50%';
+}
 
-// 목표 직무 다중 선택 드롭다운
 function JobMultiSelect({ options, selected, onChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -145,6 +128,9 @@ function JobMultiSelect({ options, selected, onChange }) {
             ))}
           </span>
         )}
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#c5ddf5] bg-[#eef6fc] text-[#2563a8] text-lg font-light leading-none">
+          +
+        </span>
         <ChevronDown
           className={`w-4 h-4 text-[#7a9eb8] shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
         />
@@ -181,6 +167,7 @@ function JobMultiSelect({ options, selected, onChange }) {
 
 export default function MyPage() {
   const fileInputRef = useRef(null);
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [profile, setProfile] = useState(null);
   const [skillScores, setSkillScores] = useState([]);
@@ -195,7 +182,7 @@ export default function MyPage() {
         setProfile(prof);
         setSkillScores(scores);
         setSelectedJobs(prof.target_jobs ?? []);
-        // 메인 과정(기수 있는) 학생만 파일 로드
+        // 메인 과정(기수 있는) 동생만 파일 로드
         if (prof.cohort_number) {
           profileApi.getFiles().then(setFiles).catch(() => {});
         }
@@ -204,35 +191,74 @@ export default function MyPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleFileUpload(file, fileType) {
-    setFileUploading(true);
-    try {
-      const newFile = await profileApi.uploadFile(file, fileType);
-      setFiles((prev) => [newFile, ...prev]);
-      showToast({ type: 'success', message: '파일이 업로드되었습니다.' });
-    } catch {
-      showToast({ type: 'error', message: '파일 업로드에 실패했습니다.' });
-    } finally {
-      setFileUploading(false);
-    }
-  }
-
-  async function handleFileDelete(fileId) {
-    try {
-      await profileApi.deleteFile(fileId);
-      setFiles((prev) => prev.filter((f) => f.id !== fileId));
-      showToast({ type: 'success', message: '파일이 삭제되었습니다.' });
-    } catch {
-      showToast({ type: 'error', message: '파일 삭제에 실패했습니다.' });
-    }
-  }
-
   const overallScore = useMemo(() => {
     if (!skillScores.length) return 0;
-    return Math.round(skillScores.reduce((sum, s) => sum + s.score, 0) / skillScores.length);
+    return Math.round(
+      skillScores.reduce((sum, s) => sum + s.score, 0) / skillScores.length,
+    );
   }, [skillScores]);
 
+  const chartScores = useMemo(() => {
+    const normalized = skillScores.map((item) => ({
+      ...item,
+      subject: SKILL_LABEL_MAP[item.subject] || item.subject,
+    }));
+    const sorted = normalized
+      .map((item, idx) => ({ idx, score: item.score }))
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 2)
+      .map((v) => v.idx);
+    const lowSet = new Set(sorted);
+    return normalized.map((item, idx) => ({
+      ...item,
+      isLow: lowSet.has(idx),
+    }));
+  }, [skillScores]);
+
+  const displayName =
+    profile?.name?.trim() || user?.name?.trim() || '이름 없음';
+
+  const radarChartData = useMemo(
+    () =>
+      chartScores.map((s) => ({
+        ...s,
+        subject: toDisplaySkillLabel(s.subject),
+      })),
+    [chartScores],
+  );
+
+  const coachMessage = useMemo(() => {
+    const name = profile?.name?.trim()?.split(/\s+/)[0] ?? '학습자';
+    if (!chartScores.length) {
+      return `${name}님, 역량 데이터를 불러오면 맞춤 코칭 메시지가 표시됩니다.`;
+    }
+    const lowest = [...chartScores].sort((a, b) => a.score - b.score)[0];
+    const focus = lowest.subject;
+    return `${name}님의 ${focus} 항목을 조금만 끌어올리면 다음 티어에 한층 가까워집니다. 다음 주 랭체인 워크숍에서 AI 말하기 학습 참여를 늘리는 것도 좋은 방법이에요.`;
+  }, [profile?.name, chartScores]);
+
   const tier = getTierInfo(overallScore);
+  const rankHint = getRankHint(overallScore);
+  const programInfo = useMemo(
+    () => ({
+      course:
+        profile?.course_name?.trim() ||
+        '랭체인 AI 영상 객체 탐지 분석 플랫폼 구축',
+      period:
+        profile?.course_start_date && profile?.course_end_date
+          ? `${profile.course_start_date.replaceAll('-', '.')} ~ ${profile.course_end_date.replaceAll('-', '.')}`
+          : '2025.12 ~ 2026.05.15',
+      mentor: '김진호',
+      instructor: '류정원',
+      status: '재학중',
+      cohort:
+        profile?.cohort_number != null
+          ? `${profile.cohort_number}기`
+          : "겨울 '24",
+      credits: '142 / 160',
+    }),
+    [profile],
+  );
 
   function handleImageClick() {
     fileInputRef.current?.click();
@@ -259,6 +285,29 @@ export default function MyPage() {
     }
   }
 
+  async function handleFileUpload(file, fileType) {
+    setFileUploading(true);
+    try {
+      const newFile = await profileApi.uploadFile(file, fileType);
+      setFiles((prev) => [newFile, ...prev]);
+      showToast({ type: 'success', message: '파일이 업로드되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '파일 업로드에 실패했습니다.' });
+    } finally {
+      setFileUploading(false);
+    }
+  }
+
+  async function handleFileDelete(fileId) {
+    try {
+      await profileApi.deleteFile(fileId);
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+      showToast({ type: 'success', message: '파일이 삭제되었습니다.' });
+    } catch {
+      showToast({ type: 'error', message: '파일 삭제에 실패했습니다.' });
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-6 rounded-3xl bg-[#F9F8F6] p-6">
@@ -270,136 +319,148 @@ export default function MyPage() {
   }
 
   return (
-    <div className="space-y-6 rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:px-8 md:py-8">
-      <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c]">마이페이지</h1>
-
-      {/* ── 프로필 카드 ── */}
-      <Card className={`border ${tier.border} !rounded-3xl !border-[#e8e4dc] shadow-[0_8px_32px_rgba(45,42,38,0.05)]`}>
-        <div className="flex flex-col sm:flex-row items-start gap-6">
-          {/* 프로필 사진 */}
-          <div className="relative shrink-0 mx-auto sm:mx-0">
-            <button
-              type="button"
-              onClick={handleImageClick}
-              className="group relative w-32 h-32 rounded-2xl overflow-hidden shadow-[0_12px_28px_rgba(45,42,38,0.12)] ring-1 ring-[#ebe8e3] focus:outline-none"
-              aria-label="프로필 사진 변경"
-            >
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt="프로필"
-                  className="w-full h-full object-cover"
+    <div className="rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
+      <div className="mx-auto max-w-[1100px]">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-12 lg:items-start">
+          {/* ── Left: profile & career ── */}
+          <div className="min-w-0 space-y-8">
+            {/* 사진 위 → 과정·기간·일정은 모두 사진 아래 세로 배치 */}
+            <div className="flex flex-col gap-6 sm:gap-7">
+              <div className="relative mx-auto w-fit shrink-0 sm:mx-0">
+                <button
+                  type="button"
+                  onClick={handleImageClick}
+                  className="group relative h-[250px] w-[188px] overflow-hidden rounded-2xl shadow-[0_12px_28px_rgba(45,42,38,0.12)] ring-1 ring-[#ebe8e3] focus:outline-none focus:ring-2 focus:ring-[#c5c2bc] sm:h-[260px] sm:w-[198px]"
+                  aria-label="프로필 사진 변경"
+                >
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="프로필"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#8a9aae] to-[#5c6675] flex items-center justify-center">
+                      <span className="text-white text-3xl font-semibold">
+                        {profile?.name?.charAt(0) ?? '?'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="w-7 h-7 text-white" />
+                  </div>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
                 />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[#8a9aae] to-[#5c6675] flex items-center justify-center">
-                  <span className="text-white text-3xl font-semibold">
-                    {profile?.name?.charAt(0) ?? '?'}
-                  </span>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Camera className="w-7 h-7 text-white" />
+                <button
+                  type="button"
+                  onClick={handleImageClick}
+                  className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-white shadow-md ring-1 ring-[#ebe8e3] flex items-center justify-center hover:bg-[#faf9f7] transition-colors"
+                  aria-label="프로필 사진 변경"
+                >
+                  <Camera className="w-4 h-4 text-[#4a4640]" />
+                </button>
               </div>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageChange}
-            />
-            <button
-              type="button"
-              onClick={handleImageClick}
-              className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-white shadow-md ring-1 ring-[#ebe8e3] flex items-center justify-center hover:bg-[#faf9f7] transition-colors"
-              aria-label="프로필 사진 변경"
-            >
-              <Camera className="w-4 h-4 text-[#4a4640]" />
-            </button>
-          </div>
 
-          {/* 이름 + 티어 + 목표 직무 */}
-          <div className="flex-1 w-full min-w-0">
-            <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-[#7a756c] uppercase mb-1">수강생</p>
-            <h2 className="text-[1.85rem] font-semibold text-[#1f1e1c] leading-tight mb-2">
-              {profile?.name}
-            </h2>
-            {/* 교과 과정 정보 */}
-            {profile?.course_name && (
-              <div className="mb-3 p-3 rounded-xl bg-[#faf9f7] border border-[#ebe8e3]">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <BookOpen className="w-3.5 h-3.5 text-[#5c6675] shrink-0" />
-                  <span className="text-caption font-semibold text-[#2d2a26]">
-                    {profile.course_name}
-                  </span>
+              <div className="w-full min-w-0 space-y-5">
+                <div>
+                  <p className="text-[0.65rem] font-semibold tracking-[0.2em] text-[#7a756c] uppercase mb-2">
+                    수강생명
+                  </p>
+                  <h2
+                    className={`text-[1.85rem] sm:text-[2rem] font-semibold text-[#1f1e1c] leading-tight`}
+                  >
+                    {displayName}
+                  </h2>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {profile.cohort_number && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 border border-[#e5e2dc] text-[0.7rem] font-medium text-[#4a4640]">
-                      <Hash className="w-3 h-3" />
-                      {profile.cohort_number}기
-                    </span>
-                  )}
-                  {profile.course_start_date && profile.course_end_date && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 border border-[#e5e2dc] text-[0.7rem] font-medium text-[#6b6560]">
-                      <CalendarDays className="w-3 h-3" />
-                      {profile.course_start_date.replaceAll('-', '.')} ~ {profile.course_end_date.replaceAll('-', '.')}
-                    </span>
-                  )}
-                  {profile.daily_start_time && profile.daily_end_time && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 border border-[#e5e2dc] text-[0.7rem] font-medium text-[#6b6560]">
-                      <Clock className="w-3 h-3" />
-                      {profile.daily_start_time} ~ {profile.daily_end_time}
-                    </span>
-                  )}
-                </div>
-                {(profile.teacher_name || profile.mentor_name) && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {profile.teacher_name && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 border border-[#e5e2dc] text-[0.7rem] text-[#4a4640]">
-                        <User className="w-3 h-3 text-[#5c6675]" />
-                        <span className="text-[#8a847a]">담당강사</span>
-                        <span className="font-medium">{profile.teacher_name}</span>
-                      </span>
-                    )}
-                    {profile.mentor_name && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 border border-[#e5e2dc] text-[0.7rem] text-[#4a4640]">
-                        <UserCheck className="w-3 h-3 text-[#5c6675]" />
-                        <span className="text-[#8a847a]">담당멘토</span>
-                        <span className="font-medium">{profile.mentor_name}</span>
-                      </span>
+
+                <div className="flex items-start gap-2">
+                  <GraduationCap className="w-5 h-5 text-[#5c6675] shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-[0.65rem] font-semibold tracking-[0.14em] text-[#7a756c] uppercase mb-1">
+                      과정
+                    </p>
+                    <p className="text-[1.05rem] font-semibold text-[#2d2a26] leading-snug">
+                      {programInfo.course}
+                    </p>
+                    {profile?.course_name && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {profile.cohort_number != null && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-[#e5e2dc] bg-white/90 px-2.5 py-1 text-[0.7rem] font-medium text-[#4a4640]">
+                            <Hash className="h-3 w-3 shrink-0" />
+                            {profile.cohort_number}기
+                          </span>
+                        )}
+                        {profile.course_start_date &&
+                          profile.course_end_date && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[#e5e2dc] bg-white/90 px-2.5 py-1 text-[0.7rem] font-medium text-[#6b6560]">
+                              <CalendarDays className="h-3 w-3 shrink-0" />
+                              {profile.course_start_date.replaceAll('-', '.')} ~{' '}
+                              {profile.course_end_date.replaceAll('-', '.')}
+                            </span>
+                          )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            )}
+                </div>
 
-            {/* 종합 점수 + 티어 배지 */}
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className={`flex items-center justify-center w-16 h-16 rounded-2xl ${tier.bg} border border-[#e3e0da]`}
-              >
-                <span className={`text-2xl font-semibold ${tier.score}`}>
-                  {overallScore}
-                </span>
-              </div>
-              <div>
-                <span
-                  className={`inline-block px-3 py-1 rounded-md text-white text-[0.7rem] font-bold tracking-[0.12em] ${tier.badge}`}
-                >
-                  {tier.label}
-                </span>
-                <p className="text-[0.7rem] text-[#6b6560] mt-1">
-                  종합 역량 지수
-                </p>
+                <div className="grid grid-cols-2 gap-3 border-t border-[#ebe8e3] pt-4 sm:grid-cols-4">
+                  <div>
+                    <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-[#7a756c] uppercase mb-1">
+                      수강 상태
+                    </p>
+                    <p className="text-[0.9375rem] text-[#3d3a36] font-medium">
+                      {programInfo.status}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-[#7a756c] uppercase mb-1">
+                      기수
+                    </p>
+                    <p className="text-[0.9375rem] text-[#3d3a36] font-medium">
+                      {programInfo.cohort}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-[#7a756c] uppercase mb-1">
+                      이수 크레딧
+                    </p>
+                    <p className="text-[0.9375rem] text-[#3d3a36] font-medium">
+                      {programInfo.credits}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-[#7a756c] uppercase mb-1">
+                      학습 시간
+                    </p>
+                    <p className="text-[0.9375rem] text-[#3d3a36] font-medium">
+                      평일 09:00 ~ 18:00
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-[#eae7df] bg-white/75 p-3 sm:p-4">
+                  <p className="text-[0.84rem] text-[#5c5852] leading-relaxed">
+                    수강 기간: {programInfo.period}
+                    <span className="mx-2 text-[#c4beb3]">|</span>
+                    멘토: {programInfo.mentor}
+                    <span className="mx-2 text-[#c4beb3]">|</span>
+                    담당강사: {programInfo.instructor}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* 목표 직무 다중 선택 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <BriefcaseBusiness className="w-5 h-5 text-[#5c6675]" />
-                <span className="text-[1.15rem] font-semibold text-[#2d2a26]">
+                <span
+                  className={`text-[1.15rem] font-semibold text-[#2d2a26]`}
+                >
                   목표 직무
                 </span>
               </div>
@@ -410,121 +471,147 @@ export default function MyPage() {
               />
             </div>
           </div>
-        </div>
-      </Card>
 
-      {/* ── 역량 분석 ── */}
-      <Card className="!rounded-3xl !border-[#ebe8e3] shadow-[0_8px_32px_rgba(45,42,38,0.05)]">
-        <h2 className="text-[1.5rem] font-semibold text-[#1f1e1c] mb-5">역량 분석</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SkillRadarChart data={skillScores} color="#4a4845" />
-
-          <div className="flex flex-col justify-center gap-4">
-            {skillScores.map((skill, idx) => (
-              <ProgressBar
-                key={skill.subject}
-                value={skill.score}
-                label={skill.subject}
-                color={SKILL_COLORS[idx % SKILL_COLORS.length]}
-                size="md"
-              />
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {/* ── 이력서 / 포트폴리오 (메인 과정 학생만) ── */}
-      {profile?.cohort_number && (
-        <Card className="!rounded-3xl !border-[#ebe8e3] shadow-[0_8px_32px_rgba(45,42,38,0.05)]">
-          <h2 className="text-[1.5rem] font-semibold text-[#1f1e1c] mb-5">이력서 / 포트폴리오</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {[
-              { type: 'resume', label: '이력서', icon: FileText, color: 'blue', accept: '.pdf,.doc,.docx' },
-              { type: 'portfolio', label: '포트폴리오', icon: FolderOpen, color: 'purple', accept: '.pdf,.doc,.docx,.ppt,.pptx' },
-            ].map(({ type, label, icon: Icon, color, accept }) => {
-              const typeFiles = files.filter((f) => f.type === type);
-              return (
-                <div key={type} className={`rounded-2xl border-2 border-${color}-100 bg-${color}-50/30 p-4`}>
-                  {/* 섹션 헤더 */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-lg bg-${color}-100 flex items-center justify-center`}>
-                        <Icon className={`w-4 h-4 text-${color}-600`} />
-                      </div>
-                      <span className="text-body-sm font-semibold text-[#2d2a26]">{label}</span>
-                      <span className={`text-caption px-1.5 py-0.5 rounded-full bg-${color}-100 text-${color}-700 font-medium`}>
-                        {typeFiles.length}
-                      </span>
-                    </div>
-                    {/* 업로드 버튼 */}
-                    <label className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-${color}-500 text-white text-caption font-medium cursor-pointer hover:bg-${color}-600 transition-colors ${fileUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                      <Upload className="w-3 h-3" />
-                      업로드
-                      <input
-                        type="file"
-                        accept={accept}
-                        className="hidden"
-                        disabled={fileUploading}
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) handleFileUpload(f, type);
-                          e.target.value = '';
-                        }}
-                      />
-                    </label>
-                  </div>
-
-                  {/* 파일 목록 */}
-                  {typeFiles.length > 0 ? (
-                    <div className="space-y-2">
-                      {typeFiles.map((f) => (
-                        <div key={f.id} className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#ebe8e3] group">
-                          <div className={`w-7 h-7 rounded-lg bg-${color}-50 flex items-center justify-center shrink-0`}>
-                            <Icon className={`w-3.5 h-3.5 text-${color}-500`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-caption font-medium text-[#2d2a26] truncate">{f.name}</p>
-                            {f.uploaded_at && (
-                              <p className="text-[10px] text-[#8a847a]">{f.uploaded_at.replaceAll('-', '.')}</p>
-                            )}
-                          </div>
-                          <a
-                            href={f.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 rounded-md text-[#8a847a] hover:text-[#4a5f7a] hover:bg-[#eef3f7] transition-colors"
-                            title="보기"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                          <button
-                            onClick={() => handleFileDelete(f.id)}
-                            className="p-1 rounded-md text-[#c4bfb5] hover:text-[#944848] hover:bg-[#f3e8e8] transition-colors"
-                            title="삭제"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-6 text-center">
-                      <Icon className="w-8 h-8 text-[#c4bfb5] mb-2" />
-                      <p className="text-caption text-[#8a847a]">등록된 {label}가 없습니다</p>
-                      <p className="text-[10px] text-[#c4bfb5] mt-0.5">
-                        {type === 'resume' ? 'PDF, DOC, DOCX' : 'PDF, DOC, DOCX, PPT, PPTX'}
-                      </p>
-                    </div>
-                  )}
+          {/* ── Right: competency ── */}
+          <div className="rounded-3xl border border-[#ebe8e3] bg-white/95 p-6 sm:p-7 shadow-[0_20px_48px_rgba(45,42,38,0.06)]">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2
+                  className={`text-[1.5rem] sm:text-[1.65rem] font-semibold text-[#1f1e1c]`}
+                >
+                  역량 분석
+                </h2>
+                <p className="mt-1 text-[0.7rem] font-medium tracking-wide text-[#a39c92]">
+                  Competency analysis
+                </p>
+              </div>
+              <div className="flex flex-wrap items-start justify-end gap-3">
+                <div className="text-right">
+                  <span
+                    className={`inline-block px-3 py-1 rounded-md text-[0.7rem] font-bold tracking-[0.12em] text-white ${tier.badgeClass}`}
+                  >
+                    {tier.label}
+                  </span>
+                  <p className="text-[0.7rem] text-[#6b6560] mt-1.5 tracking-wide">
+                    {rankHint}
+                  </p>
                 </div>
-              );
-            })}
+                <div className="flex flex-col items-center justify-center min-w-[4.5rem] rounded-xl border border-[#e3e0da] bg-[#faf9f7] px-3 py-2">
+                  <span className="text-[0.6rem] font-bold tracking-[0.15em] text-[#7a756c] uppercase">
+                    지수
+                  </span>
+                  <span className={`text-2xl font-semibold text-[#2d2a26]`}>
+                    {overallScore}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-5">
+              <div className="min-h-[280px] min-w-0 flex-1 lg:max-w-[58%]">
+                <SkillRadarChart
+                  data={radarChartData}
+                  variant="editorial"
+                  color="#4a4845"
+                />
+              </div>
+              <div className="flex flex-1 flex-col justify-center gap-3.5 lg:min-w-[220px]">
+                {chartScores.map((skill, idx) => (
+                  <ProgressBar
+                    key={`${skill.subject}-${idx}`}
+                    value={skill.score}
+                    label={toDisplaySkillLabel(skill.subject)}
+                    color={SKILL_BAR_BG_CLASSES[idx % SKILL_BAR_BG_CLASSES.length]}
+                    size="md"
+                    labelClassName="text-[0.78rem] font-semibold tracking-tight text-[#3d3a36] whitespace-normal break-keep leading-snug pr-1"
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-8 rounded-2xl border border-[#ebe5cf] bg-[#faf6e8] px-5 py-4 sm:px-6 sm:py-5">
+              <div className="flex gap-3">
+                <Lightbulb className="w-6 h-6 shrink-0 text-[#c9a227] opacity-90" />
+                <div>
+                  <p
+                    className={`text-[1.05rem] italic font-medium text-[#3d3a36] mb-2`}
+                  >
+                    AI 학습 코치
+                  </p>
+                  <p className="text-[0.9rem] sm:text-[0.9375rem] leading-relaxed text-[#4d5a38]">
+                    {coachMessage}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-[10px] text-[#8a847a] mt-3 text-center">
-            파일당 최대 10MB · 강사 및 멘토에게 공개됩니다
-          </p>
-        </Card>
-      )}
+        </div>
+
+        {/* 이력서 / 포트폴리오 (메인 과정 동생만) */}
+        {profile?.cohort_number && (
+          <div className="mt-8 rounded-3xl border border-[#ebe8e3] bg-white/95 p-6 sm:p-7 shadow-[0_20px_48px_rgba(45,42,38,0.06)]">
+            <h2 className="text-[1.5rem] font-semibold text-[#1f1e1c] mb-5">이력서 / 포트폴리오</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[
+                { type: 'resume', label: '이력서', icon: FileText, colorClass: 'blue', accept: '.pdf,.doc,.docx' },
+                { type: 'portfolio', label: '포트폴리오', icon: FolderOpen, colorClass: 'purple', accept: '.pdf,.doc,.docx,.ppt,.pptx' },
+              ].map(({ type, label, icon: Icon, colorClass, accept }) => {
+                const typeFiles = files.filter((f) => f.type === type);
+                return (
+                  <div key={type} className="rounded-2xl border border-gray-200 bg-gray-50/30 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-gray-600" />
+                        </div>
+                        <span className="text-body-sm font-semibold text-[#2d2a26]">{label}</span>
+                        <span className="text-caption px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
+                          {typeFiles.length}
+                        </span>
+                      </div>
+                      <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-caption font-semibold cursor-pointer transition-colors ${fileUploading ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-100'} text-gray-700 bg-white border border-gray-200`}>
+                        <Upload className="w-3.5 h-3.5" />
+                        업로드
+                        <input
+                          type="file"
+                          accept={accept}
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleFileUpload(f, type);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    </div>
+                    {typeFiles.length === 0 ? (
+                      <p className="text-caption text-gray-400 text-center py-4">아직 업로드된 파일이 없습니다</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {typeFiles.map((file) => (
+                          <div key={file.id} className="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-gray-200">
+                            <FileText className="w-4 h-4 text-gray-500 shrink-0" />
+                            <span className="flex-1 text-body-sm text-gray-700 truncate">{file.name}</span>
+                            {file.url && (
+                              <a href={file.url} target="_blank" rel="noopener noreferrer" className="p-1 rounded hover:bg-gray-100 transition-colors">
+                                <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
+                              </a>
+                            )}
+                            <button onClick={() => handleFileDelete(file.id)} className="p-1 rounded hover:bg-red-50 transition-colors">
+                              <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

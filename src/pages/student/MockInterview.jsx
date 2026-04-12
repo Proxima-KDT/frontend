@@ -13,6 +13,8 @@ import {
   ArrowLeft,
   Play,
   RotateCcw,
+  Volume2,
+  VolumeX,
   AlertCircle,
   Sparkles,
   CheckCircle,
@@ -31,6 +33,22 @@ const DEFAULT_OPTIONS = {
   interview_types: [],
 }
 
+// ─── TTS 헬퍼 ─────────────────────────────────────────────────────
+function speakText(text, onEnd) {
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utter = new SpeechSynthesisUtterance(text)
+  utter.lang = 'ko-KR'
+  utter.rate = 0.95
+  utter.pitch = 1
+  if (onEnd) utter.onend = onEnd
+  window.speechSynthesis.speak(utter)
+}
+
+function stopSpeaking() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel()
+}
+
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────
 export default function MockInterview() {
   const [view, setView] = useState('setup')
@@ -47,7 +65,7 @@ export default function MockInterview() {
   const [messages, setMessages] = useState([])
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [questionNumber, setQuestionNumber] = useState(1)
-  const [totalQuestions, setTotalQuestions] = useState(5)
+  const [totalQuestions, setTotalQuestions] = useState(7)
   const [sessionId, setSessionId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -55,18 +73,20 @@ export default function MockInterview() {
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [sttSupported, setSttSupported] = useState(true)
+  const [isTtsEnabled, setIsTtsEnabled] = useState(true)
+  const [isSpeaking, setIsSpeaking] = useState(false)
   const [answerConfirmed, setAnswerConfirmed] = useState(false)
 
   // Report state
   const [report, setReport] = useState(null)
-  const [isEnding, setIsEnding] = useState(false) // 면접 종료 후 분석 중 상태
+  const [isEnding, setIsEnding] = useState(false)
 
   // History state
-  const [setupTab, setSetupTab] = useState('new') // 'new' | 'history'
+  const [setupTab, setSetupTab] = useState('new')
   const [historyList, setHistoryList] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
-  const [detailMap, setDetailMap] = useState({}) // id -> detail
+  const [detailMap, setDetailMap] = useState({})
 
   const recognitionRef = useRef(null)
   const finalTranscriptRef = useRef('')
@@ -79,7 +99,7 @@ export default function MockInterview() {
       .catch(() => setOptions(DEFAULT_OPTIONS))
   }, [])
 
-  // 면접 기록 탭 전환 시 목록 로드
+  // 모의면접 기록 조회 - setupTab이 'history'로 변경될 때 로드
   useEffect(() => {
     if (setupTab !== 'history') return
     setHistoryLoading(true)
@@ -89,15 +109,15 @@ export default function MockInterview() {
       .finally(() => setHistoryLoading(false))
   }, [setupTab])
 
-  // 기록 아이템 클릭 시 상세 로드
+  // 기록 항목 상세 조회
   const handleExpandHistory = async (id) => {
     if (expandedId === id) { setExpandedId(null); return }
     setExpandedId(id)
-    if (detailMap[id]) return // 이미 로드된 경우
+    if (detailMap[id]) return
     try {
       const detail = await interviewApi.getHistoryDetail(id)
       setDetailMap((prev) => ({ ...prev, [id]: detail }))
-    } catch { /* 실패 시 기본 정보만 표시 */ }
+    } catch { /* 실패 시 기본 상태 유지 */ }
   }
 
   // Web Speech API 초기화
@@ -131,12 +151,18 @@ export default function MockInterview() {
     recognitionRef.current = recognition
   }, [])
 
+  // 새 질문 받을 때 TTS 실행
+  useEffect(() => {
+    if (currentQuestion && isTtsEnabled && view === 'interview') {
+      setIsSpeaking(true)
+      speakText(currentQuestion, () => setIsSpeaking(false))
+    }
+  }, [currentQuestion])
+
   // 메시지 끝으로 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  const { showToast } = useToast()
 
   // 녹음 시작/중지
   const toggleRecording = useCallback(() => {
@@ -167,14 +193,14 @@ export default function MockInterview() {
       setSessionId(session_id)
       setCurrentQuestion(first_question)
       setQuestionNumber(1)
-      setTotalQuestions(total_questions ?? 10)
+      setTotalQuestions(total_questions ?? 7)
       setMessages([{ role: 'ai', content: first_question }])
       setTranscript('')
       setAnswerConfirmed(false)
       finalTranscriptRef.current = ''
       setView('interview')
     } catch {
-      showToast({ type: 'error', message: '면접 시작에 실패했습니다. 다시 시도해주세요.' })
+      showToast({ type: 'error', message: '모의면접 시작에 실패했습니다. 다시 시도해주세요.' })
     } finally {
       setIsLoading(false)
     }
@@ -254,7 +280,6 @@ export default function MockInterview() {
     setReport(null)
     setAnswerConfirmed(false)
     finalTranscriptRef.current = ''
-    // 기록 탭 데이터 초기화 → 탭 전환 시 재조회
     setHistoryList([])
     setExpandedId(null)
     setDetailMap({})
@@ -266,7 +291,9 @@ export default function MockInterview() {
   const positionLabel = options.positions?.find((p) => p.value === position)?.label ?? position
   const typeLabel = options.interview_types?.find((t) => t.value === interviewType)?.label ?? ''
 
-  // ─── 점수 색상 헬퍼 ──────────────────────────────────────────────
+  const { showToast } = useToast()
+
+  // ─── 점수별 색상 매핑 ──────────────────────────────────────────
   function scoreColor(s) {
     if (s >= 80) return { ring: 'ring-green-400', text: 'text-green-600', bg: 'bg-green-50' }
     if (s >= 60) return { ring: 'ring-blue-400', text: 'text-blue-600', bg: 'bg-blue-50' }
@@ -293,7 +320,7 @@ export default function MockInterview() {
         <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
           {[
             { key: 'new', label: '새 면접', icon: Play },
-            { key: 'history', label: '면접 기록', icon: History },
+            { key: 'history', label: '모의면접 기록', icon: History },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -310,68 +337,69 @@ export default function MockInterview() {
           ))}
         </div>
 
-        {/* ── 새 면접 탭 ── */}
+        {/* 새 모의면접 탭 */}
         {setupTab === 'new' && (
-          <Card>
-            <h2 className="text-h3 font-semibold text-gray-900 mb-4">면접 설정</h2>
+        <Card>
+          <h2 className="text-h3 font-semibold text-gray-900 mb-4">면접 설정</h2>
 
-            {!sttSupported && (
-              <div className="flex items-center gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl">
-                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-                <p className="text-body-sm text-amber-700">
-                  이 브라우저는 음성 인식을 지원하지 않습니다.{' '}
-                  <strong>Chrome</strong>에서 이용해주세요.
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <Select
-                label="지원 회사"
-                options={options.companies ?? []}
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="회사를 선택하세요"
-              />
-              <Select
-                label="지원 포지션"
-                options={options.positions ?? []}
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                placeholder="포지션을 선택하세요"
-              />
-              <Select
-                label="면접 유형"
-                options={options.interview_types ?? []}
-                value={interviewType}
-                onChange={(e) => setInterviewType(e.target.value)}
-                placeholder="면접 유형을 선택하세요"
-              />
-
-              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Mic className="w-4 h-4 text-blue-500" />
-                  <span className="text-body-sm font-semibold text-blue-700">음성 면접</span>
-                </div>
-                <p className="text-body-sm text-blue-600">
-                  마이크로 답변을 녹음하고, 인식된 텍스트를 직접 수정한 뒤 제출할 수 있습니다.
-                </p>
-              </div>
-
-              <Button
-                fullWidth
-                icon={Play}
-                onClick={handleStartInterview}
-                disabled={!company || !position || !interviewType || isLoading}
-                loading={isLoading}
-              >
-                면접 시작
-              </Button>
+          {!sttSupported && (
+            <div className="flex items-center gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+              <p className="text-body-sm text-amber-700">
+                이 브라우저는 음성 인식을 지원하지 않습니다.{' '}
+                <strong>Chrome</strong>에서 이용해주세요.
+              </p>
             </div>
-          </Card>
+          )}
+
+          <div className="space-y-4">
+            <Select
+              label="지원 회사"
+              options={options.companies ?? []}
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="회사를 선택하세요"
+            />
+            <Select
+              label="지원 포지션"
+              options={options.positions ?? []}
+              value={position}
+              onChange={(e) => setPosition(e.target.value)}
+              placeholder="포지션을 선택하세요"
+            />
+            <Select
+              label="면접 유형"
+              options={options.interview_types ?? []}
+              value={interviewType}
+              onChange={(e) => setInterviewType(e.target.value)}
+              placeholder="면접 유형을 선택하세요"
+            />
+
+            <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Mic className="w-4 h-4 text-blue-500" />
+                <span className="text-body-sm font-semibold text-blue-700">음성 전용 면접</span>
+              </div>
+              <p className="text-body-sm text-blue-600">
+                마이크로 답변하고, AI가 질문을 음성으로 읽어줍니다. 실전 면접처럼 준비하세요.
+              </p>
+            </div>
+
+            <Button
+              fullWidth
+              variant="warm"
+              icon={Play}
+              onClick={handleStartInterview}
+              disabled={!company || !position || !interviewType || isLoading}
+              loading={isLoading}
+            >
+              면접 시작
+            </Button>
+          </div>
+        </Card>
         )}
 
-        {/* ── 면접 기록 탭 ── */}
+        {/* 모의면접 기록 탭 */}
         {setupTab === 'history' && (
           <div className="space-y-3">
             {historyLoading ? (
@@ -382,8 +410,8 @@ export default function MockInterview() {
             ) : historyList.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-200 py-16 text-center">
                 <History className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-body text-gray-400">아직 면접 기록이 없습니다</p>
-                <p className="text-caption text-gray-300 mt-1">새 면접을 시작해보세요</p>
+                <p className="text-body text-gray-400">아직 모의면접 기록이 없습니다</p>
+                <p className="text-caption text-gray-300 mt-1">새 모의면접을 시작해보세요</p>
               </div>
             ) : (
               historyList.map((item) => {
@@ -399,29 +427,25 @@ export default function MockInterview() {
 
                 return (
                   <div key={item.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                    {/* 헤더 행 */}
                     <button
                       className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors"
                       onClick={() => handleExpandHistory(item.id)}
                     >
                       <div className="flex items-center gap-4">
-                        {/* 점수 원형 */}
                         <div className={`shrink-0 w-14 h-14 rounded-full ring-2 ${sc.ring} ${sc.bg} flex items-center justify-center`}>
                           <span className={`text-body font-extrabold ${sc.text}`}>{item.score}</span>
                         </div>
-                        {/* 정보 */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <span className="text-body font-bold text-gray-900">{compLabel}</span>
                             <span className="text-caption text-gray-400">·</span>
                             <span className="text-body-sm text-gray-600">{posLabel}</span>
-                            <span className={`text-caption px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500`}>
+                            <span className="text-caption px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">
                               {typeLabel2}
                             </span>
                           </div>
                           <p className="text-caption text-gray-400">{dateStr}</p>
                         </div>
-                        {/* 토글 */}
                         {isOpen
                           ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
                           : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
@@ -429,18 +453,15 @@ export default function MockInterview() {
                       </div>
                     </button>
 
-                    {/* 펼침 상세 */}
                     {isOpen && (
                       <div className="border-t border-gray-100 px-5 py-5 space-y-5">
-                        {/* 로딩 */}
                         {!detail ? (
                           <div className="flex items-center justify-center py-6 gap-2">
                             <Loader2 className="w-4 h-4 text-student-400 animate-spin" />
-                            <span className="text-body-sm text-gray-400">상세 기록 불러오는 중...</span>
+                            <span className="text-body-sm text-gray-400">상세 기록을 불러오는 중...</span>
                           </div>
                         ) : (
                           <>
-                            {/* 영역별 점수 */}
                             {(detail.categories?.length ?? 0) > 0 && (
                               <div>
                                 <p className="text-body-sm font-semibold text-gray-700 mb-3">영역별 점수</p>
@@ -464,7 +485,6 @@ export default function MockInterview() {
                               </div>
                             )}
 
-                            {/* AI 총평 */}
                             {detail.summary && (
                               <div className="p-4 bg-student-50 rounded-xl border border-student-100">
                                 <div className="flex items-center gap-1.5 mb-2">
@@ -475,7 +495,6 @@ export default function MockInterview() {
                               </div>
                             )}
 
-                            {/* 개선 포인트 */}
                             {detail.improvements?.length > 0 && (
                               <div>
                                 <p className="text-body-sm font-semibold text-gray-700 mb-2">개선 포인트</p>
@@ -490,10 +509,9 @@ export default function MockInterview() {
                               </div>
                             )}
 
-                            {/* Q&A 기록 */}
                             {detail.questions?.length > 0 && (
                               <div>
-                                <p className="text-body-sm font-semibold text-gray-700 mb-3">면접 Q&A</p>
+                                <p className="text-body-sm font-semibold text-gray-700 mb-3">모의면접 Q&A</p>
                                 <div className="space-y-3">
                                   {detail.questions.map((q, i) => (
                                     <div key={i} className="space-y-1.5">
@@ -526,7 +544,7 @@ export default function MockInterview() {
     )
   }
 
-  // ─── Analyzing View (면접 분석 중 로딩 화면) ─────────────────────
+  // ─── Analyzing View ──────────────────────────────────────────────
   if (isEnding) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-6">
@@ -537,8 +555,8 @@ export default function MockInterview() {
           <Loader2 className="absolute -inset-2 w-24 h-24 text-student-400 animate-spin" />
         </div>
         <div className="text-center space-y-2">
-          <p className="text-h3 font-bold text-gray-900">AI가 면접을 분석하고 있습니다</p>
-          <p className="text-body-sm text-gray-500">답변 내용을 종합해 상세 리포트를 생성 중입니다...</p>
+          <p className="text-h3 font-bold text-gray-900">AI가 모의면접 분석을 하고 있습니다</p>
+          <p className="text-body-sm text-gray-500">응답 분석 및 종합 평가를 포함한 상세 리포트를 생성 중입니다...</p>
         </div>
         <div className="flex gap-1.5">
           {[0, 1, 2].map((i) => (
@@ -578,9 +596,11 @@ export default function MockInterview() {
             </span>
             <Badge variant="default">{typeLabel}</Badge>
           </div>
-          <Button variant="danger" size="sm" onClick={handleEndInterview}>
-            면접 종료
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="danger" size="sm" onClick={handleEndInterview}>
+              면접 종료
+            </Button>
+          </div>
         </div>
 
         {/* 대화 히스토리 */}
@@ -611,7 +631,7 @@ export default function MockInterview() {
 
         {/* 음성 입력 영역 */}
         <div className="shrink-0 pt-3 border-t border-gray-200 space-y-3">
-          {/* 실시간 transcript + 직접 편집 */}
+          {/* 실시간 transcript + 직접 입력 */}
           {(isRecording || transcript) && (
             <div
               className={`rounded-xl border overflow-hidden transition-colors ${
@@ -620,7 +640,6 @@ export default function MockInterview() {
                   : 'border-gray-300 bg-white focus-within:border-student-400'
               }`}
             >
-              {/* 상태 레이블 바 */}
               <div
                 className={`flex items-center gap-1.5 px-3 py-1.5 border-b ${
                   isRecording
@@ -637,12 +656,11 @@ export default function MockInterview() {
                   <>
                     <Pencil className="w-3 h-3 text-gray-400" />
                     <span className="text-caption font-medium text-gray-400">
-                      인식된 답변 — 직접 수정 후 제출하세요
+                      음성인식 답변 또는 직접 입력으로 답변을 수정하여 제출하세요
                     </span>
                   </>
                 )}
               </div>
-              {/* 편집 가능한 textarea */}
               <textarea
                 value={transcript}
                 readOnly={isRecording}
@@ -651,7 +669,7 @@ export default function MockInterview() {
                   setTranscript(e.target.value)
                 }}
                 rows={3}
-                placeholder="(인식된 내용이 없습니다)"
+                placeholder="(음성인식을 이용하지 않으면 직접 입력하세요)"
                 className={`w-full px-3 py-2.5 text-body-sm text-gray-800 leading-relaxed resize-none outline-none bg-transparent placeholder:text-gray-300 ${
                   isRecording ? 'cursor-default' : 'cursor-text'
                 }`}
@@ -685,7 +703,7 @@ export default function MockInterview() {
                   className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
                     isRecording
                       ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
-                      : 'bg-[#4e5a61] hover:bg-[#414b51] shadow-[#4e5a61]/30'
+                      : 'bg-[#4e5a61] hover:bg-[#424d53] shadow-[#4e5a61]/30'
                   } disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
                   {isRecording ? (
@@ -746,7 +764,7 @@ export default function MockInterview() {
       {/* 총평 */}
       <Card>
         <div className="flex items-center gap-1.5 mb-3">
-          <Sparkles className="w-4 h-4 text-student-500" />
+          <Sparkles className="w-4 h-4 text-[#6f8391]" />
           <h2 className="text-h3 font-semibold text-gray-900">AI 총평</h2>
         </div>
         <p className="text-body-sm text-gray-700 leading-relaxed">{report.summary}</p>
@@ -758,7 +776,7 @@ export default function MockInterview() {
         <ul className="space-y-2">
           {report.improvements.map((tip, idx) => (
             <li key={idx} className="flex items-start gap-2 text-body-sm text-gray-700">
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-student-100 text-student-600 flex items-center justify-center text-caption font-semibold mt-0.5">
+              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#eef2f4] text-caption font-semibold text-[#4e5a61]">
                 {idx + 1}
               </span>
               {tip}

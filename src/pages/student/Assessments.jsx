@@ -17,6 +17,16 @@ import { useToast } from '@/context/ToastContext';
 import Skeleton from '@/components/common/Skeleton';
 
 const pageBg = '#F7F5F0';
+const GOLD = '#c9a962';
+
+const PHASE_COLORS = [
+  'from-violet-500 to-purple-600',
+  'from-blue-500 to-cyan-600',
+  'from-emerald-500 to-teal-600',
+  'from-amber-500 to-orange-600',
+  'from-rose-500 to-pink-600',
+  'from-indigo-500 to-blue-600',
+];
 
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -45,15 +55,6 @@ const STATUS_CONFIG = {
     iconClass: 'text-[#7f9078]',
   },
 };
-
-const PHASE_COLORS = [
-  'from-violet-500 to-purple-600',
-  'from-blue-500 to-cyan-600',
-  'from-emerald-500 to-teal-600',
-  'from-amber-500 to-orange-600',
-  'from-rose-500 to-pink-600',
-  'from-indigo-500 to-blue-600',
-];
 
 // ── 서브 컴포넌트 ──────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -117,8 +118,8 @@ function ScoreRing({ score, maxScore, passed }) {
 function RubricTable({ rubric, totalScore }) {
   const max = rubric.reduce((s, r) => s + r.maxScore, 0);
   const isGraded = rubric.some((r) => r.score !== null);
-  // 최종 점수는 DB의 채점 점수(totalScore)를 우선 사용하고,
-  // 없으면 루브릭 항목 합산으로 fallback
+  // totalScore는 AssessmentCard에서 전달받는 값 (DB의 채점 점수)
+  // 없으면 rubric에서 계산한 값으로 fallback
   const total = totalScore ?? rubric.reduce((s, r) => s + (r.score ?? 0), 0);
 
   return (
@@ -247,7 +248,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
   const isGraded = assessment.status === 'graded';
   const isSubmitted = assessment.status === 'submitted';
 
-  // 마감일 기준 재제출 가능 여부 (period.end 당일까지 허용)
+  // 마감기한 이내 재제출 가능 여부 (period.end 날짜까지 사용)
   const today = new Date().toISOString().split('T')[0];
   const canResubmit = isSubmitted && assessment.period.end >= today;
 
@@ -263,7 +264,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
       showToast({
         type: 'success',
         message: resubmitting
-          ? '평가 파일이 교체되었습니다!'
+          ? '평가 파일이 재제출되었습니다!'
           : '평가 파일이 성공적으로 제출되었습니다!',
       });
       onSubmitted?.(assessment.id);
@@ -279,6 +280,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
       className={`bg-white rounded-2xl border shadow-[0_2px_20px_rgba(60,52,40,0.04)] overflow-hidden transition-all ${
         isLocked ? 'border-[#e8e4dc] opacity-70' : 'border-[#eceae4]'
       }`}
+      style={isSubmitted ? { borderLeft: `3px solid ${GOLD}` } : undefined}
     >
       {/* 카드 헤더 */}
       <button
@@ -412,7 +414,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                 passed={assessment.passed}
               />
               {assessment.feedback && (
-                <div className="flex-1 rounded-xl border border-[#e5ece0] bg-[#f3f6f1] p-4">
+                  <div className="flex-1 rounded-xl border border-[#e5ece0] bg-[#f3f6f1] p-4">
                   <p className="mb-1 text-body-sm font-semibold text-[#5e7455]">
                     강사 피드백
                   </p>
@@ -432,7 +434,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                   <p className="text-body-sm font-semibold text-gray-700">
                     제출한 파일
                   </p>
-                  {/* 마감 전 재제출 버튼 */}
+                  {/* 마감기한 내 재제출 버튼 */}
                   {canResubmit && !resubmitting && (
                     <button
                       onClick={() => setResubmitting(true)}
@@ -441,7 +443,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                         hover:bg-amber-100 transition-colors"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
-                      파일 교체하기
+                      파일 재제출하기
                     </button>
                   )}
                 </div>
@@ -474,7 +476,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                   <div className="mt-4 space-y-3">
                     <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
                       <p className="text-caption text-amber-700">
-                        새 파일을 업로드하면 기존 제출 파일이 교체됩니다 · 마감:
+                        새 파일을 업로드하면 기존 제출 파일이 교체됩니다. 마감:
                         {assessment.period.end} 23:59
                       </p>
                     </div>
@@ -500,7 +502,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                           hover:bg-amber-600 active:bg-amber-700 transition-colors
                           disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                       >
-                        {submitting ? '교체 중...' : '파일 교체 제출'}
+                        {submitting ? '교체 중..' : '파일 재제출'}
                       </button>
                     </div>
                   </div>
@@ -571,9 +573,9 @@ export default function Assessments() {
           <Award className="w-5 h-5 text-student-600" />
         </div>
         <div>
-          <h1 className="text-h2 font-bold text-gray-900">능력단위평가</h1>
+          <h1 className="text-h2 font-bold text-gray-900">능력단위 평가</h1>
           <p className="text-caption text-gray-500">
-            각 Phase 종료 후 해당 월의 학습 내용을 평가합니다
+            각 Phase 종료 후 해당 역량에 대한 평가를 실시합니다.
           </p>
         </div>
       </div>
@@ -590,7 +592,7 @@ export default function Assessments() {
           <p className="text-h2 font-bold text-student-600">
             {avgScore !== null ? `${avgScore}점` : '-'}
           </p>
-          <p className="text-caption text-gray-500 mt-0.5">평균 점수</p>
+          <p className="text-caption text-gray-500 mt-0.5">평가점수</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
           <p className="text-h2 font-bold text-blue-600">
@@ -600,11 +602,17 @@ export default function Assessments() {
         </div>
       </div>
 
-      {/* 타임라인 안내 */}
+      {/* 프로그램 안내 */}
       <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
         <p className="text-caption text-gray-500 text-center">
-          능력단위평가는 각 Phase 마지막 주에 열립니다 · 6개월 과정 총 6회
+          능력단위평가는 각 Phase 마지막 주에 진행된다 ⏱️ 6개월 과정 총 6단계
         </p>
+      </div>
+
+      {/* 타임라인 안내 */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-h2 font-bold text-[#2c2b28]">진행 중인 단계</h2>
+        <p className="text-sm font-semibold text-[#8b857b]">총 {assessments.length}단계</p>
       </div>
 
       {/* 평가 목록 */}
