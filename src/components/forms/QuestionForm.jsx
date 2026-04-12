@@ -17,6 +17,9 @@ export default function QuestionForm({ onSubmit, className = '' }) {
     }
   }
 
+  const remaining = 10 - content.trim().length
+  const charCount = content.length
+
   return (
     <div className={className}>
       <Textarea
@@ -27,7 +30,28 @@ export default function QuestionForm({ onSubmit, className = '' }) {
         rows={4}
         maxLength={500}
       />
-      <div className="flex items-center justify-between mt-3">
+
+      {/* 실시간 입력 피드백 */}
+      <div className="flex items-center justify-between mt-1.5">
+        <p className={`text-caption transition-colors ${
+          charCount === 0
+            ? 'text-gray-400'
+            : !canSubmit
+            ? 'text-red-500'
+            : 'text-emerald-500'
+        }`}>
+          {charCount === 0
+            ? '최소 10자 이상 입력해주세요'
+            : !canSubmit
+            ? `${remaining}자 더 입력해주세요`
+            : '✓ 제출 가능'}
+        </p>
+        <span className={`text-caption ${charCount > 450 ? 'text-amber-500' : 'text-gray-400'}`}>
+          {charCount} / 500
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between mt-2">
         <Toggle
           colorScheme="warm"
           checked={isAnonymous}

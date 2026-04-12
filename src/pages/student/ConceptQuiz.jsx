@@ -142,6 +142,56 @@ export default function ConceptQuiz() {
     ? 100
     : ((currentIndex + (isSubmitted ? 1 : 0)) / totalProblems) * 100;
 
+  // 서술형 문제 확인 — setResults가 비동기라 handleNext 의존 금지.
+  // updatedResults를 직접 계산해 완료/이동 처리.
+  const handleEssayConfirm = async () => {
+    const newEntry = {
+      problemId: currentProblem.id,
+      selected: null,
+      correct: null,
+      isCorrect: true,
+      isEssay: true,
+    };
+
+    const updatedResults = (() => {
+      const idx = results.findIndex((r) => r.problemId === currentProblem.id);
+      if (idx !== -1) {
+        const copy = [...results];
+        copy[idx] = newEntry;
+        return copy;
+      }
+      return [...results, newEntry];
+    })();
+
+    setResults(updatedResults);
+
+    if (currentIndex + 1 >= totalProblems) {
+      // 마지막 문제 — essay 포함 전체 제출 (essay는 selected_answer: null, 백엔드에서 자동 정답 처리)
+      const answers = updatedResults
+        .map((r) => ({ problem_id: r.problemId, selected_answer: r.selected }));
+      try {
+        await quizApi.submit(conceptId, answers);
+      } catch {
+        showToast({ type: 'error', message: '결과 저장에 실패했습니다.' });
+      }
+      setIsFinished(true);
+    } else {
+      // 다음 문제로 이동
+      const nextIndex = currentIndex + 1;
+      const nextResult = updatedResults.find(
+        (r) => r.problemId === problems[nextIndex].id,
+      );
+      setCurrentIndex(nextIndex);
+      if (nextResult) {
+        setSelectedAnswer(nextResult.selected);
+        setIsSubmitted(true);
+      } else {
+        setSelectedAnswer(null);
+        setIsSubmitted(false);
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (selectedAnswer === null) return;
     setIsSubmitted(true);
@@ -249,12 +299,15 @@ export default function ConceptQuiz() {
     navigate(`/student/problems/${subjectId}`);
   };
 
-  const correctCount = results.filter((r) => r.isCorrect).length;
+  // essay 문제 제외하고 객관식만 채점
+  const mcResults = results.filter((r) => !r.isEssay);
+  const correctCount = mcResults.filter((r) => r.isCorrect).length;
+  const mcTotal = problems.filter((p) => p.choices && p.choices.length > 0).length;
   const title = isComprehensive ? `${subjectTitle} 종합 문제` : conceptTitle;
 
   // 결과 화면
   if (isFinished) {
-    const scorePercent = Math.round((correctCount / totalProblems) * 100);
+    const scorePercent = mcTotal > 0 ? Math.round((correctCount / mcTotal) * 100) : 100;
     return (
       <div className="space-y-6">
         <button
@@ -289,9 +342,14 @@ export default function ConceptQuiz() {
             {title} 완료!
           </h2>
           <p className="text-body text-gray-500 mb-6">
-            {totalProblems}문제 중{' '}
+            객관식 {mcTotal}문제 중{' '}
             <span className="font-bold text-gray-900">{correctCount}문제</span>{' '}
             정답
+            {totalProblems - mcTotal > 0 && (
+              <span className="text-caption text-gray-400 ml-2">
+                (개념 확인 {totalProblems - mcTotal}문제 별도)
+              </span>
+            )}
           </p>
 
           <div className="max-w-xs mx-auto mb-8">
@@ -350,13 +408,13 @@ export default function ConceptQuiz() {
           </div>
         </Card>
 
-        {/* 오답 해설 */}
-        {results.some((r) => !r.isCorrect) && (
+        {/* 오답 해설 — essay 문제 제외 */}
+        {results.some((r) => !r.isCorrect && !r.isEssay) && (
           <Card>
             <h3 className="text-h3 font-bold text-gray-900 mb-4">오답 해설</h3>
             <div className="space-y-4">
               {results
-                .filter((r) => !r.isCorrect)
+                .filter((r) => !r.isCorrect && !r.isEssay)
                 .map((r, idx) => {
                   const prob = problems.find((p) => p.id === r.problemId);
                   return (
@@ -439,79 +497,101 @@ export default function ConceptQuiz() {
       {/* 문제 카드 */}
       <Card>
         <div className="mb-6">
-          <span className="mb-2 block text-caption font-medium text-[#4f6475]">
-            문제 {currentIndex + 1}
-          </span>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-caption font-medium text-[#4f6475]">
+              문제 {currentIndex + 1}
+            </span>
+            {(!currentProblem.choices || currentProblem.choices.length === 0) && (
+              <span className="rounded bg-[#f4ecd7] px-1.5 py-0.5 text-[10px] font-medium text-[#7a6330]">
+                개념 확인
+              </span>
+            )}
+          </div>
           <h2 className="text-body font-semibold text-gray-900 leading-relaxed whitespace-pre-wrap">
             {currentProblem.question}
           </h2>
         </div>
 
-        {/* 보기 */}
-        <div className="space-y-3">
-          {currentProblem.choices.map((choice, idx) => {
-            let borderClass = 'border-gray-200 hover:border-gray-300';
-            let bgClass = '';
+        {/* 객관식: choices 있을 때 */}
+        {currentProblem.choices && currentProblem.choices.length > 0 ? (
+          <>
+            <div className="space-y-3">
+              {currentProblem.choices.map((choice, idx) => {
+                let borderClass = 'border-gray-200 hover:border-gray-300';
+                let bgClass = '';
 
-            if (isSubmitted) {
-              const correctIdx = currentProblem.answer - 1; // DB는 1-based
-              if (idx === correctIdx) {
-                borderClass = 'border-[#6f8391]';
-                bgClass = 'bg-[#f4f8fb]';
-              } else if (idx === selectedAnswer && idx !== correctIdx) {
-                borderClass = 'border-red-500';
-                bgClass = 'bg-red-50';
-              } else {
-                borderClass = 'border-gray-100';
-                bgClass = 'opacity-50';
-              }
-            } else if (selectedAnswer === idx) {
-              borderClass = 'border-[#4e5a61]';
-              bgClass = 'bg-[#f4f8fb]';
-            }
+                if (isSubmitted) {
+                  const correctIdx = currentProblem.answer - 1; // DB는 1-based
+                  if (idx === correctIdx) {
+                    borderClass = 'border-[#6f8391]';
+                    bgClass = 'bg-[#f4f8fb]';
+                  } else if (idx === selectedAnswer && idx !== correctIdx) {
+                    borderClass = 'border-red-500';
+                    bgClass = 'bg-red-50';
+                  } else {
+                    borderClass = 'border-gray-100';
+                    bgClass = 'opacity-50';
+                  }
+                } else if (selectedAnswer === idx) {
+                  borderClass = 'border-[#4e5a61]';
+                  bgClass = 'bg-[#f4f8fb]';
+                }
 
-            return (
-              <label
-                key={idx}
-                className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all ${borderClass} ${bgClass} ${
-                  isSubmitted ? 'pointer-events-none' : 'cursor-pointer'
-                }`}
-              >
-                <div className="shrink-0 mt-0.5">
-                  {isSubmitted ? (
-                    idx === currentProblem.answer - 1 ? (
-                      <CheckCircle2 className="w-5 h-5 text-[#6f8391]" />
-                    ) : idx === selectedAnswer ? (
-                      <XCircle className="w-5 h-5 text-red-500" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-200" />
-                    )
-                  ) : (
-                    <input
-                      type="radio"
-                      name="answer"
-                      value={idx}
-                      checked={selectedAnswer === idx}
-                      onChange={() => setSelectedAnswer(idx)}
-                      className="mt-0.5 accent-[#4e5a61]"
-                    />
-                  )}
-                </div>
-                <span className="text-body-sm text-gray-700">{choice}</span>
-              </label>
-            );
-          })}
-        </div>
+                return (
+                  <label
+                    key={idx}
+                    className={`flex items-start gap-3 rounded-xl border-2 p-4 transition-all ${borderClass} ${bgClass} ${
+                      isSubmitted ? 'pointer-events-none' : 'cursor-pointer'
+                    }`}
+                  >
+                    <div className="mt-0.5 shrink-0">
+                      {isSubmitted ? (
+                        idx === currentProblem.answer - 1 ? (
+                          <CheckCircle2 className="h-5 w-5 text-[#6f8391]" />
+                        ) : idx === selectedAnswer ? (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        ) : (
+                          <div className="h-5 w-5 rounded-full border-2 border-gray-200" />
+                        )
+                      ) : (
+                        <input
+                          type="radio"
+                          name="answer"
+                          value={idx}
+                          checked={selectedAnswer === idx}
+                          onChange={() => setSelectedAnswer(idx)}
+                          className="mt-0.5 accent-[#4e5a61]"
+                        />
+                      )}
+                    </div>
+                    <span className="text-body-sm text-gray-700">{choice}</span>
+                  </label>
+                );
+              })}
+            </div>
 
-        {/* 해설 (제출 후) */}
-        {isSubmitted && (
-          <div className="mt-6 rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
-            <h4 className="mb-1 text-body-sm font-semibold text-[#4f6475]">
-              해설
-            </h4>
-            <p className="text-caption text-[#5f7483]">
-              {currentProblem.explanation}
-            </p>
+            {isSubmitted && currentProblem.explanation && (
+              <div className="mt-6 rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
+                <h4 className="mb-1 text-body-sm font-semibold text-[#4f6475]">해설</h4>
+                <p className="text-caption text-[#5f7483]">{currentProblem.explanation}</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-[#ebe5cf] bg-[#faf6e8] p-4">
+              <p className="text-caption flex items-center gap-1.5 text-[#7a6330]">
+                <BookOpen className="h-3.5 w-3.5 shrink-0" />
+                이 문제는 개념 이해 확인 문제입니다. 아래 해설을 읽고 개념을 정리해보세요.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
+              <h4 className="mb-1 text-body-sm font-semibold text-[#4f6475]">핵심 개념</h4>
+              <p className="text-caption leading-relaxed whitespace-pre-wrap text-[#5f7483]">
+                {currentProblem.explanation ||
+                  '이 개념에 대해 스스로 정리해보세요. 강의 자료나 노트를 참고하면 도움이 됩니다.'}
+              </p>
+            </div>
           </div>
         )}
 
@@ -541,6 +621,15 @@ export default function ConceptQuiz() {
                 </Button>
               )}
             </div>
+          ) : !currentProblem.choices || currentProblem.choices.length === 0 ? (
+            /* 서술형: results에 추가 후 다음으로 */
+            <Button
+              onClick={handleEssayConfirm}
+              className="bg-[#4e5a61] hover:bg-[#424d53] active:bg-[#384248]"
+              icon={currentIndex + 1 >= totalProblems ? Trophy : ChevronRight}
+            >
+              {currentIndex + 1 >= totalProblems ? '결과 보기' : '확인했어요'}
+            </Button>
           ) : !isSubmitted ? (
             <Button
               onClick={handleSubmit}
@@ -565,11 +654,13 @@ export default function ConceptQuiz() {
       <div className="flex flex-wrap gap-2 justify-center">
         {problems.map((prob, idx) => {
           const result = results.find((r) => r.problemId === prob.id);
+          const isEssayProb = !prob.choices || prob.choices.length === 0;
           let colorClass = 'bg-gray-100 text-gray-500';
 
           if (idx === currentIndex) {
-            // 현재 문제: selectedAnswer와 실제 정답을 직접 비교 (DB 값에 의존 X)
-            if (isSubmitted) {
+            if (isEssayProb) {
+              colorClass = 'bg-blue-100 text-blue-700 ring-2 ring-blue-400';
+            } else if (isSubmitted) {
               const isCorrectNow = selectedAnswer === prob.answer - 1;
               colorClass = isCorrectNow
                 ? 'bg-[#dfe9ef] text-[#3f5568] ring-2 ring-[#6f8391]'
@@ -578,10 +669,11 @@ export default function ConceptQuiz() {
               colorClass = 'bg-[#e9eff3] text-[#4f6475] ring-2 ring-[#6f8391]';
             }
           } else if (result) {
-            // 다른 문제: DB 기록의 isCorrect 기준
-            colorClass = result.isCorrect
-              ? 'bg-[#e9eff3] text-[#4f6475]'
-              : 'bg-red-100 text-red-700';
+            colorClass = result.isEssay
+              ? 'bg-[#f4ecd7] text-[#7a6330]'
+              : result.isCorrect
+                ? 'bg-[#e9eff3] text-[#4f6475]'
+                : 'bg-red-100 text-red-700';
           }
 
           return (

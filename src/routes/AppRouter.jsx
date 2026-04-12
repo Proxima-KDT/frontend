@@ -4,16 +4,9 @@ import ProtectedRoute from './ProtectedRoute';
 import Skeleton from '@/components/common/Skeleton';
 import { CourseProvider } from '@/context/CourseContext';
 
-// 강사 라우트용 래퍼 — Sidebar가 드롭다운을 렌더링하려면 DashboardLayout 바깥에
-// CourseProvider가 있어야 한다. ProtectedRoute가 내부적으로 DashboardLayout을 렌더링하므로
-// CourseProvider를 ProtectedRoute 바깥에 둔다. 인증 전/role 불일치 상태에선 useCourse()의
-// 로드 로직이 role !== 'teacher'이면 no-op이라 안전.
+// 강사 라우트용 래퍼 — CourseProvider 는 AppRouter 최상위에 위치.
 function TeacherRoute({ children }) {
-  return (
-    <CourseProvider>
-      <ProtectedRoute role="teacher">{children}</ProtectedRoute>
-    </CourseProvider>
-  );
+  return <ProtectedRoute role="teacher">{children}</ProtectedRoute>;
 }
 
 // Auth 페이지
@@ -100,6 +93,9 @@ function PageLoader() {
 
 export default function AppRouter() {
   return (
+    // CourseProvider 단일 인스턴스 — 네비게이션 시 언마운트 없이 유지.
+    // role !== 'teacher' 이면 내부가 no-op이라 학생/관리자 페이지도 안전.
+    <CourseProvider>
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public */}
@@ -393,5 +389,6 @@ export default function AppRouter() {
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
     </Suspense>
+    </CourseProvider>
   );
 }
