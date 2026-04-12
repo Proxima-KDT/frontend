@@ -49,15 +49,15 @@ const roomTypeMeta = {
   study: {
     label: '자습실',
     icon: BookOpen,
-    bg: 'bg-blue-50',
-    iconColor: 'text-blue-500',
+    bg: 'bg-[#e8eef2]',
+    iconColor: 'text-[#4e5a61]',
     badgeVariant: 'info',
   },
   meeting: {
     label: '회의실',
     icon: Users,
-    bg: 'bg-purple-50',
-    iconColor: 'text-purple-500',
+    bg: 'bg-[#ede8ee]',
+    iconColor: 'text-[#6b5b73]',
     badgeVariant: 'default',
   },
 };
@@ -73,7 +73,7 @@ const amenityIcons = {
 function AmenityTag({ label }) {
   const Icon = amenityIcons[label];
   return (
-    <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#f3f1ec] px-2 py-0.5 text-xs text-[#7f786d]">
       {Icon && <Icon size={10} />}
       {label}
     </span>
@@ -375,15 +375,15 @@ export default function AdminRoomReservation() {
   const getCellStyle = (status) => {
     switch (status) {
       case 'available':
-        return 'bg-green-50 hover:bg-green-100 border border-green-200 cursor-pointer text-green-700';
+        return 'bg-[#f5fafd] hover:bg-[#edf6fb] border border-[#dfeef7] cursor-pointer text-[#4a697f]';
       case 'mine':
-        return 'bg-admin-100 border border-admin-300 cursor-pointer text-admin-800';
+        return 'bg-[#4e5a61] border border-[#4e5a61] cursor-pointer text-white';
       case 'reserved':
-        return 'bg-gray-100 border border-gray-200 cursor-not-allowed text-gray-400';
+        return 'bg-[#f1f0ec] border border-[#e6e2d9] cursor-not-allowed text-[#b0aaa1]';
       case 'closed':
-        return 'bg-gray-200 cursor-not-allowed text-gray-400 bg-[repeating-linear-gradient(45deg,#d1d5db_0,#d1d5db_1px,#e5e7eb_0,#e5e7eb_50%)] bg-[size:8px_8px]';
+        return 'bg-[#efede7] cursor-not-allowed text-[#b7b2aa]';
       case 'past':
-        return 'bg-gray-50 border border-gray-100 cursor-not-allowed text-gray-300';
+        return 'bg-[#f8f7f4] border border-[#efede8] cursor-not-allowed text-[#c9c4bc]';
       default:
         return '';
     }
@@ -399,12 +399,12 @@ export default function AdminRoomReservation() {
     );
     switch (status) {
       case 'available':
-        return <span className="text-xs font-medium">예약 가능</span>;
+        return <span className="text-[0.7rem] font-semibold">예약 가능</span>;
       case 'mine':
         return (
           <span className="flex flex-col items-center gap-0.5">
             <CheckCircle size={12} />
-            <span className="text-xs font-medium">내 예약</span>
+            <span className="text-[0.7rem] font-semibold">내 예약</span>
           </span>
         );
       case 'reserved':
@@ -459,24 +459,27 @@ export default function AdminRoomReservation() {
   };
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
+      style={{ backgroundColor: '#F7F5F0' }}
+    >
       {/* 페이지 헤더 */}
-      <h1 className="text-h2 font-bold text-gray-900">회의실 예약</h1>
+      <h1 className="text-h2 font-bold text-[#2c2b28]">회의실 예약</h1>
 
       {/* ── 이용 규칙 배너 ──────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-admin-200 bg-admin-50 overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-[#eceae4] bg-white">
         <button
           onClick={() => setShowRules((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 text-left"
+          className="flex w-full items-center justify-between px-4 py-3 text-left"
         >
-          <div className="flex items-center gap-2 text-admin-700 font-semibold text-sm">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[#4e5a61]">
             <Info size={16} />
             시설 이용 규칙 안내
           </div>
           {showRules ? (
-            <ChevronUp size={16} className="text-admin-500" />
+            <ChevronUp size={16} className="text-[#7d8b93]" />
           ) : (
-            <ChevronDown size={16} className="text-admin-500" />
+            <ChevronDown size={16} className="text-[#7d8b93]" />
           )}
         </button>
         {showRules && (
@@ -499,9 +502,9 @@ export default function AdminRoomReservation() {
               return (
                 <div
                   key={i}
-                  className="flex items-center gap-2 text-sm text-admin-700"
+                  className="flex items-center gap-2 text-sm text-[#5f7483]"
                 >
-                  <RuleIcon size={14} className="shrink-0 text-admin-500" />
+                  <RuleIcon size={14} className="shrink-0 text-[#6f8391]" />
                   {text}
                 </div>
               );
@@ -511,41 +514,45 @@ export default function AdminRoomReservation() {
       </div>
 
       {/* ── 통계 요약 카드 ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           {
             label: '전체 이용 가능',
             total: stats.meetingTotal,
             available: stats.meetingAvailable,
             icon: DoorOpen,
-            bg: 'bg-gray-50',
-            iconColor: 'text-gray-500',
+            bg: 'bg-[#f3f1ec]',
+            iconColor: 'text-[#7f786d]',
           },
           {
             label: '회의실',
             total: stats.meetingTotal,
             available: stats.meetingAvailable,
             icon: Users,
-            bg: 'bg-purple-50',
-            iconColor: 'text-purple-500',
+            bg: 'bg-[#f4f0f7]',
+            iconColor: 'text-[#6b5b73]',
           },
         ].map(({ label, total, available, icon, bg, iconColor }) => {
           const StatIcon = icon;
           return (
-            <Card key={label} padding="p-4" className={bg}>
-              <div className="flex items-center gap-2 mb-2">
-                <StatIcon size={16} className={iconColor} />
-                <span className="text-xs font-medium text-gray-600">
+            <Card
+              key={label}
+              padding="p-5"
+              className="rounded-2xl border border-[#eceae4] !bg-white shadow-[0_2px_20px_rgba(60,52,40,0.04)]"
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <StatIcon size={16} className="text-[#6f6860]" />
+                <span className="text-xs font-medium text-[#8a847a]">
                   {label}
                 </span>
               </div>
               <div className="flex items-end gap-1">
-                <span className="text-xl font-bold text-gray-900">
+                <span className="text-[2rem] font-semibold text-[#2c2b28]">
                   {available}
                 </span>
-                <span className="text-sm text-gray-400 mb-0.5">/ {total}</span>
+                <span className="mb-1 text-sm text-[#b0aaa1]">/ {total}</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">현재 이용 가능</p>
+              <p className="mt-1 text-xs text-[#9c988e]">현재 이용 가능</p>
             </Card>
           );
         })}
@@ -553,7 +560,7 @@ export default function AdminRoomReservation() {
 
       {/* ── 날짜 선택 칩 바 ─────────────────────────────────────── */}
       <div>
-        <p className="text-xs font-medium text-gray-500 mb-2">
+        <p className="mb-2 text-xs font-medium text-[#8a847a]">
           날짜 선택 <span className="font-normal">(7일 이내)</span>
         </p>
         <div className="overflow-x-auto -mx-1 px-1">
@@ -564,20 +571,20 @@ export default function AdminRoomReservation() {
                 <button
                   key={date}
                   onClick={() => handleDateSelect(date)}
-                  className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all text-sm font-medium shrink-0 ${
+                  className={`flex min-w-[76px] shrink-0 flex-col items-center rounded-2xl border px-4 py-2.5 text-sm font-medium transition-all ${
                     isSelected
-                      ? 'bg-admin-600 text-white border-admin-600 shadow-sm'
+                      ? 'border-[#4e5a61] bg-[#4e5a61] text-white shadow-[0_8px_24px_rgba(78,90,97,0.25)]'
                       : isWeekend
-                        ? 'bg-white text-red-500 border-gray-200 hover:border-red-300'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-admin-300 hover:text-admin-600'
+                        ? 'border-[#eceae4] bg-white text-[#a67d70] hover:border-[#d9c4bb]'
+                        : 'border-[#eceae4] bg-white text-[#6b6560] hover:border-[#ddd9cf]'
                   }`}
                 >
                   <span
-                    className={`text-xs mb-0.5 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}
+                    className={`mb-0.5 text-xs ${isSelected ? 'text-white/80' : 'text-[#a39c92]'}`}
                   >
                     {dayLabel}
                   </span>
-                  <span className="text-base font-bold leading-none">
+                  <span className="text-[1.6rem] font-semibold leading-none">
                     {dayNum}
                   </span>
                 </button>
@@ -588,21 +595,21 @@ export default function AdminRoomReservation() {
       </div>
 
       {/* ── 탭 + 빠른 필터 ─────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex w-fit gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1">
           {tabItems.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
                 activeTab === tab.key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-[#2c2b28] shadow-sm'
+                  : 'text-[#8a847a] hover:text-[#5c5852]'
               }`}
             >
               {tab.label}
               <span
-                className={`ml-1.5 text-xs ${activeTab === tab.key ? 'text-admin-600' : 'text-gray-400'}`}
+                className={`ml-1.5 text-xs ${activeTab === tab.key ? 'text-[#4e5a61]' : 'text-[#b0aaa1]'}`}
               >
                 {tab.count}
               </span>
@@ -616,12 +623,12 @@ export default function AdminRoomReservation() {
           }
           disabled={selectedDate !== TODAY}
           title={selectedDate !== TODAY ? '오늘 날짜에만 사용 가능' : undefined}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
+          className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
             selectedDate !== TODAY
-              ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-50'
+              ? 'cursor-not-allowed border-[#e4e1d8] bg-[#f2f0ec] text-[#b0aaa1] opacity-60'
               : showAvailableNow
-                ? 'bg-green-500 text-white border-green-500 shadow-sm'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-green-300 hover:text-green-600'
+                ? 'border-[#4e5a61] bg-[#4e5a61] text-white shadow-sm'
+                : 'border-[#e4e1d8] bg-white text-[#6b6560] hover:border-[#c8c2b7] hover:text-[#4e5a61]'
           }`}
         >
           <Zap
@@ -629,16 +636,16 @@ export default function AdminRoomReservation() {
             className={
               showAvailableNow && selectedDate === TODAY
                 ? 'text-white'
-                : 'text-green-500'
+                : 'text-[#4e5a61]'
             }
           />
           지금 이용 가능
           {selectedDate === TODAY && (
             <span
-              className={`text-xs rounded-full px-1.5 ${
+              className={`rounded-full px-1.5 text-xs ${
                 showAvailableNow
                   ? 'bg-white/30 text-white'
-                  : 'bg-green-100 text-green-700'
+                  : 'bg-[#eef2f4] text-[#4e5a61]'
               }`}
             >
               {stats.meetingAvailable}개
@@ -650,42 +657,45 @@ export default function AdminRoomReservation() {
       {/* ── 타임테이블 ──────────────────────────────────────────────────── */}
       {roomsLoading ? (
         <Card padding="p-12" className="text-center">
-          <p className="text-gray-400">방 목록을 불러오는 중...</p>
+          <p className="text-[#a39c92]">방 목록을 불러오는 중...</p>
         </Card>
       ) : filteredRooms.length === 0 ? (
         <Card padding="p-12" className="text-center">
-          <Zap size={32} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 font-medium">
+          <Zap size={32} className="mx-auto mb-3 text-[#c5bfb4]" />
+          <p className="font-medium text-[#7f786d]">
             현재 이용 가능한 방이 없습니다
           </p>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="mt-1 text-sm text-[#a39c92]">
             필터를 해제하거나 다른 탭을 선택해 보세요
           </p>
         </Card>
       ) : (
-        <Card padding="p-0" className="overflow-hidden">
+        <Card
+          padding="p-0"
+          className="overflow-hidden rounded-2xl border border-[#eceae4]"
+        >
           {/* 범례 */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
-              <Calendar size={13} className="text-gray-500" />
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f0ede8] bg-[#fbfaf7] px-4 py-3">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6b6560]">
+              <Calendar size={13} className="text-[#8a847a]" />
               {selectedDate}
               {selectedDate === TODAY && (
-                <span className="ml-1 text-[10px] bg-yellow-400 text-yellow-900 font-bold px-1.5 py-0.5 rounded-full">
+                <span className="ml-1 rounded-full bg-[#f4ecd7] px-1.5 py-0.5 text-[10px] font-bold text-[#7a6330]">
                   TODAY
                 </span>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs text-gray-500 font-medium">범례:</span>
+              <span className="text-xs font-medium text-[#9c988e]">범례:</span>
               {[
-                { color: 'bg-green-100 border-green-200', label: '예약 가능' },
-                { color: 'bg-admin-100 border-admin-300', label: '내 예약' },
-                { color: 'bg-gray-100 border-gray-200', label: '예약됨' },
-                { color: 'bg-gray-50 border-gray-100', label: '종료' },
+                { color: 'bg-[#f5fafd] border-[#dfeef7]', label: '예약 가능' },
+                { color: 'bg-[#4e5a61] border-[#4e5a61]', label: '내 예약' },
+                { color: 'bg-[#f1f0ec] border-[#e6e2d9]', label: '예약됨' },
+                { color: 'bg-[#f8f7f4] border-[#efede8]', label: '종료' },
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-1">
                   <div className={`w-3 h-3 rounded border ${color}`} />
-                  <span className="text-xs text-gray-500">{label}</span>
+                  <span className="text-xs text-[#8a847a]">{label}</span>
                 </div>
               ))}
             </div>
@@ -699,8 +709,10 @@ export default function AdminRoomReservation() {
               }}
             >
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="sticky left-0 z-10 bg-gray-50 w-20 min-w-20 px-3 py-3 text-left text-gray-500 font-medium border-b border-r border-gray-200">
+                <tr className="bg-[#faf9f6]">
+                  <th
+                    className="sticky left-0 z-10 w-20 min-w-20 border-b border-r border-[#eceae4] bg-[#faf9f6] px-3 py-3 text-left font-medium text-[#8a847a]"
+                  >
                     시간
                   </th>
                   {filteredRooms.map((room) => {
@@ -709,7 +721,7 @@ export default function AdminRoomReservation() {
                     return (
                       <th
                         key={room.id}
-                        className={`px-2 py-3 text-center font-medium border-b border-r border-gray-200 last:border-r-0 min-w-25 ${
+                        className={`min-w-25 border-b border-r border-[#eceae4] px-2 py-3 text-center font-medium last:border-r-0 ${
                           room.status === 'closed' ? 'opacity-50' : ''
                         }`}
                       >
@@ -717,10 +729,10 @@ export default function AdminRoomReservation() {
                           <div className={`p-1.5 rounded-lg ${meta.bg}`}>
                             <Icon size={14} className={meta.iconColor} />
                           </div>
-                          <span className="text-gray-800 font-semibold">
+                          <span className="font-semibold text-[#4e5a61]">
                             {room.name}
                           </span>
-                          <div className="flex items-center gap-1 text-gray-400">
+                          <div className="flex items-center gap-1 text-[#a39c92]">
                             <MapPin size={9} />
                             <span>{room.floor}F</span>
                             <span>·</span>
@@ -728,7 +740,7 @@ export default function AdminRoomReservation() {
                             <span>{room.capacity}인</span>
                           </div>
                           {room.status === 'closed' && (
-                            <span className="text-red-500 text-[10px] font-medium">
+                            <span className="text-[10px] font-medium text-[#a67d70]">
                               운영 중단
                             </span>
                           )}
@@ -747,14 +759,14 @@ export default function AdminRoomReservation() {
                     <tr
                       key={slot}
                       className={
-                        isCurrent ? 'bg-yellow-50' : 'hover:bg-gray-50/50'
+                        isCurrent ? 'bg-[#fdf8ea]' : 'hover:bg-[#fbfaf7]'
                       }
                     >
-                      <td className="sticky left-0 z-10 bg-inherit px-3 py-2 text-gray-500 font-medium border-b border-r border-gray-200 whitespace-nowrap">
+                      <td className="sticky left-0 z-10 whitespace-nowrap border-b border-r border-[#eceae4] bg-inherit px-3 py-2 font-medium text-[#8a847a]">
                         <div className="flex items-center gap-1.5">
                           {slot}
                           {isCurrent && (
-                            <span className="text-[9px] bg-yellow-400 text-yellow-900 font-bold px-1 rounded">
+                            <span className="rounded bg-[#f4ecd7] px-1 text-[9px] font-bold text-[#7a6330]">
                               NOW
                             </span>
                           )}
@@ -766,7 +778,7 @@ export default function AdminRoomReservation() {
                           <td
                             key={room.id}
                             onClick={() => handleCellClick(room, slot)}
-                            className={`h-10 border-b border-r border-gray-100 last:border-r-0 text-center align-middle transition-colors duration-100 ${getCellStyle(status)}`}
+                            className={`h-10 border-b border-r border-[#f0ede8] text-center align-middle transition-colors duration-100 last:border-r-0 ${getCellStyle(status)}`}
                           >
                             {getCellContent(room.id, slot)}
                           </td>
@@ -783,7 +795,7 @@ export default function AdminRoomReservation() {
 
       {/* ── 방 정보 카드 ────────────────────────────────── */}
       <div>
-        <h2 className="text-base font-semibold text-gray-800 mb-3">방 정보</h2>
+        <h2 className="text-base font-semibold text-[#2c2b28] mb-3">방 정보</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredRooms.map((room) => (
             <RoomInfoCard
@@ -797,16 +809,16 @@ export default function AdminRoomReservation() {
 
       {/* ── 내 예약 목록 ─────────────────────────────────────────────────── */}
       <div>
-        <h2 className="text-base font-semibold text-gray-800 mb-3">내 예약</h2>
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit mb-4">
+        <h2 className="mb-3 text-base font-semibold text-[#2c2b28]">내 예약</h2>
+        <div className="mb-4 flex w-fit gap-1 rounded-xl bg-[#efede7] p-1">
           {myResTabItems.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setMyResTab(tab.key)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
                 myResTab === tab.key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-[#2c2b28] shadow-sm'
+                  : 'text-[#8a847a] hover:text-[#5c5852]'
               }`}
             >
               {tab.label}
@@ -815,9 +827,9 @@ export default function AdminRoomReservation() {
         </div>
 
         {myResFiltered.length === 0 ? (
-          <Card padding="p-8" className="text-center bg-gray-50">
-            <CalendarCheck size={28} className="mx-auto text-gray-300 mb-2" />
-            <p className="text-gray-400 text-sm">예약 내역이 없습니다</p>
+          <Card padding="p-8" className="bg-[#faf9f6] text-center">
+            <CalendarCheck size={28} className="mx-auto mb-2 text-[#c5bfb4]" />
+            <p className="text-sm text-[#a39c92]">예약 내역이 없습니다</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -827,18 +839,18 @@ export default function AdminRoomReservation() {
               return (
                 <Card key={res.id} padding="p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`p-2 rounded-xl shrink-0 ${meta.bg}`}>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className={`shrink-0 rounded-xl p-2 ${meta.bg}`}>
                         <Icon size={16} className={meta.iconColor} />
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-gray-900 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-[#2c2b28]">
                             {res.room_name}
                           </p>
                           {statusBadge(res.status)}
                         </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <div className="mt-1 flex items-center gap-3 text-xs text-[#8a847a]">
                           <span className="flex items-center gap-1">
                             <CalendarCheck size={11} />
                             {res.date}
@@ -849,7 +861,7 @@ export default function AdminRoomReservation() {
                           </span>
                         </div>
                         {res.purpose && (
-                          <p className="text-xs text-gray-400 mt-0.5 truncate">
+                          <p className="mt-0.5 truncate text-xs text-[#a39c92]">
                             {res.purpose}
                           </p>
                         )}
@@ -860,7 +872,7 @@ export default function AdminRoomReservation() {
                         variant="ghost"
                         size="sm"
                         onClick={() => openCancelModal(res)}
-                        className="shrink-0 text-red-500 hover:bg-red-50"
+                        className="shrink-0 text-[#a33b39] hover:bg-[#f9eeed]"
                       >
                         취소
                       </Button>
@@ -882,39 +894,39 @@ export default function AdminRoomReservation() {
           persistent
         >
           <div className="space-y-4">
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
+            <div className="space-y-2 rounded-xl bg-[#faf9f6] p-4 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">공간</span>
-                <span className="font-semibold text-gray-800">
+                <span className="text-[#8a847a]">공간</span>
+                <span className="font-semibold text-[#2c2b28]">
                   {selectedCell.room.name}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">날짜</span>
-                <span className="font-semibold text-gray-800">
+                <span className="text-[#8a847a]">날짜</span>
+                <span className="font-semibold text-[#2c2b28]">
                   {selectedDate}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">시간</span>
-                <span className="font-semibold text-gray-800">
+                <span className="text-[#8a847a]">시간</span>
+                <span className="font-semibold text-[#2c2b28]">
                   {selectedCell.timeSlot} ~{' '}
                   {TIME_SLOTS[TIME_SLOTS.indexOf(selectedCell.timeSlot) + 1] ??
                     '21:00'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">위치</span>
-                <span className="font-semibold text-gray-800">
+                <span className="text-[#8a847a]">위치</span>
+                <span className="font-semibold text-[#2c2b28]">
                   {selectedCell.room.floor}층
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="mb-1.5 block text-sm font-medium text-[#5c5852]">
                 사용 목적{' '}
-                <span className="text-gray-400 font-normal">(선택)</span>
+                <span className="font-normal text-[#a39c92]">(선택)</span>
               </label>
               <textarea
                 value={purpose}

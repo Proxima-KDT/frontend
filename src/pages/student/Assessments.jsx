@@ -16,6 +16,8 @@ import { assessmentsApi } from '@/api/assessments';
 import { useToast } from '@/context/ToastContext';
 import Skeleton from '@/components/common/Skeleton';
 
+const pageBg = '#F7F5F0';
+
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
   locked: {
@@ -26,21 +28,21 @@ const STATUS_CONFIG = {
   },
   open: {
     label: '제출 대기',
-    badgeClass: 'bg-blue-100 text-blue-700',
+    badgeClass: 'bg-[#f7e5e3] text-[#a33b39]',
     icon: Clock,
-    iconClass: 'text-blue-500',
+    iconClass: 'text-[#a33b39]',
   },
   submitted: {
     label: '제출완료',
-    badgeClass: 'bg-indigo-100 text-indigo-700',
+    badgeClass: 'bg-[#e9eff3] text-[#4f6475]',
     icon: CheckCircle2,
-    iconClass: 'text-indigo-500',
+    iconClass: 'text-[#6f8391]',
   },
   graded: {
     label: '채점완료',
-    badgeClass: 'bg-green-100 text-green-700',
+    badgeClass: 'bg-[#edf1e8] text-[#5e7455]',
     icon: CheckCircle2,
-    iconClass: 'text-green-500',
+    iconClass: 'text-[#7f9078]',
   },
 };
 
@@ -103,7 +105,7 @@ function ScoreRing({ score, maxScore, passed }) {
       </div>
       <span
         className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-          passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          passed ? 'bg-[#edf1e8] text-[#5e7455]' : 'bg-[#f7e5e3] text-[#a33b39]'
         }`}
       >
         {passed ? '통과' : '미통과'}
@@ -145,7 +147,7 @@ function RubricTable({ rubric, totalScore }) {
                 {r.maxScore}점
               </td>
               {isGraded && (
-                <td className="px-4 py-2.5 text-right font-semibold text-student-600">
+                <td className="px-4 py-2.5 text-right font-semibold text-[#4e5a61]">
                   {r.score !== null ? `${r.score}점` : '-'}
                 </td>
               )}
@@ -157,7 +159,7 @@ function RubricTable({ rubric, totalScore }) {
             <tr>
               <td className="px-4 py-2.5 font-bold text-gray-800">합계</td>
               <td className="px-4 py-2.5 text-right text-gray-500">{max}점</td>
-              <td className="px-4 py-2.5 text-right font-bold text-student-700">
+              <td className="px-4 py-2.5 text-right font-bold text-[#2c2b28]">
                 {total}점
               </td>
             </tr>
@@ -181,8 +183,8 @@ function FileUploadArea({ files, onFilesChange }) {
   return (
     <div className="space-y-3">
       <div
-        className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center
-          hover:border-student-400 hover:bg-student-50 transition-colors cursor-pointer"
+        className="border-2 border-dashed border-[#d9d3c8] rounded-xl p-6 text-center
+          hover:border-[#c9c1b4] hover:bg-[#fbfaf7] transition-colors cursor-pointer"
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => document.getElementById('assess-file-input').click()}
@@ -190,7 +192,7 @@ function FileUploadArea({ files, onFilesChange }) {
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
         <p className="text-body-sm text-gray-600">
           파일을 드래그하거나{' '}
-          <span className="text-student-600 font-semibold">
+          <span className="text-[#4e5a61] font-semibold">
             클릭하여 업로드
           </span>
         </p>
@@ -212,7 +214,7 @@ function FileUploadArea({ files, onFilesChange }) {
               key={i}
               className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
             >
-              <FileText className="w-4 h-4 text-student-500 shrink-0" />
+              <FileText className="w-4 h-4 text-[#6f8391] shrink-0" />
               <span className="text-body-sm text-gray-700 flex-1 truncate">
                 {file.name}
               </span>
@@ -274,13 +276,13 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
 
   return (
     <div
-      className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${
-        isLocked ? 'border-gray-200 opacity-70' : 'border-gray-200'
+      className={`bg-white rounded-2xl border shadow-[0_2px_20px_rgba(60,52,40,0.04)] overflow-hidden transition-all ${
+        isLocked ? 'border-[#e8e4dc] opacity-70' : 'border-[#eceae4]'
       }`}
     >
       {/* 카드 헤더 */}
       <button
-        className={`w-full text-left ${isLocked ? 'cursor-default' : 'hover:bg-gray-50'} transition-colors`}
+        className={`w-full text-left ${isLocked ? 'cursor-default' : 'hover:bg-[#faf9f6]'} transition-colors`}
         onClick={() => !isLocked && setExpanded(!expanded)}
       >
         <div className="flex items-center gap-4 p-5">
@@ -311,13 +313,13 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
           {/* 점수 (채점완료) */}
           {isGraded && (
             <div className="text-right shrink-0">
-              <p className="text-h2 font-bold text-student-600">
+              <p className="text-h2 font-bold text-[#4e5a61]">
                 {assessment.score}
                 <span className="text-body text-gray-400 font-normal">점</span>
               </p>
               <span
                 className={`text-xs font-bold ${
-                  assessment.passed ? 'text-green-600' : 'text-red-600'
+                  assessment.passed ? 'text-[#5e7455]' : 'text-[#a33b39]'
                 }`}
               >
                 {assessment.passed ? '✓ 통과' : '✗ 미통과'}
@@ -326,7 +328,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
           )}
 
           {/* 잠금 아이콘 */}
-          {isLocked && <Lock className="w-5 h-5 text-gray-300 shrink-0" />}
+          {isLocked && <Lock className="w-5 h-5 text-[#c5c2ba] shrink-0" />}
 
           {/* 펼치기 아이콘 */}
           {!isLocked && (
@@ -345,14 +347,14 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
       {!isLocked && expanded && (
         <div className="border-t border-gray-100 p-5 space-y-5">
           {/* 평가 주제 + 설명 */}
-          <div className="p-4 bg-student-50 rounded-xl border border-student-100">
-            <p className="text-caption font-semibold text-student-500 uppercase tracking-wide mb-1">
+          <div className="rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
+            <p className="mb-1 text-caption font-semibold uppercase tracking-wide text-[#6f8391]">
               평가 주제
             </p>
-            <p className="text-body font-bold text-student-900 mb-2">
+            <p className="mb-2 text-body font-bold text-[#2c2b28]">
               {assessment.subject}
             </p>
-            <p className="text-body-sm text-student-800 leading-relaxed">
+            <p className="text-body-sm leading-relaxed text-[#4f6475]">
               {assessment.description}
             </p>
           </div>
@@ -365,7 +367,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
             <ul className="space-y-2">
               {assessment.requirements.map((req, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="mt-0.5 w-5 h-5 rounded-full bg-student-100 text-student-700 text-[11px] font-bold flex items-center justify-center shrink-0">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eef2f4] text-[11px] font-bold text-[#4e5a61]">
                     {i + 1}
                   </span>
                   <span className="text-body-sm text-gray-700 leading-relaxed">
@@ -410,11 +412,11 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                 passed={assessment.passed}
               />
               {assessment.feedback && (
-                <div className="flex-1 p-4 bg-green-50 rounded-xl border border-green-100">
-                  <p className="text-body-sm font-semibold text-green-800 mb-1">
+                <div className="flex-1 rounded-xl border border-[#e5ece0] bg-[#f3f6f1] p-4">
+                  <p className="mb-1 text-body-sm font-semibold text-[#5e7455]">
                     강사 피드백
                   </p>
-                  <p className="text-body-sm text-green-700 leading-relaxed">
+                  <p className="text-body-sm leading-relaxed text-[#667a5e]">
                     {assessment.feedback}
                   </p>
                 </div>
@@ -447,10 +449,10 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                   {assessment.submitted_files.map((file, i) => (
                     <div
                       key={i}
-                      className={`flex items-center gap-2 p-2.5 rounded-lg text-body-sm border ${
+                      className={`flex items-center gap-2 rounded-lg border p-2.5 text-body-sm ${
                         resubmitting
                           ? 'bg-gray-50 border-gray-200 text-gray-400 line-through'
-                          : 'bg-blue-50 border-blue-100 text-blue-700'
+                          : 'border-[#e3edf3] bg-[#f4f8fb] text-[#4f6475]'
                       }`}
                     >
                       <Paperclip className="w-4 h-4 shrink-0" />
@@ -524,8 +526,8 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
               <button
                 onClick={handleSubmit}
                 disabled={uploadedFiles.length === 0 || submitting}
-                className="mt-3 w-full py-2.5 rounded-xl bg-student-600 text-white font-semibold text-body-sm
-                  hover:bg-student-700 active:bg-student-800 transition-colors
+                className="mt-3 w-full rounded-xl bg-[#4e5a61] py-2.5 text-body-sm font-semibold text-white
+                  transition-colors hover:bg-[#424d53] active:bg-[#384248]
                   disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
                 {submitting ? '제출 중...' : '제출하기'}
@@ -559,7 +561,10 @@ export default function Assessments() {
       : null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+    <div
+      className="mx-auto max-w-3xl space-y-6 rounded-3xl px-4 py-6"
+      style={{ backgroundColor: pageBg }}
+    >
       {/* 헤더 */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-student-100 flex items-center justify-center">

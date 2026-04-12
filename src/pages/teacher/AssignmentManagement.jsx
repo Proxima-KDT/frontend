@@ -84,12 +84,12 @@ const STATUS_CONFIG = {
 };
 
 const PHASE_COLORS = [
-  'bg-purple-100 text-purple-700',
-  'bg-blue-100 text-blue-700',
-  'bg-green-100 text-green-700',
-  'bg-orange-100 text-orange-700',
-  'bg-pink-100 text-pink-700',
-  'bg-indigo-100 text-indigo-700',
+  'bg-[#dce8ea] text-[#5b7480]',
+  'bg-[#e4e1ef] text-[#6b648a]',
+  'bg-[#e6eddc] text-[#667a4f]',
+  'bg-[#f1e6d3] text-[#8a6a39]',
+  'bg-[#efe1df] text-[#8a5f59]',
+  'bg-[#e2e5eb] text-[#5f6d82]',
 ];
 
 function StatusBadge({ status }) {
@@ -433,7 +433,7 @@ export default function AssignmentManagement() {
   };
 
   return (
-    <div>
+    <div className="relative rounded-3xl bg-[#efede8] px-4 py-5 sm:px-6 md:-mx-2 md:px-8 md:py-7">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-h1 font-bold text-gray-900">과제 관리</h1>
@@ -491,7 +491,7 @@ export default function AssignmentManagement() {
       </div>
 
       {/* Phase 탭 필터 */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="mb-4 flex gap-2 rounded-full bg-[#e2dfd8] p-1.5 w-fit flex-wrap">
         {[0, 1, 2, 3, 4, 5, 6].map((p) => {
           const count =
             p === 0
@@ -502,12 +502,10 @@ export default function AssignmentManagement() {
             <button
               key={p}
               onClick={() => setPhaseFilter(p)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                 phaseFilter === p
-                  ? p === 0
-                    ? 'bg-gray-800 text-white'
-                    : `${PHASE_COLORS[(p - 1) % 6]} ring-2 ring-offset-1 ring-current`
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  ? 'bg-[#262626] text-white'
+                  : 'text-[#69645c] hover:bg-white/70'
               }`}
             >
               {p === 0 ? `전체 (${count})` : `Phase ${p} (${count})`}
@@ -591,9 +589,9 @@ export default function AssignmentManagement() {
 
               {/* 학생 제출 목록 */}
               {isExpanded && (
-                <div className="border-t border-gray-100">
+                <div className="border-t border-[#e2ddd4]">
                   {/* ── 과제 정보 패널 ── */}
-                  <div className="p-4 bg-gray-50 border-b border-gray-100 space-y-3">
+                  <div className="p-4 bg-[#f7f5f0] border-b border-[#ece8e1] space-y-3">
                     {/* 기간 */}
                     <div className="flex items-center gap-4 text-caption text-gray-500">
                       <span>
@@ -636,7 +634,7 @@ export default function AssignmentManagement() {
                               </span>
                             </span>
                           ))}
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-primary-50 border border-primary-100 text-caption font-semibold text-primary-600">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#edeae3] border border-[#dfd9cf] text-caption font-semibold text-[#4b5563]">
                             총{' '}
                             {assignment.rubric.reduce(
                               (s, r) => s + (r.maxScore ?? 0),
@@ -657,7 +655,7 @@ export default function AssignmentManagement() {
                           total > 0 ? Math.round((submitted / total) * 100) : 0
                         }
                         label="제출률"
-                        color="bg-primary-500"
+                        color="bg-[#6b7280]"
                         size="sm"
                       />
                     </div>
@@ -667,10 +665,10 @@ export default function AssignmentManagement() {
                       {assignment.studentSubmissions.map((student) => (
                         <div
                           key={student.studentId}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                          className="flex items-center gap-3 rounded-xl bg-[#eceae4] p-3 transition-colors hover:bg-[#e4e1db]"
                         >
-                          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
-                            <span className="text-xs font-bold text-primary-600">
+                          <div className="w-8 h-8 rounded-full bg-[#e8eef2] flex items-center justify-center shrink-0">
+                            <span className="text-xs font-bold text-[#4b5563]">
                               {student.studentName[0]}
                             </span>
                           </div>

@@ -11,6 +11,7 @@ import {
   Sparkles,
   RefreshCw,
   BookOpen,
+  BarChart3,
 } from 'lucide-react';
 import { voiceApi } from '@/api/voice';
 import Card from '@/components/common/Card';
@@ -43,21 +44,30 @@ const difficultyLabels = {
   advanced: '고급',
 };
 const difficultyColors = {
-  beginner: 'bg-green-100 text-green-700 border-green-300',
-  intermediate: 'bg-amber-100 text-amber-700 border-amber-300',
-  advanced: 'bg-red-100 text-red-700 border-red-300',
+  beginner: 'bg-[#e8f0e9] text-[#3d6b4f] border-[#c5d9c8]',
+  intermediate: 'bg-[#faf4e8] text-[#9a6220] border-[#e8d9b8]',
+  advanced: 'bg-[#f3e8e8] text-[#944848] border-[#e0c5c5]',
 };
+
+const softPortalCard =
+  'rounded-3xl border border-[#e8e4dc] bg-white shadow-[0_8px_32px_rgba(45,42,38,0.05)]';
+const pillActive = 'bg-[#2d2a26] text-white border-[#2d2a26] shadow-sm';
+const pillIdle =
+  'bg-white text-[#4a4640] border-[#e8e4dc] hover:border-[#cfc9c0] hover:bg-[#faf9f7]';
 
 const keywordStatusConfig = {
   correct: {
-    color: 'bg-green-100 text-green-700 border-green-300',
+    color: 'bg-[#e8f0e9] text-[#3d6b4f] border-[#c5d9c8]',
     label: '정확',
   },
   inaccurate: {
-    color: 'bg-amber-100 text-amber-700 border-amber-300',
+    color: 'bg-[#faf4e8] text-[#9a6220] border-[#e8d9b8]',
     label: '부정확',
   },
-  missing: { color: 'bg-red-100 text-red-700 border-red-300', label: '누락' },
+  missing: {
+    color: 'bg-[#f3e8e8] text-[#944848] border-[#e0c5c5]',
+    label: '누락',
+  },
 };
 
 const scoreBadge = (score) => {
@@ -70,7 +80,10 @@ function HistoryCard({ record }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card padding="p-5">
+    <Card
+      padding="p-5"
+      className={`!rounded-3xl !border-[#e8e4dc] shadow-[0_8px_32px_rgba(45,42,38,0.05)]`}
+    >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 text-body-sm text-gray-400 mb-1.5">
@@ -90,14 +103,14 @@ function HistoryCard({ record }) {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-3">
-        <span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-body-sm font-medium">
+      <div className="flex gap-2 mb-3 flex-wrap">
+        <span className="px-3 py-1 rounded-full text-body-sm font-medium bg-[#e8f0e9] text-[#3d6b4f]">
           정확 {record.correct}
         </span>
-        <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-body-sm font-medium">
+        <span className="px-3 py-1 rounded-full text-body-sm font-medium bg-[#faf4e8] text-[#9a6220]">
           부정확 {record.inaccurate}
         </span>
-        <span className="px-3 py-1 bg-red-50 text-red-600 rounded-full text-body-sm font-medium">
+        <span className="px-3 py-1 rounded-full text-body-sm font-medium bg-[#f3e8e8] text-[#944848]">
           누락 {record.missing}
         </span>
       </div>
@@ -116,22 +129,22 @@ function HistoryCard({ record }) {
         })}
       </div>
 
-      <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+      <div className="p-3 rounded-xl border border-[#e8e4dc] bg-[#faf9f7]">
         <div className="flex items-center gap-1.5 mb-1.5">
-          <Sparkles className="w-4 h-4 text-blue-500" />
-          <span className="text-body-sm font-semibold text-blue-600">
+          <Sparkles className="w-4 h-4 text-[#6b7a8c]" />
+          <span className="text-body-sm font-semibold text-[#2d2a26]">
             AI 피드백
           </span>
         </div>
-        <p className="text-body-sm text-gray-700 leading-relaxed">
+        <p className="text-body-sm text-[#4a4640] leading-relaxed">
           {record.feedback}
         </p>
         {record.tip && (
-          <div className="mt-2 pt-2 border-t border-blue-100">
-            <p className="text-caption font-semibold text-blue-500 mb-1">
-              💡 이렇게 말해보세요
+          <div className="mt-2 pt-2 border-t border-[#ebe8e3]">
+            <p className="text-caption font-semibold text-[#9a6220] mb-1">
+              이렇게 말해보세요
             </p>
-            <p className="text-body-sm text-blue-800 leading-relaxed italic">
+            <p className="text-body-sm text-[#3d3a36] leading-relaxed italic">
               "{record.tip}"
             </p>
           </div>
@@ -140,7 +153,7 @@ function HistoryCard({ record }) {
 
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1 text-body-sm text-primary-500 hover:text-primary-600 mt-3 transition-colors"
+        className="flex items-center gap-1 text-body-sm text-[#4a4640] hover:text-[#2d2a26] mt-3 transition-colors"
       >
         {expanded ? (
           <ChevronUp className="w-4 h-4" />
@@ -151,11 +164,11 @@ function HistoryCard({ record }) {
       </button>
 
       {expanded && (
-        <div className="mt-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <p className="text-body-sm font-medium text-gray-500 mb-1.5">
+        <div className="mt-3 p-4 rounded-xl border border-[#e8e4dc] bg-[#faf9f7]">
+          <p className="text-body-sm font-medium text-[#8a847a] mb-1.5">
             인식된 발화
           </p>
-          <p className="text-body-sm text-gray-700 leading-relaxed">
+          <p className="text-body-sm text-[#3d3a36] leading-relaxed">
             {record.transcript}
           </p>
         </div>
@@ -354,23 +367,45 @@ export default function VoiceFeedback() {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-h1 font-bold text-gray-900">AI 말하기 학습</h1>
-        <p className="text-body-sm text-gray-500 mt-1">
+    <div className="space-y-8 rounded-3xl bg-[#F9F7F2] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8">
+      <header>
+        <h1
+          className="text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]"
+        >
+          AI 말하기 학습
+        </h1>
+        <p className="mt-2 text-[0.875rem] leading-relaxed text-[#6b6560]">
           오늘의 주제로 자유롭게 말하고, AI가 핵심 키워드 포함 여부를 분석해
           학습 피드백을 제공합니다.
         </p>
-      </div>
+      </header>
 
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <div className="flex gap-10 border-b border-[#e8e4dc]">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`relative pb-3 text-[0.9375rem] font-medium transition-colors ${
+              activeTab === tab.key
+                ? 'text-[#1f1e1c]'
+                : 'text-[#8a847a] hover:text-[#4a4640]'
+            }`}
+          >
+            <span>{tab.label}</span>
+            {activeTab === tab.key && (
+              <span className="absolute bottom-0 left-0 right-0 h-[3px] rounded-full bg-[#2d2a26]" />
+            )}
+          </button>
+        ))}
+      </div>
 
       {activeTab === 'practice' && (
         <>
           {!sttSupported && (
-            <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-              <p className="text-body-sm text-amber-700">
+            <div className="flex items-center gap-3 rounded-2xl border border-[#e8d9b8] bg-[#faf4e8] p-4">
+              <AlertCircle className="h-5 w-5 shrink-0 text-[#9a6220]" />
+              <p className="text-body-sm text-[#6b4f20]">
                 이 브라우저는 음성 인식을 지원하지 않습니다.{' '}
                 <strong>Chrome</strong>에서 이용해주세요.
               </p>
@@ -378,42 +413,44 @@ export default function VoiceFeedback() {
           )}
 
           {/* 주제 선택 + 키워드 */}
-          <Card padding="p-4">
+          <div className={`${softPortalCard} p-5 sm:p-6`}>
+            <p className="mb-2 text-[0.65rem] font-bold tracking-[0.14em] text-[#8a847a]">
+              SUBJECTS
+            </p>
             {/* 카테고리 필터 */}
-            <div className="flex flex-wrap gap-1.5 mb-2">
+            <div className="mb-5 flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
+                  type="button"
                   onClick={() =>
                     !isRecording && !showReview && setCategoryFilter(cat)
                   }
                   disabled={isRecording || showReview}
-                  className={`px-2.5 py-1 rounded-full text-caption font-medium border transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                    ${
-                      categoryFilter === cat
-                        ? 'bg-student-500 text-white border-student-500'
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-student-300'
-                    }`}
+                  className={`rounded-full border px-3.5 py-1.5 text-[0.75rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+                    categoryFilter === cat ? pillActive : pillIdle
+                  }`}
                 >
                   {cat}
                 </button>
               ))}
             </div>
+            <p className="mb-2 text-[0.65rem] font-bold tracking-[0.14em] text-[#8a847a]">
+              PROFICIENCY
+            </p>
             {/* 난이도 필터 */}
-            <div className="flex gap-1.5 mb-4">
+            <div className="mb-6 flex flex-wrap gap-2">
               {DIFFICULTIES.map((d) => (
                 <button
                   key={d.label}
+                  type="button"
                   onClick={() =>
                     !isRecording && !showReview && setDifficultyFilter(d.value)
                   }
                   disabled={isRecording || showReview}
-                  className={`px-2.5 py-1 rounded-full text-caption font-medium border transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                    ${
-                      difficultyFilter === d.value
-                        ? 'bg-student-500 text-white border-student-500'
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-student-300'
-                    }`}
+                  className={`rounded-full border px-3.5 py-1.5 text-[0.75rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+                    difficultyFilter === d.value ? pillActive : pillIdle
+                  }`}
                 >
                   {d.label}
                 </button>
@@ -431,9 +468,9 @@ export default function VoiceFeedback() {
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex gap-2 flex-wrap">
-                    <span className="px-2.5 py-1 bg-student-50 text-student-600 rounded-full text-caption font-medium border border-student-200">
+                    <span className="rounded-full border border-[#d4e0e8] bg-[#eef3f7] px-2.5 py-1 text-caption font-medium text-[#3d5a6e]">
                       {topicLoading ? (
-                        <span className="inline-block w-12 h-3 bg-student-100 rounded animate-pulse" />
+                        <span className="inline-block h-3 w-12 animate-pulse rounded bg-[#d4e0e8]" />
                       ) : (
                         currentTopic.category
                       )}
@@ -446,9 +483,10 @@ export default function VoiceFeedback() {
                   </div>
                   {!isRecording && !showReview && !analyzing && (
                     <button
+                      type="button"
                       onClick={fetchRandomTopic}
                       disabled={topicLoading}
-                      className="flex items-center gap-1 text-body-sm text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+                      className="flex shrink-0 items-center gap-1 text-body-sm text-[#8a847a] transition-colors hover:text-[#2d2a26]"
                     >
                       <RefreshCw
                         className={`w-4 h-4 ${topicLoading ? 'animate-spin' : ''}`}
@@ -457,11 +495,11 @@ export default function VoiceFeedback() {
                     </button>
                   )}
                 </div>
-                <h2 className="text-h3 font-bold text-gray-900 mb-1">
+                <h2 className="mb-1 text-[1.125rem] font-bold leading-snug text-[#1f1e1c] sm:text-h3">
                   {currentTopic.question}
                 </h2>
                 {currentTopic.description && (
-                  <p className="text-body-sm text-gray-500 mb-3">
+                  <p className="mb-3 text-body-sm text-[#6b6560]">
                     {currentTopic.description}
                   </p>
                 )}
@@ -481,8 +519,8 @@ export default function VoiceFeedback() {
                     return (
                       <span
                         key={i}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-caption font-medium border transition-colors duration-300
-                          ${config ? config.color : 'bg-gray-100 text-gray-500 border-gray-200'}`}
+                        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-caption font-medium transition-colors duration-300
+                          ${config ? config.color : 'border-[#e8e4dc] bg-[#f3f1ed] text-[#6b6560]'}`}
                       >
                         {kw.word}
                         {showResults && config && (
@@ -495,82 +533,88 @@ export default function VoiceFeedback() {
               </div>
             ) : (
               <button
+                type="button"
                 onClick={fetchRandomTopic}
                 disabled={topicLoading}
-                className="w-full py-6 border-2 border-dashed border-student-200 rounded-xl text-student-500 hover:border-student-400 hover:bg-student-50 transition-colors flex flex-col items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex w-full flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-[#cfd6dc] bg-[#faf9f7] py-10 transition-colors hover:border-[#b8c4cc] hover:bg-[#f5f3ef] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {topicLoading ? (
-                  <RefreshCw className="w-8 h-8 animate-spin" />
-                ) : (
-                  <BookOpen className="w-8 h-8" />
-                )}
-                <span className="text-body font-medium">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e4ebf0] text-[#5a6d7e]">
+                  {topicLoading ? (
+                    <RefreshCw className="h-7 w-7 animate-spin" />
+                  ) : (
+                    <BookOpen className="h-7 w-7" />
+                  )}
+                </div>
+                <span className="text-body font-medium text-[#1f1e1c]">
                   {topicLoading ? '문제 불러오는 중...' : '문제 뽑기'}
                 </span>
               </button>
             )}
-          </Card>
+          </div>
 
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
             {/* 왼쪽: 마이크 */}
-            <div className="w-full md:w-[40%]">
-              <Card className="flex flex-col items-center py-6 h-full">
-                <div className="relative mb-4">
-                  <button
-                    onClick={toggleRecording}
-                    disabled={!sttSupported || !currentTopic}
-                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
-                      isRecording
-                        ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-lg shadow-red-500/30'
-                        : 'bg-student-500 hover:bg-student-600 shadow-lg shadow-student-500/30'
-                    } disabled:opacity-40 disabled:cursor-not-allowed`}
-                  >
-                    {isRecording ? (
-                      <MicOff className="w-10 h-10 text-white" />
-                    ) : (
-                      <Mic className="w-10 h-10 text-white" />
-                    )}
-                  </button>
-                  {isRecording && (
-                    <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping pointer-events-none" />
+            <div
+              className={`${softPortalCard} flex h-full flex-col items-center px-5 py-8 sm:px-8`}
+            >
+              <p className="mb-6 font-mono text-[2rem] font-semibold tabular-nums tracking-tight text-[#1f1e1c]">
+                {formatTime(seconds)}
+              </p>
+              <div className="relative mb-5">
+                <button
+                  type="button"
+                  onClick={toggleRecording}
+                  disabled={!sttSupported || !currentTopic}
+                  className={`flex h-[5.5rem] w-[5.5rem] items-center justify-center rounded-full transition-all ${
+                    isRecording
+                      ? 'animate-pulse bg-[#8b5348] shadow-lg shadow-[#8b5348]/25 hover:bg-[#7a483f]'
+                      : 'bg-[#2d2a26] shadow-lg shadow-black/15 hover:bg-[#1f1e1c]'
+                  } disabled:cursor-not-allowed disabled:opacity-40`}
+                >
+                  {isRecording ? (
+                    <MicOff className="h-10 w-10 text-white" />
+                  ) : (
+                    <Mic className="h-10 w-10 text-white" />
                   )}
-                </div>
+                </button>
+                {isRecording && (
+                  <div className="pointer-events-none absolute inset-0 animate-ping rounded-full border-4 border-[#c97a6a]/50" />
+                )}
+              </div>
 
-                <p className="text-h2 font-mono font-bold text-gray-900 mb-1">
-                  {formatTime(seconds)}
-                </p>
-                <p className="text-body-sm text-gray-500 mb-3">
-                  {isRecording
-                    ? '녹음 중... 버튼을 눌러 종료하세요'
-                    : analyzing
-                      ? 'AI가 분석 중입니다...'
-                      : showReview
-                        ? '발화 내용을 확인해주세요'
-                        : showResults
-                          ? '녹음 완료'
-                          : !currentTopic
-                            ? '위에서 문제를 먼저 뽑아주세요'
-                            : '버튼을 눌러 녹음을 시작하세요'}
-                </p>
+              <p className="mb-1 text-center text-[0.8125rem] font-medium text-[#4a4640]">
+                {isRecording
+                  ? '녹음 중... 버튼을 눌러 종료하세요'
+                  : analyzing
+                    ? 'AI가 분석 중입니다...'
+                    : showReview
+                      ? '발화 내용을 확인해주세요'
+                      : showResults
+                        ? '녹음 완료'
+                        : !currentTopic
+                          ? '위에서 문제를 먼저 뽑아주세요'
+                          : '버튼을 눌러 녹음을 시작하세요'}
+              </p>
 
+              <div className="w-full max-w-md flex-1 space-y-3">
                 {(showResults || showReview) && (
                   <Button
                     variant="ghost"
                     size="sm"
                     icon={RotateCcw}
                     onClick={resetRecording}
-                    className="mb-3"
+                    className="mb-1 w-full text-[#4a4640] hover:bg-[#f3f1ed]"
                   >
                     다시 녹음하기
                   </Button>
                 )}
 
                 {isRecording && transcript && (
-                  <div className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200">
-                    <p className="text-caption font-medium text-gray-400 mb-1">
+                  <div className="w-full rounded-xl border border-[#e8e4dc] bg-[#faf9f7] p-3">
+                    <p className="mb-1 text-caption font-medium text-[#8a847a]">
                       인식 중...
                     </p>
-                    <p className="text-body-sm text-gray-700 leading-relaxed">
+                    <p className="text-body-sm leading-relaxed text-[#3d3a36]">
                       {transcript}
                     </p>
                   </div>
@@ -578,21 +622,21 @@ export default function VoiceFeedback() {
 
                 {showReview && (
                   <div className="w-full space-y-3">
-                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                      <p className="text-caption font-medium text-amber-600 mb-2">
+                    <div className="rounded-xl border border-[#e8d9b8] bg-[#faf4e8] p-3">
+                      <p className="mb-2 text-caption font-medium text-[#9a6220]">
                         인식된 발화 — 내용을 확인하고 수정할 수 있습니다
                       </p>
                       <textarea
                         value={editedTranscript}
                         onChange={(e) => setEditedTranscript(e.target.value)}
-                        className="w-full text-body-sm text-gray-700 bg-white border border-amber-200 rounded-lg p-2.5 resize-none leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="w-full resize-none rounded-lg border border-[#e8d9b8] bg-white p-2.5 text-body-sm leading-relaxed text-[#3d3a36] focus:outline-none focus:ring-2 focus:ring-[#e8d9b8]"
                         rows={4}
                         placeholder="인식된 텍스트가 없습니다."
                       />
                     </div>
                     <Button
                       size="sm"
-                      className="w-full"
+                      className="w-full !bg-[#2d2a26] hover:!bg-[#1f1e1c] !text-white"
                       loading={analyzing}
                       onClick={handleSubmitAnalysis}
                     >
@@ -602,141 +646,154 @@ export default function VoiceFeedback() {
                 )}
 
                 {showResults && (
-                  <div className="w-full p-3 bg-blue-50 rounded-xl border border-blue-100">
-                    <p className="text-caption font-medium text-blue-500 mb-1">
+                  <div className="w-full rounded-xl border border-[#e8e4dc] bg-[#faf9f7] p-3">
+                    <p className="mb-1 text-caption font-medium text-[#6b7a8c]">
                       인식된 발화
                     </p>
-                    <p className="text-body-sm text-gray-700 max-h-32 overflow-y-auto leading-relaxed">
+                    <p className="max-h-32 overflow-y-auto text-body-sm leading-relaxed text-[#3d3a36]">
                       {editedTranscript || '인식된 텍스트가 없습니다.'}
                     </p>
                   </div>
                 )}
-              </Card>
+              </div>
             </div>
 
             {/* 오른쪽: 결과 */}
-            <div className="w-full md:w-[60%] space-y-4">
+            <div className="flex min-h-[320px] flex-col gap-4 lg:min-h-[420px]">
               {showReview ? (
-                <Card className="flex flex-col items-center justify-center py-16 text-center h-full">
-                  <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-                    <Sparkles className="w-8 h-8 text-amber-500" />
+                <div
+                  className={`${softPortalCard} flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[420px]`}
+                >
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#faf4e8]">
+                    <Sparkles className="h-8 w-8 text-[#c9a227]" />
                   </div>
-                  <h3 className="text-h3 font-semibold text-gray-600 mb-2">
+                  <h3 className="mb-2 text-h3 font-semibold text-[#4a4640]">
                     발화 내용을 확인해주세요
                   </h3>
-                  <p className="text-body-sm text-gray-400">
+                  <p className="max-w-sm text-body-sm text-[#8a847a]">
                     왼쪽에서 내용 확인 후 분석 요청을 눌러주세요
                   </p>
-                </Card>
+                </div>
               ) : showResults && analysisResult ? (
-                <>
-                  <div className="grid grid-cols-2 gap-4 items-start">
-                    <Card padding="p-4" className="flex flex-col items-center">
-                      <h3 className="text-body font-semibold text-gray-900 mb-1">
+                <div className="flex h-full flex-col gap-4">
+                  <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
+                    <div
+                      className={`${softPortalCard} flex flex-col items-center p-4 sm:p-5`}
+                    >
+                      <h3 className="mb-2 text-body font-semibold text-[#1f1e1c]">
                         종합 점수
                       </h3>
                       <ScoreGauge
                         score={analysisResult.score ?? 0}
                         label="점"
-                        color="#3B82F6"
+                        color="#2d2a26"
                         size={120}
                       />
-                    </Card>
+                    </div>
 
-                    <Card padding="p-4">
-                      <h3 className="text-body font-semibold text-gray-900 mb-3">
+                    <div className={`${softPortalCard} p-4 sm:p-5`}>
+                      <h3 className="mb-3 text-body font-semibold text-[#1f1e1c]">
                         키워드 분석
                       </h3>
                       <div className="grid grid-cols-3 gap-2">
-                        <div className="text-center p-3 bg-green-50 rounded-xl">
-                          <p className="text-h2 font-bold text-green-600">
+                        <div className="rounded-xl bg-[#e8f0e9] p-3 text-center">
+                          <p className="text-h2 font-bold text-[#3d6b4f]">
                             {analysisResult.correct ?? 0}
                           </p>
-                          <p className="text-caption text-green-600 mt-0.5">
+                          <p className="mt-0.5 text-caption text-[#3d6b4f]">
                             정확
                           </p>
                         </div>
-                        <div className="text-center p-3 bg-amber-50 rounded-xl">
-                          <p className="text-h2 font-bold text-amber-600">
+                        <div className="rounded-xl bg-[#faf4e8] p-3 text-center">
+                          <p className="text-h2 font-bold text-[#9a6220]">
                             {analysisResult.inaccurate ?? 0}
                           </p>
-                          <p className="text-caption text-amber-600 mt-0.5">
+                          <p className="mt-0.5 text-caption text-[#9a6220]">
                             부정확
                           </p>
                         </div>
-                        <div className="text-center p-3 bg-red-50 rounded-xl">
-                          <p className="text-h2 font-bold text-red-600">
+                        <div className="rounded-xl bg-[#f3e8e8] p-3 text-center">
+                          <p className="text-h2 font-bold text-[#944848]">
                             {analysisResult.missing ?? 0}
                           </p>
-                          <p className="text-caption text-red-600 mt-0.5">
+                          <p className="mt-0.5 text-caption text-[#944848]">
                             누락
                           </p>
                         </div>
                       </div>
-                    </Card>
+                    </div>
                   </div>
 
-                  <Card padding="p-4">
-                    <h3 className="text-body font-semibold text-gray-900 mb-2">
+                  <div className={`${softPortalCard} p-4 sm:p-5`}>
+                    <h3 className="mb-2 text-body font-semibold text-[#1f1e1c]">
                       AI 피드백
                     </h3>
-                    <p className="text-body-sm text-gray-700 leading-relaxed">
+                    <p className="text-body-sm leading-relaxed text-[#4a4640]">
                       {analysisResult.feedback}
                     </p>
                     {analysisResult.tip && (
-                      <div className="mt-3 p-3 bg-student-50 rounded-xl border border-student-100">
-                        <p className="text-caption font-semibold text-student-600 mb-1">
-                          💡 이렇게 말해보세요
+                      <div className="mt-3 rounded-xl border border-[#ebe5cf] bg-[#faf6e8] p-3">
+                        <p className="mb-1 text-caption font-semibold text-[#9a6220]">
+                          이렇게 말해보세요
                         </p>
-                        <p className="text-body-sm text-student-800 leading-relaxed italic">
+                        <p className="text-body-sm italic leading-relaxed text-[#3d3a36]">
                           "{analysisResult.tip}"
                         </p>
                       </div>
                     )}
-                  </Card>
-                </>
+                  </div>
+                </div>
               ) : analyzing ? (
-                <Card className="flex flex-col items-center justify-center py-16 text-center h-full">
-                  <div className="relative w-20 h-20 mb-6">
-                    <div className="absolute inset-0 rounded-full border-4 border-student-100" />
-                    <div className="absolute inset-0 rounded-full border-4 border-student-500 border-t-transparent animate-spin" />
+                <div
+                  className={`${softPortalCard} flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[420px]`}
+                >
+                  <div className="relative mb-6 h-20 w-20">
+                    <div className="absolute inset-0 rounded-full border-4 border-[#ebe8e3]" />
+                    <div className="absolute inset-0 animate-spin rounded-full border-4 border-[#2d2a26] border-t-transparent" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Sparkles className="w-8 h-8 text-student-400" />
+                      <Sparkles className="h-8 w-8 text-[#8a847a]" />
                     </div>
                   </div>
-                  <h3 className="text-h3 font-semibold text-gray-700 mb-2">
+                  <h3 className="mb-2 text-h3 font-semibold text-[#4a4640]">
                     AI 분석 중...
                   </h3>
-                  <p className="text-body-sm text-gray-400 mb-4">
+                  <p className="mb-4 text-body-sm text-[#8a847a]">
                     GPT가 답변 내용을 평가하고 있어요
                   </p>
                   <div className="flex gap-1.5">
                     <span
-                      className="w-2 h-2 bg-student-400 rounded-full animate-bounce"
+                      className="h-2 w-2 animate-bounce rounded-full bg-[#2d2a26]"
                       style={{ animationDelay: '0ms' }}
                     />
                     <span
-                      className="w-2 h-2 bg-student-400 rounded-full animate-bounce"
+                      className="h-2 w-2 animate-bounce rounded-full bg-[#2d2a26]"
                       style={{ animationDelay: '150ms' }}
                     />
                     <span
-                      className="w-2 h-2 bg-student-400 rounded-full animate-bounce"
+                      className="h-2 w-2 animate-bounce rounded-full bg-[#2d2a26]"
                       style={{ animationDelay: '300ms' }}
                     />
                   </div>
-                </Card>
+                </div>
               ) : (
-                <Card className="flex flex-col items-center justify-center py-16 text-center h-full">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                    <Mic className="w-8 h-8 text-gray-400" />
+                <div
+                  className={`${softPortalCard} flex h-full min-h-[320px] flex-col items-center justify-center px-8 py-16 text-center lg:min-h-[420px]`}
+                >
+                  <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f7]">
+                    <BarChart3 className="h-8 w-8 text-[#7a8fa3]" />
                   </div>
-                  <h3 className="text-h3 font-semibold text-gray-500 mb-2">
+                  <h3 className="mb-2 text-xl font-semibold text-[#1f1e1c] sm:text-2xl">
                     학습 결과가 여기에 표시됩니다
                   </h3>
-                  <p className="text-body-sm text-gray-400">
+                  <p className="mb-8 max-w-sm text-[0.8125rem] leading-relaxed text-[#6b6560]">
                     마이크 버튼을 눌러 말하기를 시작하세요
                   </p>
-                </Card>
+                  <div className="flex w-full max-w-xs flex-col gap-2">
+                    <div className="h-2.5 rounded-full bg-[#ebe8e3]" />
+                    <div className="h-2.5 w-4/5 rounded-full bg-[#ebe8e3]" />
+                    <div className="h-2.5 w-3/5 rounded-full bg-[#ebe8e3]" />
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -751,27 +808,33 @@ export default function VoiceFeedback() {
               <Skeleton width="100%" height="120px" rounded="rounded-2xl" />
             </>
           ) : history.length === 0 ? (
-            <Card className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                <Mic className="w-8 h-8 text-gray-400" />
+            <div
+              className={`${softPortalCard} flex flex-col items-center justify-center py-16 text-center`}
+            >
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f7]">
+                <Mic className="h-8 w-8 text-[#7a8fa3]" />
               </div>
-              <h3 className="text-h3 font-semibold text-gray-500 mb-2">
+              <h3 className="mb-2 text-xl font-semibold text-[#4a4640]">
                 학습 기록이 없습니다
               </h3>
-              <p className="text-body-sm text-gray-400 mb-4">
+              <p className="mb-5 max-w-sm text-body-sm text-[#8a847a]">
                 말하기 학습을 완료하면 여기에 기록이 저장됩니다.
               </p>
-              <Button size="sm" onClick={() => setActiveTab('practice')}>
+              <Button
+                size="sm"
+                onClick={() => setActiveTab('practice')}
+                className="!bg-[#2d2a26] hover:!bg-[#1f1e1c] !text-white"
+              >
                 학습 시작하기
               </Button>
-            </Card>
+            </div>
           ) : (
             <>
-              <div className="flex items-center justify-between">
-                <p className="text-body-sm text-gray-500">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-body-sm text-[#6b6560]">
                   총 {history.length}개의 학습 기록
                 </p>
-                <p className="text-caption text-gray-400">
+                <p className="text-caption text-[#8a847a]">
                   평균 점수:{' '}
                   {Math.round(
                     history.reduce((s, r) => s + r.score, 0) / history.length,

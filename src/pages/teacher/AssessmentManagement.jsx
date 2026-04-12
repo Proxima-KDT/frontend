@@ -18,12 +18,12 @@ import ProgressBar from '@/components/common/ProgressBar';
 import { useToast } from '@/context/ToastContext';
 
 const PHASE_COLORS = [
-  { bg: 'bg-purple-500', light: 'bg-purple-100', text: 'text-purple-700' },
-  { bg: 'bg-blue-500', light: 'bg-blue-100', text: 'text-blue-700' },
-  { bg: 'bg-green-500', light: 'bg-green-100', text: 'text-green-700' },
-  { bg: 'bg-orange-500', light: 'bg-orange-100', text: 'text-orange-700' },
-  { bg: 'bg-pink-500', light: 'bg-pink-100', text: 'text-pink-700' },
-  { bg: 'bg-indigo-500', light: 'bg-indigo-100', text: 'text-indigo-700' },
+  { bg: 'bg-[#65737e]', light: 'bg-[#e2eaef]', text: 'text-[#476171]' },
+  { bg: 'bg-[#78808f]', light: 'bg-[#e6e8f1]', text: 'text-[#596077]' },
+  { bg: 'bg-[#768568]', light: 'bg-[#e7ecdf]', text: 'text-[#58694b]' },
+  { bg: 'bg-[#9a7e4f]', light: 'bg-[#f1e8d7]', text: 'text-[#84652f]' },
+  { bg: 'bg-[#8a6f6c]', light: 'bg-[#efe3e1]', text: 'text-[#785653]' },
+  { bg: 'bg-[#667287]', light: 'bg-[#e3e8ef]', text: 'text-[#4f5f79]' },
 ];
 
 function formatSubmittedAt(raw) {
@@ -49,17 +49,17 @@ const STATUS_CONFIG = {
   },
   submitted: {
     label: '제출완료',
-    classes: 'bg-blue-100 text-blue-700',
+    classes: 'bg-[#dbe9ea] text-[#567881]',
     Icon: CheckCircle2,
   },
   graded: {
     label: '채점완료',
-    classes: 'bg-green-100 text-green-700',
+    classes: 'bg-[#dce8ea] text-[#4f6f78]',
     Icon: CheckCircle2,
   },
   resubmit_required: {
     label: '재제출 요청',
-    classes: 'bg-orange-100 text-orange-700',
+    classes: 'bg-[#f1e6d3] text-[#8a6a39]',
     Icon: RefreshCcw,
   },
 };
@@ -293,13 +293,13 @@ export default function AssessmentManagement() {
   }
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <h1 className="text-h1 font-bold text-gray-900 mb-6">
         능력단위평가 관리
       </h1>
 
       {/* Phase 탭 */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+      <div className="mb-6 flex gap-2 overflow-x-auto rounded-xl bg-[#f1eee8] p-1.5 pb-1">
         {assessments.map((a, idx) => {
           const color = PHASE_COLORS[idx % 6];
           const isActive = activePhase === a.phaseId;
@@ -309,8 +309,8 @@ export default function AssessmentManagement() {
               onClick={() => setActivePhase(a.phaseId)}
               className={`shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 isActive
-                  ? `${color.bg} text-white shadow-sm`
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#232833] text-white shadow-sm'
+                  : 'bg-transparent text-[#6f6a61] hover:bg-white hover:text-[#35312d]'
               }`}
             >
               Phase {a.phaseId}
@@ -374,8 +374,8 @@ export default function AssessmentManagement() {
                   (s) => s.status !== 'pending',
                 ).length,
                 total: current.studentSubmissions.length,
-                barColor: 'bg-blue-500',
-                textColor: 'text-blue-600',
+                barColor: 'bg-[#586067]',
+                textColor: 'text-[#374151]',
               },
               {
                 label: '채점 완료',
@@ -383,8 +383,8 @@ export default function AssessmentManagement() {
                   (s) => s.status === 'graded',
                 ).length,
                 total: current.studentSubmissions.length,
-                barColor: 'bg-green-500',
-                textColor: 'text-green-600',
+                barColor: 'bg-[#6f8791]',
+                textColor: 'text-[#374151]',
               },
               {
                 label: '합격',
@@ -392,8 +392,8 @@ export default function AssessmentManagement() {
                   (s) => s.passed === true,
                 ).length,
                 total: current.studentSubmissions.length,
-                barColor: 'bg-primary-500',
-                textColor: 'text-primary-600',
+                barColor: 'bg-[#8c7632]',
+                textColor: 'text-[#8a6a28]',
               },
             ].map((stat) => (
               <Card key={stat.label} padding="p-3">

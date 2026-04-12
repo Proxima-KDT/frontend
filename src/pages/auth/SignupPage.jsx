@@ -24,7 +24,7 @@ export default function SignupPage() {
         </div>
 
         <Link to="/login">
-          <Button type="button" fullWidth size="lg">
+          <Button type="button" variant="warm" fullWidth size="lg">
             로그인으로 돌아가기
           </Button>
         </Link>

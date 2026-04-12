@@ -375,9 +375,9 @@ export default function EquipmentManagement() {
   ];
 
   return (
-    <div>
+    <div className="rounded-3xl border border-[#ebe4d8]/80 bg-[#fdfbf7] px-4 py-6 shadow-[0_1px_0_rgba(255,255,255,0.85)_inset] sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-h1 font-bold text-gray-900">장비 관리</h1>
+        <h1 className="text-h1 font-bold text-[#121926]">장비 관리</h1>
         <Button icon={Plus} size="sm" onClick={() => setShowAddModal(true)}>
           장비 등록
         </Button>
@@ -400,15 +400,15 @@ export default function EquipmentManagement() {
       {filter === 'pending' ? (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-h3 font-semibold text-gray-900">승인 대기</h2>
+            <h2 className="text-h3 font-semibold text-[#121926]">승인 대기</h2>
             <Badge variant="warning">{requests.length}건</Badge>
           </div>
           {requests.length > 0 ? (
             <Table columns={requestColumns} data={requests} />
           ) : (
             <div className="text-center py-8">
-              <CheckCircle className="w-12 h-12 text-success-500 mx-auto mb-2" />
-              <p className="text-body-sm text-gray-500">
+              <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-2" />
+              <p className="text-body-sm text-[#6b7280]">
                 처리 대기 중인 요청이 없습니다
               </p>
             </div>
@@ -583,7 +583,7 @@ export default function EquipmentManagement() {
         title="장비 삭제"
       >
         <div className="space-y-4">
-          <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
+          <div className="flex items-start gap-3 p-3 bg-[#fdf2f2] rounded-xl border border-[#f0d4d4]">
             <Trash2 size={18} className="text-red-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-body-sm font-medium text-red-700">정말 삭제하시겠습니까?</p>
@@ -679,7 +679,7 @@ export default function EquipmentManagement() {
               )}
             </div>
 
-            <h3 className="text-body font-semibold text-gray-900 mb-3">
+            <h3 className="text-body font-semibold text-[#121926] mb-3">
               사용 이력
             </h3>
             <div className="space-y-3">

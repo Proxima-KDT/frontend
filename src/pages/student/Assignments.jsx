@@ -49,12 +49,12 @@ const FILTERS = ['전체', '미제출', '제출완료', '채점완료', '재제�
 
 // Phase 색상 팔레트 — subject는 DB의 assignment.subject를 사용하므로 여기선 색상만.
 const PHASE_PALETTE = [
-  { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500', tab: 'bg-purple-500' },
-  { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500',   tab: 'bg-blue-500' },
-  { bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500',  tab: 'bg-green-500' },
-  { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500', tab: 'bg-orange-500' },
-  { bg: 'bg-pink-100',   text: 'text-pink-700',   dot: 'bg-pink-500',   tab: 'bg-pink-500' },
-  { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500', tab: 'bg-indigo-500' },
+  { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500', tab: 'bg-purple-500', stripe: 'bg-violet-600' },
+  { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500',   tab: 'bg-blue-500',   stripe: 'bg-blue-600' },
+  { bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500',  tab: 'bg-green-500',  stripe: 'bg-emerald-600' },
+  { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500', tab: 'bg-orange-500', stripe: 'bg-amber-700' },
+  { bg: 'bg-pink-100',   text: 'text-pink-700',   dot: 'bg-pink-500',   tab: 'bg-pink-500',   stripe: 'bg-rose-600' },
+  { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500', tab: 'bg-indigo-500', stripe: 'bg-indigo-600' },
 ];
 
 function getPhaseCfg(phase) {
@@ -66,6 +66,7 @@ function getPhaseCfg(phase) {
       text: 'text-gray-600',
       dot: 'bg-gray-400',
       tab: 'bg-gray-400',
+      stripe: 'bg-slate-500',
     };
   }
   const color = PHASE_PALETTE[(n - 1) % PHASE_PALETTE.length];
@@ -520,21 +521,19 @@ function PhaseGroupHeader({ phase, allItems }) {
 
   return (
     <div className="flex items-center gap-2.5">
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${cfg.bg} ${cfg.text}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} shrink-0`} />
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dedede] bg-[#ececec] px-2.5 py-1 text-xs font-bold text-[#333333]">
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cfg.dot}`} />
         {cfg.label}
         {subject && (
-          <span className="font-medium opacity-75">· {subject}</span>
+          <span className="font-medium text-[#5a5a5a]">· {subject}</span>
         )}
       </span>
-      <div className="flex-1 h-px bg-gray-200" />
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="text-caption text-gray-400">
+      <div className="h-px flex-1 bg-[#dcdcdc]" />
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="text-caption text-[#888888]">
           {done}/{total} 완료
         </span>
-        <div className="w-14 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-1.5 w-14 overflow-hidden rounded-full bg-[#e0e0e0]">
           <div
             className={`h-full rounded-full transition-all ${cfg.dot}`}
             style={{ width: `${pct}%` }}
@@ -629,8 +628,13 @@ export default function Assignments() {
         })()
       : [];
 
+  const pageBg = '#F3F3F2';
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+    <div
+      className="mx-auto max-w-3xl space-y-6 rounded-3xl px-4 py-6"
+      style={{ backgroundColor: pageBg }}
+    >
       {/* 헤더 */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-student-100 flex items-center justify-center">
@@ -665,10 +669,10 @@ export default function Assignments() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => setPhaseFilter(0)}
-            className={`shrink-0 px-4 py-2 rounded-xl text-body-sm font-semibold transition-all ${
+            className={`shrink-0 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
               phaseFilter === 0
-                ? 'bg-gray-800 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#2a2a2a] text-white shadow-sm'
+                : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
             }`}
           >
             전체 Phase
@@ -681,10 +685,10 @@ export default function Assignments() {
               <button
                 key={p}
                 onClick={() => setPhaseFilter(p)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-body-sm font-semibold transition-all ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
                   isActive
-                    ? `${cfg.tab} text-white shadow-sm`
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-[#2a2a2a] text-white shadow-sm'
+                    : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
                 }`}
               >
                 <span
@@ -693,10 +697,10 @@ export default function Assignments() {
                 {cfg.label}
                 {pendingCnt > 0 && (
                   <span
-                    className={`ml-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold ${
+                    className={`ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold ${
                       isActive
-                        ? 'bg-white/30 text-white'
-                        : 'bg-orange-400 text-white'
+                        ? 'bg-white/25 text-white'
+                        : 'bg-[#9a9a9a] text-white'
                     }`}
                   >
                     {pendingCnt}
@@ -710,17 +714,15 @@ export default function Assignments() {
 
       {/* 선택된 Phase 설명 배너 */}
       {activePhaseCfg && (
-        <div
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl ${activePhaseCfg.bg}`}
-        >
+        <div className="flex items-center gap-2 rounded-xl border border-[#dedede] bg-[#ececec] px-3 py-2">
           <span
-            className={`w-2 h-2 rounded-full inline-block ${activePhaseCfg.dot}`}
+            className={`inline-block h-2 w-2 rounded-full ${activePhaseCfg.dot}`}
           />
-          <span className={`text-body-sm font-semibold ${activePhaseCfg.text}`}>
+          <span className="text-body-sm font-semibold text-[#2a2a2a]">
             {activePhaseCfg.label}
             {activePhaseSubject ? ` — ${activePhaseSubject}` : ''}
           </span>
-          <span className={`ml-auto text-caption ${activePhaseCfg.text}`}>
+          <span className="ml-auto text-caption text-[#5a5a5a]">
             {assignments.filter((a) => Number(a.phase) === phaseFilter).length}
             개 과제
           </span>
@@ -728,15 +730,15 @@ export default function Assignments() {
       )}
 
       {/* 상태 필터 탭 */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setStatusFilter(f)}
-            className={`px-3.5 py-1.5 rounded-full text-body-sm font-medium transition-colors ${
+            className={`rounded-full px-3.5 py-1.5 text-body-sm font-semibold transition-colors ${
               statusFilter === f
-                ? 'bg-student-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#2a2a2a] text-white shadow-sm'
+                : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
             }`}
           >
             {f}
@@ -802,9 +804,9 @@ export default function Assignments() {
           </div>
         )
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-          <XCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-body text-gray-400">해당하는 과제가 없습니다</p>
+        <div className="rounded-2xl border border-[#e0e0e0] bg-white p-12 text-center shadow-sm">
+          <XCircle className="mx-auto mb-3 h-10 w-10 text-[#c4c4c4]" />
+          <p className="text-body text-[#888888]">해당하는 과제가 없습니다</p>
         </div>
       )}
     </div>

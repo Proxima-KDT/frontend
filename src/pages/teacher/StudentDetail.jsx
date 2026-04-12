@@ -138,21 +138,21 @@ export default function StudentDetail() {
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       {/* 뒤로가기 */}
       <button
         onClick={() => navigate('/teacher')}
-        className="flex items-center gap-1.5 text-body-sm text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 text-body-sm text-[#7c766d] hover:text-[#2f333a] transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         수강생 현황으로 돌아가기
       </button>
 
       {/* ── 학생 정보 헤더 ────────────────────────────── */}
-      <Card>
+      <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
         <div className="flex items-start gap-5">
           {/* 아바타 */}
-          <div className="shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+          <div className="shrink-0 w-20 h-20 rounded-2xl overflow-hidden border border-[#ddd8cf] bg-[#d8e1e7]">
             {student.avatar_url ? (
               <img
                 src={student.avatar_url}
@@ -178,22 +178,22 @@ export default function StudentDetail() {
             </div>
 
             {/* 이메일 · 등록일 · 최근 활동 */}
-            <div className="flex flex-wrap gap-x-5 gap-y-1 text-body-sm text-gray-500 mb-4">
+            <div className="flex flex-wrap gap-x-5 gap-y-1 text-body-sm text-[#6f6a61] mb-4">
               {student.email && (
                 <span className="flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-gray-400" />
+                  <Mail className="w-3.5 h-3.5 text-[#9b968d]" />
                   {student.email}
                 </span>
               )}
               {student.enrolled_at && (
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                  <Calendar className="w-3.5 h-3.5 text-[#9b968d]" />
                   등록일 {student.enrolled_at}
                 </span>
               )}
               {student.last_active && (
                 <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                  <Clock className="w-3.5 h-3.5 text-[#9b968d]" />
                   최근 활동 {student.last_active}
                 </span>
               )}
@@ -201,9 +201,9 @@ export default function StudentDetail() {
 
             {/* 핵심 지표 칩 */}
             <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
-                <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
-                <span className="text-body-sm font-semibold text-blue-700">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e8eef5] border border-[#dde5ef]">
+                <TrendingUp className="w-3.5 h-3.5 text-[#3d5a6e]" />
+                <span className="text-body-sm font-semibold text-[#3d5a6e]">
                   출석률 {student.attendance_rate ?? 0}%
                 </span>
               </div>
@@ -213,7 +213,7 @@ export default function StudentDetail() {
       </Card>
 
       {/* ── 스킬 분석 ─────────────────────────────────── */}
-      <Card>
+      <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
         <h2 className="text-h3 font-semibold text-gray-900 mb-5">스킬 분석</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div className="flex justify-center">
@@ -236,7 +236,7 @@ export default function StudentDetail() {
       {/* ── 상담 노트 + 이번 주 출석 ──────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* 상담 노트 */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-h3 font-semibold text-gray-900">상담 노트</h2>
             <Button
@@ -257,7 +257,7 @@ export default function StudentDetail() {
         </Card>
 
         {/* 이번 주 출석 */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
           <h2 className="text-h3 font-semibold text-gray-900 mb-5">
             이번 주 출석
           </h2>
@@ -322,7 +322,7 @@ export default function StudentDetail() {
       </div>
 
       {/* ── 이력서 / 포트폴리오 ───────────────────────── */}
-      <Card>
+      <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
         <h2 className="text-h3 font-semibold text-gray-900 mb-4">
           이력서 / 포트폴리오
         </h2>

@@ -19,43 +19,43 @@ import Skeleton from '@/components/common/Skeleton';
 /* ── 상태별 스타일 ── */
 const statusConfig = {
   completed: {
-    color: 'bg-green-500',
-    badgeVariant: 'success',
+    color: 'bg-[#3d3d3d]',
+    badgeVariant: 'soft-info',
     label: '완료',
-    gradient: 'from-green-400 to-emerald-500',
-    ring: 'ring-green-200',
-    road: '#22c55e',
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
+    gradient: 'from-[#3d3d3d] to-[#5a5a5a]',
+    ring: 'ring-[#c8c5bf]',
+    road: '#3d3d3d',
+    iconBg: 'bg-[#f0efeb]',
+    iconColor: 'text-[#6b6560]',
   },
   in_progress: {
-    color: 'bg-teacher-500',
-    badgeVariant: 'teacher',
+    color: 'bg-[#c9a227]',
+    badgeVariant: 'soft-warning',
     label: '진행 중',
-    gradient: 'from-teacher-400 to-teacher-600',
-    ring: 'ring-teacher-200',
-    road: '#0ea5e9',
-    iconBg: 'bg-teacher-100',
-    iconColor: 'text-teacher-600',
+    gradient: 'from-[#c9a227] to-[#b8911f]',
+    ring: 'ring-[#e8d9a0]',
+    road: '#c9a227',
+    iconBg: 'bg-[#faf4e8]',
+    iconColor: 'text-[#9a6220]',
   },
   upcoming: {
-    color: 'bg-gray-300',
+    color: 'bg-[#a8a29e]',
     badgeVariant: 'default',
     label: '예정',
-    gradient: 'from-gray-300 to-gray-400',
-    ring: 'ring-gray-200',
-    road: '#d1d5db',
-    iconBg: 'bg-gray-100',
-    iconColor: 'text-gray-400',
+    gradient: 'from-[#a8a29e] to-[#928d88]',
+    ring: 'ring-[#d6d3cf]',
+    road: '#a8a29e',
+    iconBg: 'bg-[#f0efeb]',
+    iconColor: 'text-[#a8a29e]',
   },
 };
 
 /* ── 태스크 아이콘 ── */
 function TaskStatusIcon({ progress }) {
   if (progress === 100)
-    return <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />;
+    return <CheckCircle2 className="w-4 h-4 text-[#6f8391] shrink-0" />;
   if (progress > 0)
-    return <Clock className="w-4 h-4 text-teacher-500 shrink-0" />;
+    return <Clock className="w-4 h-4 text-[#c9a227] shrink-0" />;
   return <Circle className="w-4 h-4 text-gray-300 shrink-0" />;
 }
 
@@ -65,7 +65,7 @@ function PhaseDetail({ phase }) {
   const completedTasks = phase.tasks.filter((t) => t.progress === 100).length;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] p-5 shadow-none">
       <div className="flex flex-col gap-1 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-body font-bold text-gray-900">{phase.title}</h3>
@@ -94,9 +94,9 @@ function PhaseDetail({ phase }) {
                 value={task.progress}
                 color={
                   task.progress === 100
-                    ? 'bg-green-500'
+                    ? 'bg-[#6f8391]'
                     : task.progress > 0
-                      ? 'bg-teacher-500'
+                      ? 'bg-[#c9a227]'
                       : 'bg-gray-300'
                 }
                 size="sm"
@@ -131,10 +131,10 @@ function RoadPhaseCard({ phase, isSelected, onClick, position }) {
             isSelected
               ? `bg-linear-to-br ${config.gradient} text-white shadow-lg scale-105`
               : phase.status === 'in_progress'
-                ? 'bg-white border-2 border-teacher-300 shadow-md hover:shadow-lg hover:scale-102'
+                ? 'bg-[#f8f7f4] border-2 border-[#e8d9a0] shadow-md hover:shadow-lg hover:scale-102'
                 : phase.status === 'completed'
-                  ? 'bg-white border-2 border-green-200 shadow-sm hover:shadow-md hover:scale-102'
-                  : 'bg-gray-50 border-2 border-gray-200 hover:shadow-md hover:scale-102'
+                  ? 'bg-[#f8f7f4] border-2 border-[#d6d3cf] shadow-sm hover:shadow-md hover:scale-102'
+                  : 'bg-[#f0efeb] border-2 border-[#e2ded7] hover:shadow-md hover:scale-102'
           }
         `}
       >
@@ -177,8 +177,8 @@ function RoadPhaseCard({ phase, isSelected, onClick, position }) {
         {/* 진행 중 펄스 */}
         {phase.status === 'in_progress' && !isSelected && (
           <div className="absolute -top-1 -right-1 w-3 h-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teacher-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-teacher-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c9a227] opacity-75" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-[#c9a227]" />
           </div>
         )}
       </div>
@@ -187,9 +187,9 @@ function RoadPhaseCard({ phase, isSelected, onClick, position }) {
       <div
         className={`w-0.5 ${isSelected ? 'h-6' : 'h-8'} ${
           phase.status === 'completed'
-            ? 'bg-green-300'
+            ? 'bg-[#c8c5bf]'
             : phase.status === 'in_progress'
-              ? 'bg-teacher-300'
+              ? 'bg-[#e8d9a0]'
               : 'bg-gray-200'
         }`}
       />
@@ -201,18 +201,18 @@ function RoadPhaseCard({ phase, isSelected, onClick, position }) {
           transition-all duration-300
           ${
             phase.status === 'completed'
-              ? 'border-green-500 bg-green-50'
+              ? 'border-[#6b6560] bg-[#f0efeb]'
               : phase.status === 'in_progress'
-                ? 'border-teacher-500 bg-teacher-50'
+                ? 'border-[#c9a227] bg-[#faf4e8]'
                 : 'border-gray-300 bg-gray-50'
           }
           ${isSelected ? `ring-4 ${config.ring}` : ''}
         `}
       >
         {phase.status === 'completed' ? (
-          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-[#6b6560]" />
         ) : phase.status === 'in_progress' ? (
-          <div className="w-2 h-2 rounded-full bg-teacher-500" />
+          <div className="w-2 h-2 rounded-full bg-[#c9a227]" />
         ) : (
           <div className="w-2 h-2 rounded-full bg-gray-300" />
         )}
@@ -296,6 +296,7 @@ export default function Curriculum() {
   }
 
   return (
+    <div className="rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
     <div className="space-y-6">
       {/* ── 헤더 ── */}
       <div className="flex items-center justify-between">
@@ -311,14 +312,14 @@ export default function Curriculum() {
             {totalPhases > 0 ? ` · ${completedPhases}/${totalPhases} 단계 완료` : ''}
           </p>
         </div>
-        <Badge variant="teacher">{overallProgress}% 진행</Badge>
+        <Badge variant="soft-warning">{overallProgress}% 진행</Badge>
       </div>
 
       {/* ── 전체 진행률 ── */}
-      <Card>
+      <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
         <ProgressBar
           value={overallProgress}
-          color="bg-teacher-500"
+          color="bg-[#c9a227]"
           label="전체 진행률"
         />
       </Card>
@@ -353,8 +354,8 @@ export default function Curriculum() {
               <div className="relative mx-8 -mt-3">
                 {/* START 깃발 */}
                 <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 flex flex-col items-center gap-0.5">
-                  <Flag className="w-5 h-5 text-green-500" />
-                  <span className="text-[10px] font-bold text-green-600">
+                  <Flag className="w-5 h-5 text-[#6f8391]" />
+                  <span className="text-[10px] font-bold text-[#4f6475]">
                     START
                   </span>
                 </div>
@@ -407,8 +408,8 @@ export default function Curriculum() {
                   />
                   <defs>
                     <linearGradient id="roadGrad1" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#22c55e" />
-                      <stop offset="100%" stopColor="#0ea5e9" />
+                      <stop offset="0%" stopColor="#3d3d3d" />
+                      <stop offset="100%" stopColor="#c9a227" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -433,7 +434,7 @@ export default function Curriculum() {
                   return (
                     <path
                       d="M 30 0 Q 30 40, 30 80"
-                      stroke="#22c55e"
+                      stroke="#3d3d3d"
                       strokeWidth="12"
                       fill="none"
                       strokeLinecap="round"
@@ -511,16 +512,16 @@ export default function Curriculum() {
                   />
                   <defs>
                     <linearGradient id="roadGrad2" x1="1" y1="0" x2="0" y2="0">
-                      <stop offset="0%" stopColor="#0ea5e9" />
-                      <stop offset="50%" stopColor="#38bdf8" />
-                      <stop offset="100%" stopColor="#d1d5db" />
+                      <stop offset="0%" stopColor="#c9a227" />
+                      <stop offset="50%" stopColor="#e8d9a0" />
+                      <stop offset="100%" stopColor="#a8a29e" />
                     </linearGradient>
                   </defs>
                 </svg>
                 {/* GOAL 깃발 */}
                 <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 flex flex-col items-center gap-0.5">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span className="text-[10px] font-bold text-yellow-600">
+                  <Trophy className="w-5 h-5 text-[#c9a227]" />
+                  <span className="text-[10px] font-bold text-[#9a6220]">
                     GOAL
                   </span>
                 </div>
@@ -555,7 +556,7 @@ export default function Curriculum() {
           {/* 세로 도로 */}
           <div className="absolute left-6 top-0 bottom-0 w-1 bg-gray-200 rounded-full">
             <div
-              className="w-1 bg-linear-to-b from-green-500 to-teacher-500 rounded-full transition-all duration-500"
+              className="w-1 bg-linear-to-b from-[#3d3d3d] to-[#c9a227] rounded-full transition-all duration-500"
               style={{
                 height: `${
                   (curriculum.filter((c) => c.status === 'completed')
@@ -584,18 +585,18 @@ export default function Curriculum() {
                       flex items-center justify-center
                       ${
                         phase.status === 'completed'
-                          ? 'border-green-500 bg-green-50'
+                          ? 'border-[#6b6560] bg-[#f0efeb]'
                           : phase.status === 'in_progress'
-                            ? 'border-teacher-500 bg-teacher-50'
+                            ? 'border-[#c9a227] bg-[#faf4e8]'
                             : 'border-gray-300 bg-gray-50'
                       }
                     `}
                   >
                     {phase.status === 'completed' && (
-                      <CheckCircle2 className="w-3 h-3 text-green-500" />
+                      <CheckCircle2 className="w-3 h-3 text-[#6b6560]" />
                     )}
                     {phase.status === 'in_progress' && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-teacher-500" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#c9a227]" />
                     )}
                   </div>
 
@@ -608,10 +609,10 @@ export default function Curriculum() {
                         isSelected
                           ? `bg-linear-to-br ${config.gradient} text-white shadow-lg`
                           : phase.status === 'in_progress'
-                            ? 'border-teacher-300 bg-white shadow-md'
+                            ? 'border-[#e8d9a0] bg-[#f8f7f4] shadow-md'
                             : phase.status === 'completed'
-                              ? 'border-green-200 bg-white shadow-sm'
-                              : 'border-gray-200 bg-gray-50'
+                              ? 'border-[#d6d3cf] bg-[#f8f7f4] shadow-sm'
+                              : 'border-[#e2ded7] bg-[#f0efeb]'
                       }
                     `}
                   >
@@ -668,7 +669,7 @@ export default function Curriculum() {
                     {/* 진행 중 펄스 */}
                     {phase.status === 'in_progress' && !isSelected && (
                       <div className="absolute -left-11 top-3 w-5 h-5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teacher-400 opacity-50" />
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c9a227] opacity-50" />
                       </div>
                     )}
                   </div>
@@ -685,6 +686,7 @@ export default function Curriculum() {
           </div>
         </div>
       </div>}
+    </div>
     </div>
   );
 }

@@ -256,58 +256,58 @@ export default function CounselingSchedule() {
   const selectedDow   = formatDayOfWeek(selectedDate);
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <h1 className="text-h1 font-bold text-gray-900 mb-6">상담일정</h1>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">전체 신청</p>
-          <p className="text-h2 font-bold text-gray-900">{totalCount}건</p>
+      <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">전체 신청</p>
+          <p className="text-4xl font-semibold text-[#2f3f54]">{totalCount}건</p>
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">대기중</p>
-          <p className="text-h2 font-bold text-warning-600">{pendingCount}건</p>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">대기중</p>
+          <p className="text-4xl font-semibold text-[#7d661e]">{pendingCount}건</p>
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">확정</p>
-          <p className="text-h2 font-bold text-success-600">{confirmedCount}건</p>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">확정</p>
+          <p className="text-4xl font-semibold text-[#2f3f54]">{confirmedCount}건</p>
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">완료</p>
-          <p className="text-h2 font-bold text-admin-600">{completedCount}건</p>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-sm text-[#848079]">완료</p>
+          <p className="text-4xl font-semibold text-[#2f3f54]">{completedCount}건</p>
         </Card>
       </div>
 
       {/* 캘린더 + 슬롯 패널 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 월간 캘린더 */}
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={prevMonth}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
-            </button>
+        <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
+          <div className="mb-4 flex items-center justify-between">
             <span className="text-body font-semibold text-gray-900">
               {currentYear}년 {MONTH_NAMES[currentMonth]}
             </span>
-            <button
-              onClick={nextMonth}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4 text-gray-600" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={prevMonth}
+                className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd] cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4 text-[#5f5b53]" />
+              </button>
+              <button
+                onClick={nextMonth}
+                className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd] cursor-pointer"
+              >
+                <ChevronRight className="h-4 w-4 text-[#5f5b53]" />
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-7 mb-1">
+          <div className="mb-1 grid grid-cols-7">
             {DAYS_OF_WEEK.map((d, i) => (
               <div
                 key={d}
-                className={`text-center text-caption font-medium py-1 ${
-                  i === 5 ? 'text-admin-400' : i === 6 ? 'text-red-400' : 'text-gray-400'
-                }`}
+                className="py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-[#8f8a80]"
               >
                 {d}
               </div>
@@ -334,11 +334,11 @@ export default function CounselingSchedule() {
                     relative flex flex-col items-center justify-center h-9 rounded-xl text-body-sm font-medium
                     transition-colors cursor-pointer
                     ${isPast ? 'text-gray-300 cursor-default' : ''}
-                    ${!isPast && !isSelected ? 'hover:bg-admin-50' : ''}
-                    ${isSelected ? 'bg-admin-500 text-white' : ''}
-                    ${isToday && !isSelected ? 'ring-2 ring-admin-300 text-admin-600' : ''}
-                    ${!isPast && !isSelected && dow === 5 ? 'text-admin-400' : ''}
-                    ${!isPast && !isSelected && dow === 6 ? 'text-red-400' : ''}
+                    ${!isPast && !isSelected ? 'hover:bg-[#ece9e2] text-[#373f4a]' : ''}
+                    ${isSelected ? 'bg-[#e9e8e5] text-[#223248] ring-1 ring-[#8a8f96]' : ''}
+                    ${isToday && !isSelected ? 'text-[#2f3f54]' : ''}
+                    ${!isPast && !isSelected && dow === 5 ? 'text-[#47576b]' : ''}
+                    ${!isPast && !isSelected && dow === 6 ? 'text-[#8f5757]' : ''}
                   `}
                 >
                   {day}

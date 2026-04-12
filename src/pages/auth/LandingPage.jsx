@@ -10,30 +10,33 @@ import LandingLayout from '@/components/layout/LandingLayout'
 const roles = [
   {
     key: 'student',
-    title: '학생',
+    title: '수강생',
     icon: GraduationCap,
-    // 핑크-퍼플 계열 (Slack 스크린샷 좌측 카드)
-    bgFrom: '#E8A0BF',
-    bgTo: '#C77DBA',
-    iconBg: 'bg-white/20',
+    bgFrom: '#f3f1ea',
+    bgTo: '#e8e4dc',
+    iconBg: 'bg-[#ece9e3]',
+    textColor: 'text-[#4a4640]',
+    arrowColor: 'text-[#a8a29e]',
   },
   {
     key: 'teacher',
     title: '강사',
     icon: BookOpen,
-    // 시안-스카이 계열 (Slack 스크린샷 중앙 카드)
-    bgFrom: '#7DD3E8',
-    bgTo: '#5BC0D8',
-    iconBg: 'bg-white/20',
+    bgFrom: '#3f4147',
+    bgTo: '#26282e',
+    iconBg: 'bg-white/12',
+    textColor: 'text-[#f9fafb]',
+    arrowColor: 'text-[#9ca3af]',
   },
   {
     key: 'admin',
     title: '관리자',
     icon: Settings,
-    // 딥 퍼플 계열 (Slack 스크린샷 우측 카드)
-    bgFrom: '#5B21B6',
-    bgTo: '#4C1D95',
-    iconBg: 'bg-white/20',
+    bgFrom: '#6c4b3f',
+    bgTo: '#584035',
+    iconBg: 'bg-white/12',
+    textColor: 'text-[#fdf8f3]',
+    arrowColor: 'text-[#e8d8cc]',
   },
 ]
 
@@ -58,9 +61,9 @@ export default function LandingPage() {
               <button
                 key={role.key}
                 onClick={() => navigate(`/login?role=${role.key}`)}
-                className="group rounded-2xl overflow-hidden bg-white
-                  hover:shadow-lg hover:-translate-y-1 transition-all duration-300
-                  focus:outline-none focus:ring-2 focus:ring-primary-500/30 text-left"
+                className="group rounded-2xl overflow-hidden border border-[#ebe8e3]
+                  hover:shadow-[0_18px_36px_rgba(45,42,38,0.12)] hover:-translate-y-1 transition-all duration-300
+                  focus:outline-none text-left"
               >
                 {/* 상단 컬러 일러스트 영역 */}
                 <div
@@ -75,17 +78,17 @@ export default function LandingPage() {
                   <div className="absolute top-10 right-10 w-6 h-6 rounded-full bg-white/15" />
 
                   {/* 아이콘 */}
-                  <div className="relative w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <role.icon className="w-10 h-10 text-white" />
+                  <div className={`relative w-20 h-20 rounded-2xl ${role.iconBg} backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <role.icon className={`w-10 h-10 ${role.textColor}`} />
                   </div>
                 </div>
 
                 {/* 하단 텍스트 영역 */}
-                <div className="px-6 py-5 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-gray-900">
+                <div className="px-6 py-5 flex items-center justify-between bg-white/92">
+                  <h3 className={`text-lg font-semibold text-[#2d2a26]`}>
                     {role.title}
                   </h3>
-                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-900 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className={`w-5 h-5 ${role.arrowColor} group-hover:text-[#2d2a26] group-hover:translate-x-1 transition-all`} />
                 </div>
               </button>
             ))}
@@ -94,15 +97,15 @@ export default function LandingPage() {
       </section>
 
       {/* 푸터 */}
-      <footer className="bg-gray-900 py-10 px-4">
+      <footer className="bg-[#2d2a26] py-10 px-4">
         <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
-              <GraduationCap className="w-4.5 h-4.5 text-white" />
+            <div className="w-8 h-8 rounded-full bg-white/12 flex items-center justify-center">
+              <GraduationCap className="w-4.5 h-4.5 text-[#e5e7eb]" />
             </div>
-            <span className="text-white font-bold">EduPilot</span>
+            <span className="text-[#fdf8f3] font-semibold italic">Korea IT Academy</span>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-[#a8a29e]">
             © 2026 EduPilot. AI 기반 IT교육 통합 관리 플랫폼
           </p>
         </div>

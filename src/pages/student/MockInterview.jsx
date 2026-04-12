@@ -281,8 +281,7 @@ export default function MockInterview() {
   // ─── Setup View ──────────────────────────────────────────────────
   if (view === 'setup') {
     return (
-      <div className="space-y-5">
-        {/* 헤더 */}
+      <div className="space-y-6">
         <div>
           <h1 className="text-h2 font-bold text-gray-900">AI 모의면접</h1>
           <p className="text-body-sm text-gray-500 mt-1">
@@ -592,14 +591,14 @@ export default function MockInterview() {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.role === 'ai' && (
-                <div className="w-7 h-7 rounded-full bg-student-100 flex items-center justify-center mr-2 shrink-0 mt-1">
-                  <Sparkles className="w-3.5 h-3.5 text-student-600" />
+                <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eef2f4]">
+                  <Sparkles className="h-3.5 w-3.5 text-[#6f8391]" />
                 </div>
               )}
               <div
                 className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3 ${
                   msg.role === 'user'
-                    ? 'bg-student-500 text-white rounded-br-md'
+                    ? 'rounded-br-md bg-[#4e5a61] text-white'
                     : 'bg-gray-100 text-gray-900 rounded-bl-md'
                 }`}
               >
@@ -686,7 +685,7 @@ export default function MockInterview() {
                   className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
                     isRecording
                       ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
-                      : 'bg-student-500 hover:bg-student-600 shadow-student-500/30'
+                      : 'bg-[#4e5a61] hover:bg-[#414b51] shadow-[#4e5a61]/30'
                   } disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
                   {isRecording ? (

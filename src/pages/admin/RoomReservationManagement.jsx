@@ -159,14 +159,14 @@ const roomTypeMeta = {
   study: {
     label: '자습실',
     icon: BookOpen,
-    bg: 'bg-blue-50',
-    iconColor: 'text-blue-500',
+    bg: 'bg-[#e8eef2]',
+    iconColor: 'text-[#4e5a61]',
   },
   meeting: {
     label: '회의실',
     icon: Users,
-    bg: 'bg-purple-50',
-    iconColor: 'text-purple-500',
+    bg: 'bg-[#ede8ee]',
+    iconColor: 'text-[#6b5b73]',
   },
 };
 
@@ -183,7 +183,7 @@ const AMENITY_OPTIONS = [
 function AmenityTag({ label }) {
   const Icon = amenityIcons[label] || Layers;
   return (
-    <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#f3f1ec] px-2 py-0.5 text-xs text-[#7f786d]">
       <Icon size={10} />
       {label}
     </span>
@@ -275,11 +275,11 @@ export default function RoomReservationManagement() {
   const getCellStyle = (status) => {
     switch (status) {
       case 'available':
-        return 'bg-gray-50 text-gray-300';
+        return 'border border-[#dfeef7] bg-[#f5fafd] text-[#4a697f]';
       case 'reserved':
-        return 'bg-admin-50 border border-admin-200 cursor-pointer hover:bg-admin-100 text-admin-800';
+        return 'cursor-pointer border border-[#c8d0d8] bg-[#eef2f4] text-[#4e5a61] hover:bg-[#e4ebf0]';
       case 'closed':
-        return 'bg-gray-200 cursor-not-allowed text-gray-400 bg-[repeating-linear-gradient(45deg,#d1d5db_0,#d1d5db_1px,#e5e7eb_0,#e5e7eb_50%)] bg-[size:8px_8px]';
+        return 'cursor-not-allowed border border-[#e8e4dd] bg-[#efede7] text-[#b7b2aa]';
       default:
         return '';
     }
@@ -432,22 +432,22 @@ export default function RoomReservationManagement() {
   }, [bookedSlots, selectedDate, rooms]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-3xl bg-[#F7F5F0] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8">
       {/* 페이지 헤더 */}
-      <h1 className="text-h2 font-bold text-gray-900">시설 예약 관리</h1>
+      <h1 className="text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]">시설 예약 관리</h1>
 
       {/* 탭 네비게이션 */}
-      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+      <div className="flex w-fit gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
                 activeTab === tab.key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-[#2c2b28] shadow-sm'
+                  : 'text-[#8a847a] hover:text-[#5c5852]'
               }`}
             >
               <Icon size={14} />
@@ -461,55 +461,61 @@ export default function RoomReservationManagement() {
       {activeTab === 'status' && (
         <div className="space-y-5">
           {/* 통계 요약 카드 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[
               {
                 label: '총 예약',
                 value: reservationStats.total,
                 icon: CalendarRange,
-                bg: 'bg-gray-50',
-                iconColor: 'text-gray-500',
+                iconTone: 'text-[#7f786d]',
+                labelTone: 'text-[#8a847a]',
                 sub: '건',
               },
               {
                 label: '자습실 예약',
                 value: reservationStats.study,
                 icon: BookOpen,
-                bg: 'bg-blue-50',
-                iconColor: 'text-blue-500',
+                iconTone: 'text-[#6f8391]',
+                labelTone: 'text-[#4e5a61]',
                 sub: '건',
               },
               {
                 label: '회의실 예약',
                 value: reservationStats.meeting,
                 icon: Users,
-                bg: 'bg-purple-50',
-                iconColor: 'text-purple-500',
+                iconTone: 'text-[#6b5b73]',
+                labelTone: 'text-[#5c4d66]',
                 sub: '건',
               },
               {
                 label: '슬롯 사용률',
                 value: reservationStats.usageRate,
                 icon: Clock,
-                bg: 'bg-amber-50',
-                iconColor: 'text-amber-500',
+                iconTone: 'text-[#8a847a]',
+                labelTone: 'text-[#6b6560]',
                 sub: '%',
               },
-            ].map(({ label, value, icon, bg, iconColor, sub }) => {
+            ].map(({ label, value, icon, iconTone, labelTone, sub }) => {
               const StatIcon = icon;
               return (
-                <Card key={label} padding="p-3" className={bg}>
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <StatIcon size={14} className={iconColor} />
-                    <span className="text-xs text-gray-500">{label}</span>
+                <Card
+                  key={label}
+                  padding="p-5"
+                  className="rounded-2xl border border-[#eceae4] !bg-white shadow-[0_2px_20px_rgba(60,52,40,0.04)]"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <StatIcon size={16} className={iconTone} />
+                    <span className={`text-xs font-medium ${labelTone}`}>
+                      {label}
+                    </span>
                   </div>
-                  <div className="flex items-end gap-0.5">
-                    <span className="text-2xl font-bold text-gray-900">
+                  <div className="flex items-end gap-1">
+                    <span className="text-[2rem] font-semibold text-[#2c2b28]">
                       {value}
                     </span>
-                    <span className="text-sm text-gray-400 mb-0.5">{sub}</span>
+                    <span className="mb-1 text-sm text-[#b0aaa1]">{sub}</span>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
+                  <p className="mt-1 text-xs text-[#9c988e]">
                     {selectedDate}
                   </p>
                 </Card>
@@ -519,9 +525,10 @@ export default function RoomReservationManagement() {
 
           {/* 날짜 선택 */}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-2">
-              날짜 선택 <span className="font-normal">(7일 이내)</span>
+            <p className="mb-2 text-[1.55rem] font-semibold text-[#2c2b28]">
+              예약일 선택
             </p>
+            <p className="mb-2 text-xs text-[#9c988e]">7일 이내</p>
             <div className="overflow-x-auto -mx-1 px-1">
               <div
                 className="flex gap-2 pb-1"
@@ -533,20 +540,20 @@ export default function RoomReservationManagement() {
                     <button
                       key={date}
                       onClick={() => setSelectedDate(date)}
-                      className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all text-sm font-medium shrink-0 ${
+                      className={`flex min-w-[76px] shrink-0 flex-col items-center rounded-2xl border px-4 py-2.5 text-sm font-medium transition-all ${
                         isSelected
-                          ? 'bg-admin-600 text-white border-admin-600 shadow-sm'
+                          ? 'border-[#4e5a61] bg-[#4e5a61] text-white shadow-[0_8px_24px_rgba(78,90,97,0.25)]'
                           : isWeekend
-                            ? 'bg-white text-red-500 border-gray-200 hover:border-red-300'
-                            : 'bg-white text-gray-700 border-gray-200 hover:border-admin-300 hover:text-admin-600'
+                            ? 'border-[#eceae4] bg-white text-[#a67d70] hover:border-[#d9c4bb]'
+                            : 'border-[#eceae4] bg-white text-[#6b6560] hover:border-[#ddd9cf]'
                       }`}
                     >
                       <span
-                        className={`text-xs mb-0.5 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}
+                        className={`mb-0.5 text-xs ${isSelected ? 'text-white/80' : 'text-[#a39c92]'}`}
                       >
                         {dayLabel}
                       </span>
-                      <span className="text-base font-bold leading-none">
+                      <span className="text-[1.6rem] font-semibold leading-none">
                         {dayNum}
                       </span>
                     </button>
@@ -557,15 +564,15 @@ export default function RoomReservationManagement() {
           </div>
 
           {/* 방 종류 탭 */}
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+          <div className="flex w-fit gap-1 rounded-full border border-[#eceae4] bg-[#fbfaf7] p-1">
             {roomTabItems.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveRoomTab(tab.key)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
                   activeRoomTab === tab.key
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-[#2c2b28] shadow-sm'
+                    : 'text-[#8a847a] hover:text-[#5c5852]'
                 }`}
               >
                 {tab.label}
@@ -574,28 +581,28 @@ export default function RoomReservationManagement() {
           </div>
 
           {/* 타임테이블 */}
-          <Card padding="p-0" className="overflow-hidden">
+          <Card padding="p-0" className="overflow-hidden rounded-2xl border border-[#eceae4] !bg-white shadow-[0_2px_20px_rgba(60,52,40,0.04)]">
             {/* 범례 */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
-                <Calendar size={13} className="text-gray-500" />
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#eceae4] bg-[#faf9f6] px-4 py-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6b6560]">
+                <Calendar size={13} className="text-[#8a847a]" />
                 {selectedDate}
                 {selectedDate === TODAY && (
-                  <span className="ml-1 text-[10px] bg-yellow-400 text-yellow-900 font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="ml-1 rounded-full bg-[#f4ecd7] px-1.5 py-0.5 text-[10px] font-bold text-[#7a6330]">
                     TODAY
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded border bg-admin-50 border-admin-200" />
-                  <span className="text-xs text-gray-500">
+                  <div className="h-3 w-3 rounded border border-[#c8d0d8] bg-[#eef2f4]" />
+                  <span className="text-xs text-[#8a847a]">
                     예약됨 (클릭 시 취소)
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded border bg-gray-50 border-gray-100" />
-                  <span className="text-xs text-gray-500">빈 슬롯</span>
+                  <div className="h-3 w-3 rounded border border-[#eceae4] bg-[#f5fafd]" />
+                  <span className="text-xs text-[#8a847a]">빈 슬롯</span>
                 </div>
               </div>
             </div>

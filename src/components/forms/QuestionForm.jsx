@@ -23,7 +23,8 @@ export default function QuestionForm({ onSubmit, className = '' }) {
   return (
     <div className={className}>
       <Textarea
-        placeholder="궁금한 점을 질문하세요"
+        colorScheme="warm"
+        placeholder="궁금한 점을 질문하세요 (최소 10자 이상)"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
@@ -52,11 +53,13 @@ export default function QuestionForm({ onSubmit, className = '' }) {
 
       <div className="flex items-center justify-between mt-2">
         <Toggle
+          colorScheme="warm"
           checked={isAnonymous}
           onChange={setIsAnonymous}
           label="익명으로 질문"
         />
         <Button
+          variant="warm"
           size="sm"
           icon={Send}
           onClick={handleSubmit}

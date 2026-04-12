@@ -93,20 +93,20 @@ export default function TeacherDashboard() {
       label: '전체 학생',
       value: students.length,
       icon: Users,
-      color: 'text-primary-500',
-      bg: 'bg-primary-50',
+      color: 'text-[#4e5f6e]',
+      bg: 'bg-[#e8eef2]',
     },
     {
       label: '평균 출석률',
       value: `${avgAttendance}%`,
       icon: Calendar,
-      color: 'text-success-500',
-      bg: 'bg-success-50',
+      color: 'text-[#4a6b52]',
+      bg: 'bg-[#e6ede5]',
     },
   ];
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="mb-6">
         <h1 className="text-h1 font-bold text-gray-900">수강생 현황</h1>
         {selectedCourse && (

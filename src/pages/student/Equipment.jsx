@@ -9,30 +9,31 @@ import Tabs from '@/components/common/Tabs';
 import Modal from '@/components/common/Modal';
 import { Monitor, Laptop, Tablet, Keyboard } from 'lucide-react';
 
+const pageBg = '#F7F5F0';
 const categoryMeta = {
   노트북: {
     icon: Laptop,
-    bg: 'bg-blue-50',
-    iconColor: 'text-blue-500',
-    activeBorder: 'border-blue-200',
+    bg: 'bg-[#eef2f4]',
+    iconColor: 'text-[#6f8391]',
+    activeBorder: 'border-[#cfd9df]',
   },
   모니터: {
     icon: Monitor,
-    bg: 'bg-purple-50',
-    iconColor: 'text-purple-500',
-    activeBorder: 'border-purple-200',
+    bg: 'bg-[#f1efe9]',
+    iconColor: 'text-[#7c7468]',
+    activeBorder: 'border-[#d9d2c6]',
   },
   태블릿: {
     icon: Tablet,
-    bg: 'bg-teal-50',
-    iconColor: 'text-teal-500',
-    activeBorder: 'border-teal-200',
+    bg: 'bg-[#f3f0e6]',
+    iconColor: 'text-[#8a7442]',
+    activeBorder: 'border-[#dfd4bd]',
   },
   주변기기: {
     icon: Keyboard,
-    bg: 'bg-orange-50',
-    iconColor: 'text-orange-500',
-    activeBorder: 'border-orange-200',
+    bg: 'bg-[#efede7]',
+    iconColor: 'text-[#80786d]',
+    activeBorder: 'border-[#d8d2c7]',
   },
 };
 
@@ -193,8 +194,11 @@ export default function Equipment() {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-h2 font-bold text-gray-900">장비 대여</h1>
+    <div
+      className="space-y-6 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
+      style={{ backgroundColor: pageBg }}
+    >
+      <h1 className="text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]">장비 대여</h1>
 
       {/* 카테고리 요약 카드 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -221,10 +225,10 @@ export default function Equipment() {
                   <Icon className={`w-5 h-5 ${meta.iconColor}`} />
                 </div>
                 <div>
-                  <p className="text-body-sm font-semibold text-gray-900">
+                  <p className="text-body-sm font-semibold text-[#2c2b28]">
                     {cat}
                   </p>
-                  <p className="text-caption text-gray-500">
+                  <p className="text-caption text-[#9c988e]">
                     총 {total}개 · 가능 {available}개
                   </p>
                 </div>
@@ -243,7 +247,7 @@ export default function Equipment() {
 
       {/* 장비 카드 그리드 */}
       {filtered.length === 0 ? (
-        <div className="py-16 text-center text-gray-400 text-body-sm">
+        <div className="py-16 text-center text-[#9c988e] text-body-sm">
           해당 카테고리의 장비가 없습니다.
         </div>
       ) : (
@@ -268,10 +272,10 @@ export default function Equipment() {
                       <CategoryIcon className={`w-5 h-5 ${meta.iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-body font-semibold text-gray-900 truncate">
+                      <h3 className="text-body font-semibold text-[#2c2b28] truncate">
                         {item.name}
                       </h3>
-                      <p className="text-caption text-gray-400 mt-0.5">
+                      <p className="text-caption text-[#9c988e] mt-0.5">
                         {item.serial_no}
                       </p>
                     </div>
@@ -283,7 +287,7 @@ export default function Equipment() {
                   </div>
 
                   {/* 고정 높이 - 대여자 없을 때 여백 유지 */}
-                  <p className="text-caption text-gray-500 h-4">
+                  <p className="text-caption text-[#9c988e] h-4">
                     {item.status === 'borrowed' && item.borrower_name && (
                       <>
                         대여자: {item.borrower_name}
@@ -312,26 +316,26 @@ export default function Equipment() {
       >
         {modal.item && (
           <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded-xl space-y-1">
-              <p className="text-body-sm font-semibold text-gray-900">
+            <div className="p-3 bg-[#f7f6f2] rounded-xl space-y-1">
+              <p className="text-body-sm font-semibold text-[#2c2b28]">
                 {modal.item.name}
               </p>
-              <p className="text-caption text-gray-500">
+              <p className="text-caption text-[#9c988e]">
                 {modal.item.serial_no} · {modal.item.category}
               </p>
             </div>
 
             <div>
-              <label className="block text-body-sm font-medium text-gray-700 mb-1">
+              <label className="block text-body-sm font-medium text-[#6b6560] mb-1">
                 신청 사유{' '}
-                <span className="text-gray-400 font-normal">(선택)</span>
+                <span className="text-[#9c988e] font-normal">(선택)</span>
               </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="대여 목적을 간략히 작성해주세요"
                 rows={3}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 text-body-sm outline-none resize-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-colors"
+                className="w-full px-3 py-2 rounded-lg border border-[#e6e2d9] text-body-sm outline-none resize-none focus:border-[#c9a962] focus:ring-2 focus:ring-[#c9a962]/20 transition-colors bg-white"
               />
             </div>
 
@@ -362,16 +366,16 @@ export default function Equipment() {
       >
         {modal.item && (
           <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded-xl space-y-1">
-              <p className="text-body-sm font-semibold text-gray-900">
+            <div className="p-3 bg-[#f7f6f2] rounded-xl space-y-1">
+              <p className="text-body-sm font-semibold text-[#2c2b28]">
                 {modal.item.name}
               </p>
-              <p className="text-caption text-gray-500">
+              <p className="text-caption text-[#9c988e]">
                 {modal.item.serial_no} · {modal.item.category}
               </p>
             </div>
 
-            <p className="text-body-sm text-gray-700">
+            <p className="text-body-sm text-[#6b6560]">
               해당 장비를 반납하겠습니까?
             </p>
 

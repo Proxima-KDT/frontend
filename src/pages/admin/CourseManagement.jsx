@@ -14,8 +14,8 @@ import Modal from '@/components/common/Modal';
 const TRACK_LABELS = { main: '메인', sub: '서브' };
 const STATUS_CONFIG = {
   upcoming:    { label: '예정',    variant: 'default' },
-  in_progress: { label: '진행중',  variant: 'success' },
-  completed:   { label: '완료',    variant: 'default' },
+  in_progress: { label: '진행중',  variant: 'soft-warning' },
+  completed:   { label: '완료',    variant: 'soft-info' },
 };
 const FILTER_TABS = [
   { key: 'all',  label: '전체' },
@@ -34,7 +34,7 @@ function InputField({ label, required, children }) {
   );
 }
 
-const inputCls = 'w-full h-10 px-3 rounded-xl border border-gray-200 text-body-sm outline-none focus:border-admin-400 focus:ring-2 focus:ring-admin-100 transition-all';
+const inputCls = 'w-full h-10 px-3 rounded-xl border border-gray-200 text-body-sm outline-none focus:border-[#a8a29e] focus:ring-2 focus:ring-[#ebe8e3] transition-all';
 const selectCls = `${inputCls} bg-white`;
 
 // ── 강의 추가/편집 모달 ─────────────────────────────
@@ -321,16 +321,16 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
         {/* 카드 헤더 */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-start gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-admin-50 flex items-center justify-center shrink-0">
-              <BookOpen className="w-5 h-5 text-admin-500" />
+            <div className="w-10 h-10 rounded-xl bg-[#edf1e8] flex items-center justify-center shrink-0">
+              <BookOpen className="w-5 h-5 text-[#5e7455]" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
                 <h3 className="text-body font-bold text-gray-900 truncate">{course.name}</h3>
                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                   course.track_type === 'main'
-                    ? 'bg-admin-100 text-admin-700'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-[#edf1e8] text-[#5e7455]'
+                    : 'bg-[#f0efeb] text-[#7a756c]'
                 }`}>
                   {TRACK_LABELS[course.track_type]}
                 </span>
@@ -345,7 +345,7 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
           </div>
           <div className="flex gap-1 shrink-0">
             <button onClick={() => onEdit(course)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-admin-600 hover:bg-admin-50 transition-colors">
+              className="p-1.5 rounded-lg text-gray-400 hover:text-[#5e7455] hover:bg-[#edf1e8] transition-colors">
               <Pencil className="w-4 h-4" />
             </button>
             <div className="relative group">
@@ -387,14 +387,14 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
             <Layers className="w-3.5 h-3.5 text-gray-400 shrink-0" />
             총 {course.cohorts.length}기
           </span>
-          <span className={`flex items-center gap-1.5 ${(course.student_count ?? 0) > 0 ? 'text-admin-600 font-medium' : 'text-gray-400'}`}>
+          <span className={`flex items-center gap-1.5 ${(course.student_count ?? 0) > 0 ? 'text-[#5e7455] font-medium' : 'text-gray-400'}`}>
             <Users className="w-3.5 h-3.5 shrink-0" />
             수강생 {course.student_count ?? 0}명
           </span>
           <span className="flex items-center gap-1.5 text-gray-600 col-span-2">
             <GraduationCap className="w-3.5 h-3.5 text-gray-400 shrink-0" />
             {course.teacher_name
-              ? <span className="font-medium text-admin-700">{course.teacher_name} 강사</span>
+              ? <span className="font-medium text-[#5e7455]">{course.teacher_name} 강사</span>
               : <span className="text-gray-400">담당강사 미배정</span>
             }
           </span>
@@ -405,7 +405,7 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
           <div className="border-t border-gray-100 pt-3">
             <button
               onClick={() => setOpen(p => !p)}
-              className="flex items-center justify-between w-full text-body-sm font-semibold text-gray-700 hover:text-admin-600 transition-colors"
+              className="flex items-center justify-between w-full text-body-sm font-semibold text-gray-700 hover:text-[#5e7455] transition-colors"
             >
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="w-4 h-4" />
@@ -415,10 +415,10 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
             </button>
 
             {open && (
-              <div className="mt-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <div className="mt-3 p-3 rounded-xl bg-[#f1eee8] border border-[#e2ded7]">
                 {course.start_date && course.end_date ? (
                   <div className="flex items-center gap-2 text-body-sm text-gray-700">
-                    <CalendarDays className="w-4 h-4 text-admin-400 shrink-0" />
+                    <CalendarDays className="w-4 h-4 text-[#5e7455] shrink-0" />
                     <span className="font-medium">
                       {course.start_date.replaceAll('-', '.')}
                       {' ~ '}
@@ -442,7 +442,7 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
           <div className="border-t border-gray-100 pt-3">
             <button
               onClick={() => setOpen(p => !p)}
-              className="flex items-center justify-between w-full text-body-sm font-semibold text-gray-700 hover:text-admin-600 transition-colors"
+              className="flex items-center justify-between w-full text-body-sm font-semibold text-gray-700 hover:text-[#5e7455] transition-colors"
             >
               <span className="flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4" />
@@ -461,8 +461,8 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
                     .sort((a, b) => a.cohort_number - b.cohort_number)
                     .map(cohort => (
                       <div key={cohort.id}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
-                        <span className="text-body-sm font-bold text-admin-600 w-6 shrink-0">
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#f1eee8] border border-[#e2ded7]">
+                        <span className="text-body-sm font-bold text-[#5e7455] w-6 shrink-0">
                           {cohort.cohort_number}기
                         </span>
                         <span className="text-caption text-gray-500 flex-1 truncate">
@@ -471,7 +471,7 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
                             : '날짜 미설정'}
                         </span>
                         {(cohort.student_count ?? 0) > 0 && (
-                          <span className="flex items-center gap-0.5 text-[10px] font-semibold text-admin-600 bg-admin-50 px-1.5 py-0.5 rounded-full shrink-0">
+                          <span className="flex items-center gap-0.5 text-[10px] font-semibold text-[#5e7455] bg-[#edf1e8] px-1.5 py-0.5 rounded-full shrink-0">
                             <Users className="w-2.5 h-2.5" />
                             {cohort.student_count}명
                           </span>
@@ -482,7 +482,7 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
                         {cohort.status === 'upcoming' ? (
                           <>
                             <button onClick={() => setCohortModal({ cohort })}
-                              className="p-1 rounded text-gray-400 hover:text-admin-600 hover:bg-white transition-colors"
+                              className="p-1 rounded text-gray-400 hover:text-[#5e7455] hover:bg-white transition-colors"
                               title="기수 수정">
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
@@ -511,7 +511,7 @@ function CourseCard({ course, onEdit, onDelete, onCohortSave, onCohortDelete }) 
                 )}
                 <button
                   onClick={() => setCohortModal({})}
-                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border-2 border-dashed border-admin-200 text-caption font-semibold text-admin-500 hover:border-admin-400 hover:bg-admin-50 transition-colors"
+                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border-2 border-dashed border-[#c8c5bf] text-caption font-semibold text-[#7a756c] hover:border-[#a8a29e] hover:bg-[#f1eee8] transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" /> 기수 추가
                 </button>
@@ -588,7 +588,7 @@ export default function CourseManagement() {
   }, []);
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -603,21 +603,21 @@ export default function CourseManagement() {
       </div>
 
       {/* 필터 탭 */}
-      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-5 w-fit">
+      <div className="flex gap-1 p-1 rounded-xl bg-[#f1eee8] mb-5 w-fit">
         {FILTER_TABS.map(tab => (
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
             className={`px-4 py-1.5 rounded-lg text-body-sm font-medium transition-all ${
               filter === tab.key
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-[#232833] text-white shadow-sm'
+                : 'bg-transparent text-[#6f6a61] hover:text-[#3a3630]'
             }`}
           >
             {tab.label}
             {tab.key !== 'all' && (
               <span className={`ml-1.5 text-[10px] rounded-full px-1.5 py-0.5 ${
-                filter === tab.key ? 'bg-admin-100 text-admin-700' : 'bg-gray-200 text-gray-500'
+                filter === tab.key ? 'bg-white/20 text-white' : 'bg-[#e2ded7] text-[#7a756c]'
               }`}>
                 {courses.filter(c => c.track_type === tab.key).length}
               </span>
@@ -640,7 +640,7 @@ export default function CourseManagement() {
           </div>
           <p className="text-body font-semibold text-gray-500">강의가 없습니다.</p>
           <button onClick={() => setCourseModal({})}
-            className="mt-3 text-body-sm text-admin-500 hover:text-admin-700 font-medium transition-colors">
+            className="mt-3 text-body-sm text-[#7a756c] hover:text-[#3a3630] font-medium transition-colors">
             첫 강의 추가하기
           </button>
         </div>
@@ -670,3 +670,4 @@ export default function CourseManagement() {
     </div>
   );
 }
+

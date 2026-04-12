@@ -1,4 +1,17 @@
-export default function Toggle({ checked, onChange, label, className = '' }) {
+const trackOn = {
+  primary: 'bg-primary-500',
+  /** 질문 폼 등 — 대시보드 차콜 액센트와 통일 */
+  warm: 'bg-[#3d3d3d]',
+}
+
+export default function Toggle({
+  checked,
+  onChange,
+  label,
+  className = '',
+  colorScheme = 'primary',
+}) {
+  const onClass = trackOn[colorScheme] || trackOn.primary
   return (
     <label className={`inline-flex items-center gap-2 cursor-pointer ${className}`}>
       <button
@@ -8,7 +21,7 @@ export default function Toggle({ checked, onChange, label, className = '' }) {
         onClick={() => onChange(!checked)}
         className={`
           relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer
-          ${checked ? 'bg-primary-500' : 'bg-gray-300'}
+          ${checked ? onClass : 'bg-gray-300'}
         `}
       >
         <span

@@ -19,6 +19,7 @@ import {
   Shield,
 } from 'lucide-react';
 
+const pageBg = '#F7F5F0';
 const _now = new Date();
 const TODAY = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
 const TODAY_DATE = new Date(TODAY);
@@ -322,11 +323,14 @@ export default function CounselingBooking() {
     .sort((a, b) => (`${a.date}_${a.time}` > `${b.date}_${b.time}` ? -1 : 1));
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-8 rounded-3xl px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8"
+      style={{ backgroundColor: pageBg }}
+    >
       {/* ── 헤더 ── */}
       <div>
-        <h1 className="text-h2 font-bold text-gray-900">면담 신청</h1>
-        <p className="text-body-sm text-gray-500 mt-1">
+        <h1 className="text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]">면담 신청</h1>
+        <p className="mt-1 text-[0.95rem] text-[#6b6560]">
           담당 강사님과 1:1 면담을 예약하세요.
         </p>
       </div>
@@ -341,47 +345,35 @@ export default function CounselingBooking() {
             <button
               key={counselor.id}
               onClick={() => handleCounselorChange(counselor.id)}
-              className={`p-4 rounded-2xl border-2 text-left transition-all ${
+              className={`p-4 rounded-2xl border-2 text-left transition-all shadow-[0_2px_18px_rgba(60,52,40,0.04)] ${
                 isSelected
-                  ? `${meta.border} bg-white shadow-sm`
-                  : 'border-gray-200 bg-white hover:border-gray-300'
+                  ? 'border-[#c9a962] ring-1 ring-[#c9a962]/30 bg-white'
+                  : 'border-[#eceae4] bg-white hover:border-[#ddd9cf]'
               }`}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                    isSelected ? meta.selectedBg : meta.bg
-                  }`}
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[#ece9e3]`}
                 >
                   <RoleIcon
-                    className={`w-5 h-5 ${
-                      isSelected ? meta.selectedIconColor : meta.iconColor
-                    }`}
+                    className="w-5 h-5 text-[#6b6560]"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p
-                      className={`text-sm font-bold ${
-                        isSelected ? meta.nameColor : 'text-gray-800'
-                      }`}
+                      className="text-sm font-bold text-[#2c2b28]"
                     >
                       {counselor.name}
                     </p>
                     <span
-                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                        isSelected
-                          ? `${meta.badgeBg} ${meta.badgeText}`
-                          : 'bg-gray-100 text-gray-500'
-                      }`}
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#f0eeeb] text-[#6b6560]"
                     >
                       {counselor.role_label}
                     </span>
                   </div>
                   <p
-                    className={`text-xs mt-0.5 ${
-                      isSelected ? meta.subColor : 'text-gray-400'
-                    }`}
+                    className="text-xs mt-0.5 text-[#9c988e]"
                   >
                     {counselor.role === 'teacher'
                       ? '학습 · 과제 상담'
@@ -390,10 +382,7 @@ export default function CounselingBooking() {
                 </div>
                 {isSelected && (
                   <div
-                    className={`w-2 h-2 rounded-full shrink-0 ${meta.iconColor.replace(
-                      'text-',
-                      'bg-',
-                    )}`}
+                    className="w-2 h-2 rounded-full shrink-0 bg-[#c9a962]"
                   />
                 )}
               </div>
@@ -403,30 +392,32 @@ export default function CounselingBooking() {
       </div>
 
       {/* ── 캘린더 + 시간 슬롯 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
         {/* 캘린더 */}
-        <Card>
+        <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
           {/* 월 탐색 */}
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-5 px-1">
+            <h2 className="text-[1.25rem] font-semibold text-[#2c2b28]">
+              {currentYear}년 {MONTH_NAMES[currentMonth]}
+            </h2>
+            <div className="flex items-center gap-1">
             <button
               onClick={prevMonth}
               disabled={
                 currentYear === THIS_YEAR && currentMonth === THIS_MONTH
               }
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded-xl p-2 hover:bg-[#faf9f7] disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-500" />
+              <ChevronLeft className="w-5 h-5 text-[#8a847a]" />
             </button>
-            <h2 className="text-body font-bold text-gray-900">
-              {currentYear}년 {MONTH_NAMES[currentMonth]}
-            </h2>
             <button
               onClick={nextMonth}
               disabled={currentYear === MAX_YEAR && currentMonth === MAX_MONTH}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded-xl p-2 hover:bg-[#faf9f7] disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <ChevronRight className="w-5 h-5 text-gray-500" />
+              <ChevronRight className="w-5 h-5 text-[#8a847a]" />
             </button>
+            </div>
           </div>
 
           {/* 요일 헤더 */}
@@ -434,12 +425,12 @@ export default function CounselingBooking() {
             {DAYS_OF_WEEK.map((day, i) => (
               <div
                 key={day}
-                className={`text-center text-xs font-medium py-2 ${
+                className={`py-2 text-center text-xs font-medium ${
                   i === 5
                     ? 'text-blue-400'
                     : i === 6
                       ? 'text-red-400'
-                      : 'text-gray-400'
+                      : 'text-[#b0aaa1]'
                 }`}
               >
                 {day}
@@ -448,10 +439,9 @@ export default function CounselingBooking() {
           </div>
 
           {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-2">
             {calendarDays.map((day, idx) => {
               if (day === null) return <div key={`empty-${idx}`} />;
-
               const dateStr = formatDateStr(currentYear, currentMonth, day);
               const isPast = new Date(dateStr) < TODAY_DATE;
               const isAvailable = availableDates.includes(dateStr) && !isPast;
@@ -467,27 +457,27 @@ export default function CounselingBooking() {
                   onClick={() => handleDateClick(day)}
                   disabled={!isAvailable}
                   className={`
-                    relative aspect-square flex flex-col items-center justify-center
-                    rounded-xl text-sm font-medium transition-all
+                    relative aspect-square rounded-2xl text-sm font-semibold transition-all
+                    flex items-center justify-center
                     ${
                       isSelected
-                        ? 'bg-student-500 text-white shadow-md'
+                        ? 'bg-[#4e5a61] text-white shadow-[0_10px_24px_rgba(78,90,97,0.22)]'
                         : isAvailable
-                          ? 'bg-student-50 text-student-700 hover:bg-student-100 cursor-pointer'
+                          ? 'bg-[#f7f6f2] text-[#2c2b28] hover:bg-[#efede7] cursor-pointer'
                           : isPast
-                            ? 'text-gray-300 cursor-not-allowed'
+                            ? 'text-[#d3cec6] cursor-not-allowed'
                             : isSat
                               ? 'text-blue-300 cursor-not-allowed'
                               : isSun
                                 ? 'text-red-300 cursor-not-allowed'
-                                : 'text-gray-400 cursor-not-allowed'
+                                : 'text-[#c9c4bc] cursor-not-allowed'
                     }
-                    ${isToday && !isSelected ? 'ring-2 ring-student-400' : ''}
+                    ${isToday && !isSelected ? 'ring-2 ring-[#c9a962]' : ''}
                   `}
                 >
                   <span>{day}</span>
                   {isAvailable && !isSelected && (
-                    <span className="absolute bottom-1 w-1 h-1 rounded-full bg-student-400" />
+                    <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-[#c9a962]" />
                   )}
                 </button>
               );
@@ -495,29 +485,29 @@ export default function CounselingBooking() {
           </div>
 
           {/* 범례 */}
-          <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-md bg-student-50 border border-student-200" />
+          <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-[#f0ede8] pt-4">
+            <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
+              <div className="h-3 w-3 rounded-md border border-[#e6e2d9] bg-[#f7f6f2]" />
               상담 가능
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-md bg-student-500" />
+            <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
+              <div className="h-3 w-3 rounded-md bg-[#4e5a61]" />
               선택된 날짜
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-md bg-white ring-2 ring-student-400" />
+            <div className="flex items-center gap-1.5 text-xs text-[#9c988e]">
+              <div className="h-3 w-3 rounded-md bg-white ring-2 ring-[#c9a962]" />
               오늘
             </div>
           </div>
         </Card>
 
         {/* 시간 슬롯 패널 */}
-        <Card>
+        <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
           {selectedDate ? (
             <>
               <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-4 h-4 text-student-500" />
-                <span className="text-body-sm font-semibold text-gray-900">
+                <Clock className="w-4 h-4 text-[#8a847a]" />
+                <span className="text-body-sm font-semibold text-[#2c2b28]">
                   {selectedDate.replace(/-/g, '.')} 예약 가능 시간
                 </span>
               </div>
@@ -533,10 +523,10 @@ export default function CounselingBooking() {
                         py-2.5 px-3 rounded-xl text-sm font-medium transition-all border
                         ${
                           status === 'available'
-                            ? 'border-student-200 bg-student-50 text-student-700 hover:bg-student-100 hover:border-student-300'
+                            ? 'border-[#eceae4] bg-white text-[#2c2b28] hover:bg-[#faf9f7] hover:border-[#ddd9cf]'
                             : status === 'mine'
-                              ? 'border-success-200 bg-success-50 text-success-700 cursor-default'
-                              : 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed'
+                              ? 'border-[#4e5a61] bg-[#4e5a61] text-white cursor-default'
+                              : 'border-[#efede8] bg-[#f8f7f4] text-[#c9c4bc] cursor-not-allowed'
                         }
                       `}
                     >
@@ -553,11 +543,11 @@ export default function CounselingBooking() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Calendar className="w-10 h-10 text-gray-300 mb-3" />
-              <p className="text-body-sm font-medium text-gray-500">
+              <Calendar className="w-10 h-10 text-[#c9c4bc] mb-3" />
+              <p className="text-body-sm font-medium text-[#6b6560]">
                 날짜를 선택하세요
               </p>
-              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+              <p className="text-xs text-[#a8a29e] mt-1 leading-relaxed">
                 캘린더에서 상담 가능한 날짜를
                 <br />
                 클릭하면 시간대가 표시됩니다.
@@ -568,22 +558,22 @@ export default function CounselingBooking() {
       </div>
 
       {/* ── 내 면담 예약 내역 ── */}
-      <Card>
+      <Card className="!rounded-3xl !border-[#eceae4] !bg-white shadow-[0_2px_22px_rgba(60,52,40,0.04)]">
         {/* 헤더 + 탭 */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <CalendarCheck className="w-5 h-5 text-student-500" />
-            <h2 className="text-body font-semibold text-gray-900">
+            <CalendarCheck className="w-5 h-5 text-[#8a847a]" />
+            <h2 className="text-body font-semibold text-[#2c2b28]">
               내 면담 예약
             </h2>
           </div>
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
+          <div className="flex gap-1 p-1 bg-[#f7f6f2] rounded-xl">
             <button
               onClick={() => setMyResTab('upcoming')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 myResTab === 'upcoming'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-[#2c2b28] shadow-sm'
+                  : 'text-[#9c988e] hover:text-[#6b6560]'
               }`}
             >
               예정
@@ -603,8 +593,8 @@ export default function CounselingBooking() {
               onClick={() => setMyResTab('past')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 myResTab === 'past'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-[#2c2b28] shadow-sm'
+                  : 'text-[#9c988e] hover:text-[#6b6560]'
               }`}
             >
               지난 면담
@@ -639,7 +629,7 @@ export default function CounselingBooking() {
                 return (
                   <div
                     key={booking.id}
-                    className="flex items-start justify-between gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100"
+                    className="flex items-start justify-between gap-3 p-4 rounded-xl bg-[#fbfaf7] border border-[#eceae4]"
                   >
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -692,7 +682,7 @@ export default function CounselingBooking() {
                 return (
                   <div
                     key={booking.id}
-                    className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 opacity-60"
+                    className="flex items-start gap-3 p-4 rounded-xl bg-[#fbfaf7] border border-[#eceae4] opacity-60"
                   >
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -765,7 +755,7 @@ export default function CounselingBooking() {
       >
         <div className="space-y-4">
           {/* 예약 요약 */}
-          <div className="p-4 bg-student-50 rounded-xl space-y-2.5">
+          <div className="p-4 bg-[#f7f6f2] rounded-xl space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">상담 대상</span>
               <span className="text-sm font-semibold text-gray-900">

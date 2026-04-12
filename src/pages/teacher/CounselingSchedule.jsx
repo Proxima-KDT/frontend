@@ -357,63 +357,63 @@ export default function CounselingSchedule() {
   const selectedDow = formatDayOfWeek(selectedDate);
 
   return (
-    <div>
+    <div className="relative rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <h1 className="text-h1 font-bold text-gray-900 mb-6">상담일정</h1>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">전체 신청</p>
-          <p className="text-h2 font-bold text-gray-900">{totalCount}건</p>
+      <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-caption text-[#848079]">전체 신청</p>
+          <p className="text-h2 font-bold text-[#2f3f54]">{totalCount}건</p>
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">대기중</p>
-          <p className="text-h2 font-bold text-warning-600">{pendingCount}건</p>
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-caption text-[#848079]">대기중</p>
+          <p className="text-h2 font-bold text-[#7d661e]">{pendingCount}건</p>
+          <div className="mt-2 h-1 rounded-full bg-[#8f7728]" />
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">확정</p>
-          <p className="text-h2 font-bold text-success-600">
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-caption text-[#848079]">확정</p>
+          <p className="text-h2 font-bold text-[#2f3f54]">
             {confirmedCount}건
           </p>
         </Card>
-        <Card>
-          <p className="text-caption text-gray-500 mb-1">완료</p>
-          <p className="text-h2 font-bold text-primary-600">
+        <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
+          <p className="mb-1 text-caption text-[#848079]">완료</p>
+          <p className="text-h2 font-bold text-[#2f3f54]">
             {completedCount}건
           </p>
         </Card>
       </div>
 
       {/* 캘린더 + 슬롯 패널 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 월간 캘린더 */}
-        <Card>
+        <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={prevMonth}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg transition-colors hover:bg-[#e7e3dd] cursor-pointer"
             >
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
+              <ChevronLeft className="h-4 w-4 text-[#5f5b53]" />
             </button>
             <span className="text-body font-semibold text-gray-900">
               {currentYear}년 {MONTH_NAMES[currentMonth]}
             </span>
             <button
               onClick={nextMonth}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg transition-colors hover:bg-[#e7e3dd] cursor-pointer"
             >
-              <ChevronRight className="w-4 h-4 text-gray-600" />
+              <ChevronRight className="h-4 w-4 text-[#5f5b53]" />
             </button>
           </div>
 
           {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 mb-1">
+          <div className="mb-1 grid grid-cols-7">
             {DAYS_OF_WEEK.map((d, i) => (
               <div
                 key={d}
-                className={`text-center text-caption font-medium py-1
-                  ${i === 5 ? 'text-primary-400' : i === 6 ? 'text-red-400' : 'text-gray-400'}`}
+                className="py-1 text-center text-caption font-semibold uppercase tracking-wide text-[#8f8a80]"
               >
                 {d}
               </div>
@@ -441,11 +441,11 @@ export default function CounselingSchedule() {
                     relative flex flex-col items-center justify-center h-9 rounded-xl text-body-sm font-medium
                     transition-colors cursor-pointer
                     ${isPast ? 'text-gray-300 cursor-default' : ''}
-                    ${!isPast && !isSelected ? 'hover:bg-primary-50' : ''}
-                    ${isSelected ? 'bg-primary-500 text-white' : ''}
-                    ${isToday && !isSelected ? 'ring-2 ring-primary-300 text-primary-600' : ''}
-                    ${!isPast && !isSelected && dow === 5 ? 'text-primary-400' : ''}
-                    ${!isPast && !isSelected && dow === 6 ? 'text-red-400' : ''}
+                    ${!isPast && !isSelected ? 'hover:bg-[#ece9e2]' : ''}
+                    ${isSelected ? 'bg-[#e9e8e5] text-[#223248] ring-1 ring-[#8a8f96]' : ''}
+                    ${isToday && !isSelected ? 'text-[#2f3f54]' : ''}
+                    ${!isPast && !isSelected && dow === 5 ? 'text-[#47576b]' : ''}
+                    ${!isPast && !isSelected && dow === 6 ? 'text-[#8f5757]' : ''}
                   `}
                 >
                   {day}
@@ -456,10 +456,10 @@ export default function CounselingSchedule() {
                         ${
                           hasBooking
                             ? isSelected
-                              ? 'bg-white'
-                              : 'bg-primary-400'
+                              ? 'bg-[#2f3f54]'
+                              : 'bg-[#5b6677]'
                             : isSelected
-                              ? 'bg-white/60'
+                              ? 'bg-[#8f8a80]'
                               : 'bg-gray-300'
                         }`}
                     />
@@ -470,34 +470,34 @@ export default function CounselingSchedule() {
           </div>
 
           {/* 범례 */}
-          <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100">
+          <div className="mt-4 flex items-center gap-4 border-t border-[#e0ddd7] pt-3">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-primary-400" />
-              <span className="text-caption text-gray-500">면담 신청</span>
+              <span className="h-2 w-2 rounded-full bg-[#5b6677]" />
+              <span className="text-caption text-[#77736b]">면담 신청</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-gray-300" />
-              <span className="text-caption text-gray-500">차단된 날짜</span>
+              <span className="h-2 w-2 rounded-full bg-gray-300" />
+              <span className="text-caption text-[#77736b]">차단된 날짜</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full ring-2 ring-primary-300 inline-block" />
-              <span className="text-caption text-gray-500">오늘</span>
+              <span className="inline-block h-3 w-3 rounded-full ring-2 ring-[#8d95a3]" />
+              <span className="text-caption text-[#77736b]">오늘</span>
             </div>
           </div>
         </Card>
 
         {/* 시간 슬롯 패널 */}
-        <Card>
+        <Card className="rounded-[28px] border border-[#d8d5cd] bg-[#e4e2db] shadow-none">
           <div className="flex items-start justify-between mb-1">
             <h2 className="text-h3 font-semibold text-gray-900">
               {selectedMonth}월 {selectedDay}일 ({selectedDow})
             </h2>
             <button
               onClick={handleBlockAll}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-body-sm font-medium transition-colors cursor-pointer
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-body-sm font-semibold transition-colors cursor-pointer
                 ${isAllBlocked
-                  ? 'bg-primary-50 text-primary-600 hover:bg-primary-100'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'border border-[#c5c2bc] bg-[#f5f4f1] text-[#4a4640] hover:bg-[#ecebe7]'
+                  : 'border border-[#8a857d] bg-[#5f6972] text-white hover:bg-[#4e5760]'
                 }`}
             >
               {isAllBlocked ? (
@@ -508,7 +508,7 @@ export default function CounselingSchedule() {
               {isAllBlocked ? '전체 해제' : '하루 전체 차단'}
             </button>
           </div>
-          <p className="text-caption text-gray-400 mb-4">
+          <p className="mb-4 text-caption text-[#7f7b72]">
             슬롯을 클릭해 차단/해제할 수 있습니다
           </p>
 
@@ -522,14 +522,14 @@ export default function CounselingSchedule() {
                     key={slot}
                     onClick={() => handleSlotClick(slot)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl
-                      bg-primary-50 border border-primary-200
-                      hover:bg-primary-100 transition-colors cursor-pointer text-left"
+                      bg-[#f5f7f6] border border-[#d8e2e4]
+                      hover:bg-[#eef3f2] transition-colors cursor-pointer text-left"
                   >
-                    <User className="w-3.5 h-3.5 text-primary-500 shrink-0" />
-                    <span className="text-body-sm font-medium text-primary-700 shrink-0">
+                    <User className="w-3.5 h-3.5 text-[#5b6677] shrink-0" />
+                    <span className="text-body-sm font-medium text-[#2f3f54] shrink-0">
                       {slot}
                     </span>
-                    <span className="text-body-sm text-primary-600 truncate">
+                    <span className="text-body-sm text-[#7f8793] truncate">
                       {status.booking.student_name}
                     </span>
                   </button>
@@ -542,13 +542,13 @@ export default function CounselingSchedule() {
                     key={slot}
                     onClick={() => handleSlotClick(slot)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl
-                      bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer text-left"
+                      bg-[#ecebe7] hover:bg-[#e2e0db] transition-colors cursor-pointer text-left"
                   >
-                    <X className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    <span className="text-body-sm text-gray-400 shrink-0 line-through">
+                    <X className="w-3.5 h-3.5 text-[#8f8c85] shrink-0" />
+                    <span className="text-body-sm text-[#8f8c85] shrink-0 line-through">
                       {slot}
                     </span>
-                    <span className="text-body-sm text-gray-400">차단</span>
+                    <span className="text-body-sm text-[#8f8c85]">차단</span>
                   </button>
                 );
               }
@@ -558,11 +558,11 @@ export default function CounselingSchedule() {
                   key={slot}
                   onClick={() => handleSlotClick(slot)}
                   className="flex items-center gap-2 px-3 py-2.5 rounded-xl
-                    border border-transparent hover:bg-primary-50 hover:border-primary-100
+                    bg-[#f5f4f1] hover:bg-[#ecebe7]
                     transition-colors cursor-pointer text-left"
                 >
                   <Circle className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-                  <span className="text-body-sm text-gray-700 shrink-0">
+                  <span className="text-body-sm text-[#2f3f54] shrink-0">
                     {slot}
                   </span>
                   <span className="text-body-sm text-gray-400">가능</span>
@@ -574,7 +574,7 @@ export default function CounselingSchedule() {
       </div>
 
       {/* 하단 면담 신청 목록 */}
-      <Card>
+      <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
         <h2 className="text-h3 font-semibold text-gray-900 mb-4">
           신청된 면담
         </h2>
@@ -638,7 +638,7 @@ export default function CounselingSchedule() {
                       onClick={() => setBookingPage(p)}
                       className={`min-w-8 h-8 rounded-lg text-body-sm font-medium transition-colors ${
                         p === safeBookingPage
-                          ? 'bg-primary-600 text-white'
+                          ? 'bg-[#5f6972] text-white'
                           : 'hover:bg-gray-100 text-gray-600'
                       }`}
                     >

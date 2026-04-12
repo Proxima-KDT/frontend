@@ -322,7 +322,7 @@ export default function ConceptQuiz() {
           <div
             className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-4 ${
               scorePercent >= 80
-                ? 'bg-green-100'
+                ? 'bg-[#e9eff3]'
                 : scorePercent >= 60
                   ? 'bg-amber-100'
                   : 'bg-red-100'
@@ -331,7 +331,7 @@ export default function ConceptQuiz() {
             <Trophy
               className={`w-10 h-10 ${
                 scorePercent >= 80
-                  ? 'text-green-600'
+                  ? 'text-[#4f6475]'
                   : scorePercent >= 60
                     ? 'text-amber-600'
                     : 'text-red-600'
@@ -356,7 +356,7 @@ export default function ConceptQuiz() {
             <div
               className={`text-4xl font-bold mb-2 ${
                 scorePercent >= 80
-                  ? 'text-green-600'
+                  ? 'text-[#4f6475]'
                   : scorePercent >= 60
                     ? 'text-amber-600'
                     : 'text-red-600'
@@ -368,7 +368,7 @@ export default function ConceptQuiz() {
               value={scorePercent}
               color={
                 scorePercent >= 80
-                  ? 'bg-green-500'
+                  ? 'bg-[#6f8391]'
                   : scorePercent >= 60
                     ? 'bg-amber-500'
                     : 'bg-red-500'
@@ -385,7 +385,7 @@ export default function ConceptQuiz() {
                   key={r.problemId}
                   className={`w-9 h-9 rounded-lg flex items-center justify-center text-body-sm font-semibold ${
                     r.isCorrect
-                      ? 'bg-green-100 text-green-700'
+                      ? 'bg-[#e9eff3] text-[#4f6475]'
                       : 'bg-red-100 text-red-700'
                   }`}
                 >
@@ -401,7 +401,7 @@ export default function ConceptQuiz() {
             </Button>
             <Button
               onClick={() => navigate(`/student/problems/${subjectId}`)}
-              className="bg-student-500 hover:bg-student-600"
+              className="bg-[#4e5a61] hover:bg-[#424d53]"
             >
               개념 목록으로
             </Button>
@@ -425,7 +425,7 @@ export default function ConceptQuiz() {
                       <p className="text-caption text-red-600 mb-1">
                         내 답: {prob.choices[r.selected]}
                       </p>
-                      <p className="text-caption text-green-600 mb-2">
+                      <p className="text-caption mb-2 text-[#4f6475]">
                         정답: {prob.choices[r.correct]}
                       </p>
                       <p className="text-caption text-gray-600">
@@ -464,7 +464,7 @@ export default function ConceptQuiz() {
               </span>
             )}
             {saveStatus === 'saved' && (
-              <span className="text-caption text-green-500 flex items-center gap-1">
+              <span className="text-caption flex items-center gap-1 text-[#6f8391]">
                 <CheckCircle2 className="w-3 h-3" />
                 저장됨
               </span>
@@ -488,7 +488,7 @@ export default function ConceptQuiz() {
         </div>
         <ProgressBar
           value={progressPercent}
-          color={isReviewMode ? 'bg-green-500' : 'bg-student-500'}
+          color={isReviewMode ? 'bg-[#6f8391]' : 'bg-[#4e5a61]'}
           size="sm"
           showValue={false}
         />
@@ -498,11 +498,11 @@ export default function ConceptQuiz() {
       <Card>
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-caption font-medium text-student-600">
+            <span className="text-caption font-medium text-[#4f6475]">
               문제 {currentIndex + 1}
             </span>
             {(!currentProblem.choices || currentProblem.choices.length === 0) && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
+              <span className="rounded bg-[#f4ecd7] px-1.5 py-0.5 text-[10px] font-medium text-[#7a6330]">
                 개념 확인
               </span>
             )}
@@ -523,8 +523,8 @@ export default function ConceptQuiz() {
                 if (isSubmitted) {
                   const correctIdx = currentProblem.answer - 1;
                   if (idx === correctIdx) {
-                    borderClass = 'border-green-500';
-                    bgClass = 'bg-green-50';
+                    borderClass = 'border-[#6f8391]';
+                    bgClass = 'bg-[#f4f8fb]';
                   } else if (idx === selectedAnswer && idx !== correctIdx) {
                     borderClass = 'border-red-500';
                     bgClass = 'bg-red-50';
@@ -533,8 +533,8 @@ export default function ConceptQuiz() {
                     bgClass = 'opacity-50';
                   }
                 } else if (selectedAnswer === idx) {
-                  borderClass = 'border-student-500';
-                  bgClass = 'bg-student-50';
+                  borderClass = 'border-[#4e5a61]';
+                  bgClass = 'bg-[#f4f8fb]';
                 }
 
                 return (
@@ -547,7 +547,7 @@ export default function ConceptQuiz() {
                     <div className="shrink-0 mt-0.5">
                       {isSubmitted ? (
                         idx === currentProblem.answer - 1 ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          <CheckCircle2 className="h-5 w-5 text-[#6f8391]" />
                         ) : idx === selectedAnswer ? (
                           <XCircle className="w-5 h-5 text-red-500" />
                         ) : (
@@ -560,7 +560,7 @@ export default function ConceptQuiz() {
                           value={idx}
                           checked={selectedAnswer === idx}
                           onChange={() => setSelectedAnswer(idx)}
-                          className="mt-0.5 accent-student-500"
+                          className="mt-0.5 accent-[#4e5a61]"
                         />
                       )}
                     </div>
@@ -572,24 +572,24 @@ export default function ConceptQuiz() {
 
             {/* 해설 (제출 후) */}
             {isSubmitted && currentProblem.explanation && (
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                <h4 className="text-body-sm font-semibold text-blue-800 mb-1">해설</h4>
-                <p className="text-caption text-blue-700">{currentProblem.explanation}</p>
+              <div className="mt-6 rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
+                <h4 className="mb-1 text-body-sm font-semibold text-[#4f6475]">해설</h4>
+                <p className="text-caption text-[#5f7483]">{currentProblem.explanation}</p>
               </div>
             )}
           </>
         ) : (
           /* 서술형 → 해설 바로 공개 (선택지 없는 문제 처리) */
           <div className="space-y-4">
-            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-              <p className="text-caption text-amber-700 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+            <div className="rounded-xl border border-[#ebe5cf] bg-[#faf6e8] p-4">
+              <p className="text-caption flex items-center gap-1.5 text-[#7a6330]">
+                <BookOpen className="h-3.5 w-3.5 shrink-0" />
                 이 문제는 개념 이해 확인 문제입니다. 아래 해설을 읽고 개념을 정리해보세요.
               </p>
             </div>
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-              <h4 className="text-body-sm font-semibold text-blue-800 mb-1">핵심 개념</h4>
-              <p className="text-caption text-blue-700 leading-relaxed whitespace-pre-wrap">
+            <div className="rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
+              <h4 className="mb-1 text-body-sm font-semibold text-[#4f6475]">핵심 개념</h4>
+              <p className="text-caption leading-relaxed whitespace-pre-wrap text-[#5f7483]">
                 {currentProblem.explanation ||
                   '이 개념에 대해 스스로 정리해보세요. 강의 자료나 노트를 참고하면 도움이 됩니다.'}
               </p>
@@ -616,7 +616,7 @@ export default function ConceptQuiz() {
               {currentIndex + 1 < totalProblems && (
                 <Button
                   onClick={() => handleNavigate(currentIndex + 1)}
-                  className="bg-student-500 hover:bg-student-600"
+                  className="bg-[#4e5a61] hover:bg-[#424d53]"
                   icon={ChevronRight}
                 >
                   다음
@@ -627,7 +627,7 @@ export default function ConceptQuiz() {
             /* 서술형: results에 추가 후 다음으로 */
             <Button
               onClick={handleEssayConfirm}
-              className="bg-student-500 hover:bg-student-600 active:bg-student-700"
+              className="bg-[#4e5a61] hover:bg-[#424d53] active:bg-[#384248]"
               icon={currentIndex + 1 >= totalProblems ? Trophy : ChevronRight}
             >
               {currentIndex + 1 >= totalProblems ? '결과 보기' : '확인했어요'}
@@ -636,14 +636,14 @@ export default function ConceptQuiz() {
             <Button
               onClick={handleSubmit}
               disabled={selectedAnswer === null}
-              className="bg-student-500 hover:bg-student-600 active:bg-student-700"
+              className="bg-[#4e5a61] hover:bg-[#424d53] active:bg-[#384248]"
             >
               정답 확인
             </Button>
           ) : (
             <Button
               onClick={handleNext}
-              className="bg-student-500 hover:bg-student-600 active:bg-student-700"
+              className="bg-[#4e5a61] hover:bg-[#424d53] active:bg-[#384248]"
               icon={currentIndex + 1 >= totalProblems ? Trophy : ChevronRight}
             >
               {currentIndex + 1 >= totalProblems ? '결과 보기' : '다음 문제'}
@@ -665,17 +665,17 @@ export default function ConceptQuiz() {
             } else if (isSubmitted) {
               const isCorrectNow = selectedAnswer === prob.answer - 1;
               colorClass = isCorrectNow
-                ? 'bg-green-200 text-green-800 ring-2 ring-green-500'
+                ? 'bg-[#dfe9ef] text-[#3f5568] ring-2 ring-[#6f8391]'
                 : 'bg-red-200 text-red-800 ring-2 ring-red-500';
             } else {
-              colorClass = 'bg-student-100 text-student-700 ring-2 ring-student-500';
+              colorClass = 'bg-[#e9eff3] text-[#4f6475] ring-2 ring-[#6f8391]';
             }
           } else if (result) {
             colorClass = result.isEssay
-              ? 'bg-blue-100 text-blue-700'
+              ? 'bg-[#f4ecd7] text-[#7a6330]'
               : result.isCorrect
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700';
+                ? 'bg-[#e9eff3] text-[#4f6475]'
+                : 'bg-red-100 text-red-700';
           }
 
           return (

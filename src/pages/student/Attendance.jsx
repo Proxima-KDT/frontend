@@ -254,11 +254,11 @@ export default function Attendance() {
   const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
 
   const getStatusDot = (status) => {
-    if (status === 'present') return 'bg-green-500';
-    if (status === 'late') return 'bg-yellow-500';
-    if (status === 'absent') return 'bg-red-500';
-    if (status === 'early_leave') return 'bg-amber-500';
-    if (status === 'checked_in') return 'bg-blue-500';
+    if (status === 'present') return 'bg-[#5cbf7a]';
+    if (status === 'late') return 'bg-[#e8943a]';
+    if (status === 'absent') return 'bg-[#e05d5d]';
+    if (status === 'early_leave') return 'bg-[#d4b03d]';
+    if (status === 'checked_in') return 'bg-[#7eb8e8]';
     return '';
   };
 
@@ -295,7 +295,7 @@ export default function Attendance() {
     .map((a, idx) => ({ ...a, id: idx }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 rounded-3xl bg-[#F9F8F6] px-2 py-4 sm:px-4">
       <h1 className="text-h2 font-bold text-gray-900">출석</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -494,23 +494,23 @@ export default function Attendance() {
             </div>
             <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 flex-wrap">
               <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="w-2 h-2 rounded-full bg-[#5cbf7a]" />
                 출석
               </div>
               <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                <span className="w-2 h-2 rounded-full bg-[#e8943a]" />
                 지각
               </div>
               <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="w-2 h-2 rounded-full bg-[#e05d5d]" />
                 결석
               </div>
               <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="w-2 h-2 rounded-full bg-[#d4b03d]" />
                 조퇴
               </div>
               <div className="flex items-center gap-1.5 text-caption text-gray-500">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span className="w-2 h-2 rounded-full bg-[#7eb8e8]" />
                 입실
               </div>
             </div>
@@ -521,26 +521,26 @@ export default function Attendance() {
               {viewMonth}월 통계
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col items-center p-3 bg-green-50 rounded-xl">
-                <span className="text-h3 font-bold text-green-600">
+              <div className="flex flex-col items-center p-3 bg-[#edf7f0] rounded-xl">
+                <span className="text-h3 font-bold text-[#3d8f5a]">
                   {monthStats.present}
                 </span>
                 <span className="text-caption text-gray-500">출석</span>
               </div>
-              <div className="flex flex-col items-center p-3 bg-yellow-50 rounded-xl">
-                <span className="text-h3 font-bold text-yellow-600">
+              <div className="flex flex-col items-center p-3 bg-[#fdf5ec] rounded-xl">
+                <span className="text-h3 font-bold text-[#d9782c]">
                   {monthStats.late}
                 </span>
                 <span className="text-caption text-gray-500">지각</span>
               </div>
-              <div className="flex flex-col items-center p-3 bg-red-50 rounded-xl">
-                <span className="text-h3 font-bold text-red-600">
+              <div className="flex flex-col items-center p-3 bg-[#fdf0f0] rounded-xl">
+                <span className="text-h3 font-bold text-[#d14b4b]">
                   {monthStats.absent}
                 </span>
                 <span className="text-caption text-gray-500">결석</span>
               </div>
-              <div className="flex flex-col items-center p-3 bg-amber-50 rounded-xl">
-                <span className="text-h3 font-bold text-amber-600">
+              <div className="flex flex-col items-center p-3 bg-[#faf6e8] rounded-xl">
+                <span className="text-h3 font-bold text-[#c9a227]">
                   {monthStats.earlyLeave}
                 </span>
                 <span className="text-caption text-gray-500">조퇴</span>

@@ -149,19 +149,19 @@ export default function AdminStudentDetail() {
   };
 
   return (
-    <div>
+    <div className="space-y-5 rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <button
         onClick={() => navigate('/admin')}
-        className="flex items-center gap-1 text-body-sm text-gray-500 hover:text-gray-700 mb-4 cursor-pointer"
+        className="flex items-center gap-1.5 text-body-sm text-[#7c766d] hover:text-[#2f333a] transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         수강생 현황으로 돌아가기
       </button>
 
       {/* 학생 정보 헤더 */}
-      <Card className="mb-6">
-        <div className="flex items-center gap-4">
-          <div className="shrink-0 w-24 h-28 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+      <Card className="rounded-3xl border border-[#dfdbd4] bg-[#f8f7f4] shadow-none">
+        <div className="flex items-start gap-4">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#ddd8cf] bg-[#d8e1e7]">
             {student.avatar_url ? (
               <img
                 src={student.avatar_url}
@@ -169,10 +169,8 @@ export default function AdminStudentDetail() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-admin-400 to-admin-600 flex items-center justify-center">
-                <span className="text-white text-3xl font-bold">
-                  {student.name.charAt(0)}
-                </span>
+              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[#4f6070]">
+                {student.name?.charAt(0) ?? '?'}
               </div>
             )}
           </div>
@@ -191,28 +189,28 @@ export default function AdminStudentDetail() {
                 비밀번호 재발급
               </Button>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm text-gray-500">
-              <span className="flex items-center gap-1">
-                <Mail className="w-4 h-4" /> {student.email}
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[#6f6a61]">
+              <span className="inline-flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-[#9b968d]" /> {student.email}
               </span>
-              <span className="flex items-center gap-1">
-                <CalendarIcon className="w-4 h-4" /> 등록일:{' '}
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5 text-[#9b968d]" /> 등록일:{' '}
                 {student.enrolled_at}
               </span>
               {student.course_name && (
-                <span className="flex items-center gap-1">
-                  <BookOpen className="w-4 h-4" /> {student.course_name}
+                <span className="inline-flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 text-[#9b968d]" /> {student.course_name}
                   {student.cohort_number != null && ` · ${student.cohort_number}기`}
                 </span>
               )}
               {student.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="w-4 h-4" /> {student.phone}
+                <span className="inline-flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 text-[#9b968d]" /> {student.phone}
                 </span>
               )}
               {student.address && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" /> {student.address}
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-[#9b968d]" /> {student.address}
                 </span>
               )}
             </div>

@@ -100,7 +100,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div>
+    <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <h1 className="text-h1 font-bold text-gray-900 mb-6">수강생 현황</h1>
 
       {/* 요약 카드 */}

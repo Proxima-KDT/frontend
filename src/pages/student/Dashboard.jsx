@@ -1,221 +1,138 @@
-import { useState, useEffect } from 'react';
-import {
-  ChevronDown,
-  CheckCircle2,
-  Circle,
-  Clock,
-  Flag,
-  Trophy,
-} from 'lucide-react';
+import { useState, useEffect, useMemo, Fragment } from 'react';
+import { Sparkles, CheckCircle2, Circle, Clock } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { curriculumApi } from '@/api/curriculum';
-import Card from '@/components/common/Card';
-import Badge from '@/components/common/Badge';
-import ProgressBar from '@/components/common/ProgressBar';
 import Skeleton from '@/components/common/Skeleton';
 
 /* ── 상태별 스타일 ── */
-const statusConfig = {
+const statusUi = {
   completed: {
-    color: 'bg-green-500',
-    badgeVariant: 'success',
-    label: '완료',
-    gradient: 'from-green-400 to-emerald-500',
-    ring: 'ring-green-200',
-    road: '#22c55e',
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
+    card: 'bg-white border-[#e8e4dc] shadow-[0_4px_20px_rgba(45,42,38,0.06)]',
+    badge: 'bg-[#3d3d3d] text-white',
+    badgeMain: '완료',
+    badgeSub: 'completed',
+    bar: 'bg-[#3d3d3d]',
+    dim: '',
   },
   in_progress: {
-    color: 'bg-student-500',
-    badgeVariant: 'student',
-    label: '진행 중',
-    gradient: 'from-student-400 to-student-600',
-    ring: 'ring-student-200',
-    road: '#8b5cf6',
-    iconBg: 'bg-student-100',
-    iconColor: 'text-student-600',
+    card: 'bg-[#f3f1ed] border-[#d4cfc4] shadow-[0_8px_28px_rgba(45,42,38,0.1)] ring-1 ring-[#e0dbd2]',
+    badge: 'bg-[#c9a227] text-[#1f1e1c]',
+    badgeMain: '진행중',
+    badgeSub: 'In progress',
+    bar: 'bg-[#c9a227]',
+    dim: '',
   },
   upcoming: {
-    color: 'bg-gray-300',
-    badgeVariant: 'default',
-    label: '예정',
-    gradient: 'from-gray-300 to-gray-400',
-    ring: 'ring-gray-200',
-    road: '#d1d5db',
-    iconBg: 'bg-gray-100',
-    iconColor: 'text-gray-400',
+    card: 'bg-white/70 border-[#ebe8e3] opacity-[0.72]',
+    badge: 'bg-[#b8b3ab] text-white',
+    badgeMain: '예정',
+    badgeSub: 'planned',
+    bar: 'bg-[#a8a29e]',
+    dim: 'opacity-90',
   },
 };
 
-/* ── 태스크 아이콘 ── */
-function TaskStatusIcon({ progress }) {
-  if (progress === 100)
-    return <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />;
-  if (progress > 0)
-    return <Clock className="w-4 h-4 text-student-500 shrink-0" />;
-  return <Circle className="w-4 h-4 text-gray-300 shrink-0" />;
-}
-
-/* ── Phase 상세 패널 ── */
-function PhaseDetail({ phase }) {
-  const config = statusConfig[phase.status];
-  const completedTasks = phase.tasks.filter((t) => t.progress === 100).length;
+/* ── 태스크 행 ── */
+function TaskRow({ task }) {
+  const Icon =
+    task.progress === 100
+      ? CheckCircle2
+      : task.progress > 0
+        ? Clock
+        : Circle;
+  const iconClass =
+    task.progress === 100
+      ? 'text-[#5c7a4e]'
+      : task.progress > 0
+        ? 'text-[#9a8b4a]'
+        : 'text-[#c4c0b8]';
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-1 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-body font-bold text-gray-900">{phase.title}</h3>
-          <p className="text-caption text-gray-500">{phase.description}</p>
-        </div>
-        <div className="flex items-center gap-3 text-caption text-gray-400 mt-1 sm:mt-0 shrink-0">
-          <span>
-            {phase.start_date} ~ {phase.end_date}
-          </span>
-          <Badge variant={config.badgeVariant}>
-            {completedTasks}/{phase.tasks.length} 완료
-          </Badge>
+    <li className="flex items-center gap-3">
+      <Icon className={`w-4 h-4 shrink-0 ${iconClass}`} />
+      <span className="w-40 shrink-0 text-[0.8125rem] text-[#3d3a36] sm:w-48">
+        {task.name}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ebe8e3]">
+          <div
+            className="h-full rounded-full bg-[#3d3d3d] transition-all duration-300"
+            style={{ width: `${task.progress}%` }}
+          />
         </div>
       </div>
-      <ul className="space-y-3">
-        {phase.tasks.map((task, idx) => (
-          <li key={idx} className="flex items-center gap-3">
-            <TaskStatusIcon progress={task.progress} />
-            <span
-              className={`text-body-sm w-36 shrink-0 ${task.progress === 100 ? 'text-gray-400' : 'text-gray-700'}`}
-            >
-              {task.name}
-            </span>
-            <div className="flex-1">
-              <ProgressBar
-                value={task.progress}
-                color={
-                  task.progress === 100
-                    ? 'bg-green-500'
-                    : task.progress > 0
-                      ? 'bg-student-500'
-                      : 'bg-gray-300'
-                }
-                size="sm"
-              />
-            </div>
-            <span className="text-caption text-gray-400 w-10 text-right shrink-0">
-              {task.progress}%
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+      <span className="w-9 shrink-0 text-right text-[0.7rem] font-medium tabular-nums text-[#6b6560]">
+        {task.progress}%
+      </span>
+    </li>
   );
 }
 
-/* ── 도로 위 Phase 카드(데스크톱) ── */
-function RoadPhaseCard({ phase, isSelected, onClick, position }) {
-  const config = statusConfig[phase.status];
+/* ── AI 팁 생성 ── */
+function buildAiTip(phase) {
+  if (!phase?.tasks?.length) {
+    return 'AI Tip: 단계를 선택하면 맞춤 학습 팁이 표시됩니다.';
+  }
+  const tasks = [...phase.tasks].sort((a, b) => b.progress - a.progress);
+  const strong = tasks[0];
+  const weak = [...phase.tasks].find((t) => t.progress < 100) || tasks[tasks.length - 1];
+  if (strong?.progress >= 80 && weak && weak.progress < 100) {
+    return `AI Tip: ${strong.name}은(는) 잘하고 있어요! ${weak.name}은(는) 실습·예제로 조금만 더 다져 보면 다음 단계로 가기 좋아요.`;
+  }
+  return `AI Tip: 이번 주는 ${phase.title} 핵심 개념을 복습하고, 미완료 토픽부터 차근차근 채워 보세요.`;
+}
+
+/* ── 모듈 카드 ── */
+function ModuleCard({ phase, selected, onSelect }) {
+  const ui = statusUi[phase.status] || statusUi.upcoming;
   const PhaseIcon = Icons[phase.icon] || Icons.BookOpen;
-  const isTop = position === 'top';
 
   return (
-    <div
-      className={`flex flex-col items-center ${isTop ? '' : 'flex-col-reverse'}`}
+    <button
+      type="button"
+      onClick={() => onSelect(phase.id)}
+      className={`
+        relative flex h-full w-full min-w-0 flex-col rounded-2xl border p-3 text-left transition-all sm:p-4
+        ${ui.card}
+        ${selected ? 'ring-2 ring-[#3d3d3d] ring-offset-2 ring-offset-[#F9F8F6]' : 'hover:border-[#c4bfb5]'}
+        ${ui.dim}
+      `}
     >
-      {/* 카드 */}
-      <div
-        onClick={onClick}
-        className={`
-          relative w-40 rounded-2xl p-4 transition-all duration-300 cursor-pointer
-          ${
-            isSelected
-              ? `bg-linear-to-br ${config.gradient} text-white shadow-lg scale-105`
-              : phase.status === 'in_progress'
-                ? 'bg-white border-2 border-student-300 shadow-md hover:shadow-lg hover:scale-102'
-                : phase.status === 'completed'
-                  ? 'bg-white border-2 border-green-200 shadow-sm hover:shadow-md hover:scale-102'
-                  : 'bg-gray-50 border-2 border-gray-200 hover:shadow-md hover:scale-102'
-          }
-        `}
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f0ede6] text-[#4a4640]">
+          <PhaseIcon className="h-4 w-4" />
+        </div>
+        <span
+          className={`flex min-w-[3.25rem] flex-col items-end gap-0 rounded-md px-2 py-1 text-right leading-tight ${ui.badge}`}
+        >
+          <span className="text-[0.62rem] font-bold tracking-wide">
+            {ui.badgeMain}
+          </span>
+          <span className="text-[0.5rem] font-medium opacity-90">
+            {ui.badgeSub}
+          </span>
+        </span>
+      </div>
+      <p
+        className="line-clamp-2 text-[0.85rem] font-semibold leading-snug text-[#1f1e1c] sm:text-[0.95rem]"
       >
-        {/* 아이콘 */}
-        <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${
-            isSelected ? 'bg-white/25' : config.iconBg
-          }`}
-        >
-          <PhaseIcon
-            className={`w-5 h-5 ${isSelected ? 'text-white' : config.iconColor}`}
-          />
-        </div>
-        <h3
-          className={`text-sm font-bold mb-1 leading-tight ${isSelected ? 'text-white' : 'text-gray-900'}`}
-        >
-          {phase.title}
-        </h3>
-        <div className="flex items-center gap-1 mb-2">
-          <Badge
-            variant={isSelected ? 'default' : config.badgeVariant}
-            size="sm"
-          >
-            {config.label}
-          </Badge>
-        </div>
-        {/* 미니 진행률 */}
-        <div className="w-full bg-black/10 rounded-full h-1.5">
+        {phase.phase}. {phase.title}
+      </p>
+      <p className="mt-1 line-clamp-2 text-[0.7rem] leading-relaxed text-[#6b6560]">
+        {phase.description}
+      </p>
+      <div className="mt-3">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-[#ebe8e3]">
           <div
-            className={`h-1.5 rounded-full transition-all duration-500 ${isSelected ? 'bg-white/80' : config.color}`}
+            className={`h-full rounded-full transition-all duration-500 ${ui.bar}`}
             style={{ width: `${phase.progress}%` }}
           />
         </div>
-        <span
-          className={`text-xs mt-1 block ${isSelected ? 'text-white/80' : 'text-gray-400'}`}
-        >
+        <p className="mt-1 text-right text-[0.7rem] font-semibold tabular-nums text-[#4a4640]">
           {phase.progress}%
-        </span>
-
-        {/* 진행 중 펄스 */}
-        {phase.status === 'in_progress' && !isSelected && (
-          <div className="absolute -top-1 -right-1 w-3 h-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-student-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-student-500" />
-          </div>
-        )}
+        </p>
       </div>
-
-      {/* 연결 기둥 */}
-      <div
-        className={`w-0.5 ${isSelected ? 'h-6' : 'h-8'} ${
-          phase.status === 'completed'
-            ? 'bg-green-300'
-            : phase.status === 'in_progress'
-              ? 'bg-student-300'
-              : 'bg-gray-200'
-        }`}
-      />
-
-      {/* 도로 위 동그라미 */}
-      <div
-        className={`
-          w-6 h-6 rounded-full border-[3px] flex items-center justify-center
-          transition-all duration-300
-          ${
-            phase.status === 'completed'
-              ? 'border-green-500 bg-green-50'
-              : phase.status === 'in_progress'
-                ? 'border-student-500 bg-student-50'
-                : 'border-gray-300 bg-gray-50'
-          }
-          ${isSelected ? `ring-4 ${config.ring}` : ''}
-        `}
-      >
-        {phase.status === 'completed' ? (
-          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-        ) : phase.status === 'in_progress' ? (
-          <div className="w-2 h-2 rounded-full bg-student-500" />
-        ) : (
-          <div className="w-2 h-2 rounded-full bg-gray-300" />
-        )}
-      </div>
-    </div>
+    </button>
   );
 }
 
@@ -223,438 +140,193 @@ function RoadPhaseCard({ phase, isSelected, onClick, position }) {
    메인 Dashboard
    ══════════════════════════════════════════════════ */
 export default function Dashboard() {
-  const [curriculum, setCurriculum] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selectedPhaseId, setSelectedPhaseId] = useState(null)
-  const [coursePeriod, setCoursePeriod] = useState(null)
+  const [curriculum, setCurriculum] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPhaseId, setSelectedPhaseId] = useState(null);
+  const [coursePeriod, setCoursePeriod] = useState(null);
 
   useEffect(() => {
     Promise.all([
       curriculumApi.getAll(),
       curriculumApi.getCoursePeriod().catch(() => null),
-    ]).then(([data, period]) => {
-      setCurriculum(data)
-      setCoursePeriod(period)
-      const inProgress = data.find((c) => c.status === 'in_progress')
-      setSelectedPhaseId(inProgress?.id ?? data[0]?.id ?? null)
-    }).catch(() => {}).finally(() => setLoading(false))
-  }, [])
+    ])
+      .then(([data, period]) => {
+        setCurriculum(data);
+        setCoursePeriod(period);
+        const inProgress = data.find((c) => c.status === 'in_progress');
+        setSelectedPhaseId(inProgress?.id ?? data[0]?.id ?? null);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const completedPhases = curriculum.filter((c) => c.status === 'completed').length;
   const totalPhases = curriculum.length;
-  const overallProgress = totalPhases > 0
-    ? Math.round(curriculum.reduce((sum, c) => sum + c.progress, 0) / totalPhases)
-    : 0;
+  const overallProgress =
+    totalPhases > 0
+      ? Math.round(curriculum.reduce((sum, c) => sum + c.progress, 0) / totalPhases)
+      : 0;
 
   // 커리큘럼 실제 기간: phase들의 start_date 최솟값 ~ end_date 최댓값
   const curriculumDates = curriculum.filter((c) => c.start_date && c.end_date);
-  const curriculumStart = curriculumDates.length > 0
-    ? curriculumDates.reduce((min, c) => c.start_date < min ? c.start_date : min, curriculumDates[0].start_date)
-    : null;
-  const curriculumEnd = curriculumDates.length > 0
-    ? curriculumDates.reduce((max, c) => c.end_date > max ? c.end_date : max, curriculumDates[0].end_date)
-    : null;
-
-  const togglePhase = (id) =>
-    setSelectedPhaseId((prev) => (prev === id ? null : id));
+  const curriculumStart =
+    curriculumDates.length > 0
+      ? curriculumDates.reduce(
+          (min, c) => (c.start_date < min ? c.start_date : min),
+          curriculumDates[0].start_date,
+        )
+      : null;
+  const curriculumEnd =
+    curriculumDates.length > 0
+      ? curriculumDates.reduce(
+          (max, c) => (c.end_date > max ? c.end_date : max),
+          curriculumDates[0].end_date,
+        )
+      : null;
 
   const selectedPhase = curriculum.find((c) => c.id === selectedPhaseId);
+  const aiTip = useMemo(() => buildAiTip(selectedPhase), [selectedPhase]);
 
-  // 도로 행 분할: 3개씩 나누고 짝수 행은 역순
-  const row1 = curriculum.slice(0, 3); // → 방향
-  const row2 = [...curriculum.slice(3, 6)].reverse(); // ← 역방향
+  const mid = Math.ceil(curriculum.length / 2) || 0;
+  const row1 = curriculum.slice(0, mid);
+  const row2 = curriculum.slice(mid);
+
+  function renderModuleRow(phases) {
+    if (!phases.length) return null;
+    return (
+      <div className="flex w-full min-w-0 items-stretch justify-center gap-2 sm:gap-3">
+        {phases.map((phase, i) => (
+          <Fragment key={phase.id}>
+            <div className="min-w-0 flex-1 basis-0">
+              <ModuleCard
+                phase={phase}
+                selected={selectedPhaseId === phase.id}
+                onSelect={setSelectedPhaseId}
+              />
+            </div>
+            {i < phases.length - 1 && (
+              <div
+                className="w-2 shrink-0 self-center border-t-2 border-dotted border-[#c4bfb5] sm:w-4 md:w-6"
+                aria-hidden
+              />
+            )}
+          </Fragment>
+        ))}
+      </div>
+    );
+  }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton width="240px" height="32px" rounded="rounded-lg" />
-        <Skeleton width="100%" height="60px" rounded="rounded-2xl" />
-        <Skeleton width="100%" height="300px" rounded="rounded-2xl" />
+      <div className="space-y-6 rounded-3xl bg-[#F9F8F6] p-6">
+        <Skeleton width="280px" height="36px" rounded="rounded-lg" />
+        <Skeleton width="100%" height="48px" rounded="rounded-xl" />
+        <Skeleton width="100%" height="180px" rounded="rounded-2xl" />
+        <Skeleton width="100%" height="240px" rounded="rounded-2xl" />
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 rounded-3xl bg-[#F9F8F6] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-6">
       {/* ── 헤더 ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-h2 font-bold text-gray-900">커리큘럼 로드맵</h1>
-          <p className="text-body-sm text-gray-500 mt-1">
+          <h1
+            className="text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]"
+          >
+            커리큘럼 로드맵
+          </h1>
+          <p className="mt-1 text-[0.875rem] text-[#6b6560]">
             {curriculumStart && curriculumEnd
               ? `${curriculumStart} ~ ${curriculumEnd}${coursePeriod?.cohort_number ? ` · ${coursePeriod.cohort_number}기` : ''}`
               : coursePeriod?.duration_months
                 ? `${coursePeriod.duration_months}개월 과정`
-                : `${completedPhases}/${totalPhases} 단계 완료`}
-            {' · '}{completedPhases}/{totalPhases} 단계 완료
+                : '과정'}{' '}
+            · {completedPhases}/{totalPhases}단계 완료
           </p>
         </div>
-        <Badge variant="student">{overallProgress}% 달성</Badge>
+        <div className="text-left sm:text-right">
+          <p className="text-[0.9375rem] font-semibold text-[#2d2a26]">진도율</p>
+          <p className="mt-0.5 text-[0.65rem] font-medium tracking-wide text-[#a39c92]">
+            Overall completion
+          </p>
+          <p className="mt-1 text-[1.75rem] font-semibold tabular-nums leading-tight text-[#2d2a26]">
+            {overallProgress}%
+          </p>
+        </div>
       </div>
 
       {/* ── 전체 진행률 ── */}
-      <Card>
-        <ProgressBar
-          value={overallProgress}
-          color="bg-student-500"
-          label="전체 진행률"
-        />
-      </Card>
+      <div className="rounded-xl border border-[#e8e4dc] bg-white/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ebe8e3]">
+          <div
+            className="h-full rounded-full bg-[#3d3d3d] transition-all duration-500"
+            style={{ width: `${overallProgress}%` }}
+          />
+        </div>
+      </div>
 
-      {/* ════════════ 데스크톱 도로형 타임라인 ════════════ */}
-      <div className="hidden md:block">
-        <Card className="overflow-hidden">
-          <div className="relative py-4">
-            {/* ─── 1행: 왼→오 (카드 위, 도로 아래) ─── */}
-            <div className="relative">
-              {/* 카드 + 기둥 + 도트 */}
-              <div className="flex justify-around items-end px-8">
-                {row1.map((phase) => (
-                  <RoadPhaseCard
-                    key={phase.id}
-                    phase={phase}
-                    isSelected={selectedPhaseId === phase.id}
-                    onClick={() => togglePhase(phase.id)}
-                    position="top"
-                  />
-                ))}
-              </div>
-              {/* 도로 */}
-              <div className="relative mx-8 -mt-3">
-                {/* START 깃발 */}
-                <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 flex flex-col items-center gap-0.5">
-                  <Flag className="w-5 h-5 text-green-500" />
-                  <span className="text-[10px] font-bold text-green-600">
-                    START
-                  </span>
-                </div>
-                <svg
-                  viewBox="0 0 800 20"
-                  className="w-full h-5"
-                  preserveAspectRatio="none"
-                >
-                  <line
-                    x1="0"
-                    y1="10"
-                    x2="800"
-                    y2="10"
-                    stroke="#e5e7eb"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                  />
-                  {/* 진행 표시 선 */}
-                  <line
-                    x1="0"
-                    y1="10"
-                    x2={(() => {
-                      const completedInRow = row1.filter(
-                        (p) => p.status === 'completed',
-                      ).length;
-                      const inProgressInRow = row1.find(
-                        (p) => p.status === 'in_progress',
-                      );
-                      const base = (completedInRow / row1.length) * 800;
-                      const extra = inProgressInRow
-                        ? ((inProgressInRow.progress / 100) * 800) / row1.length
-                        : 0;
-                      return base + extra;
-                    })()}
-                    y2="10"
-                    stroke="url(#roadGrad1)"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                  />
-                  {/* 점선 무늬 */}
-                  <line
-                    x1="0"
-                    y1="10"
-                    x2="800"
-                    y2="10"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeDasharray="12 10"
-                    opacity="0.6"
-                  />
-                  <defs>
-                    <linearGradient id="roadGrad1" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#22c55e" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-            </div>
-
-            {/* ─── 커브 연결 (우측) ─── */}
-            <div className="flex justify-end px-8">
-              <svg width="60" height="80" viewBox="0 0 60 80" className="mr-6">
-                <path
-                  d="M 30 0 Q 30 40, 30 80"
-                  stroke="#e5e7eb"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-                {(() => {
-                  const allRow1Done = row1.every(
-                    (p) => p.status === 'completed',
-                  );
-                  if (!allRow1Done) return null;
-                  return (
-                    <path
-                      d="M 30 0 Q 30 40, 30 80"
-                      stroke="#22c55e"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                  );
-                })()}
-                <line
-                  x1="30"
-                  y1="0"
-                  x2="30"
-                  y2="80"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeDasharray="12 10"
-                  opacity="0.6"
-                />
-              </svg>
-            </div>
-
-            {/* ─── 2행: 오→왼 (도로 위, 카드 아래) ─── */}
-            <div className="relative">
-              {/* 도로 */}
-              <div className="relative mx-8 mb-0">
-                <svg
-                  viewBox="0 0 800 20"
-                  className="w-full h-5"
-                  preserveAspectRatio="none"
-                >
-                  <line
-                    x1="0"
-                    y1="10"
-                    x2="800"
-                    y2="10"
-                    stroke="#e5e7eb"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                  />
-                  {/* 진행 표시 (역방향: 오→왼) */}
-                  {(() => {
-                    const origRow = curriculum.slice(3, 6);
-                    const completedInRow = origRow.filter(
-                      (p) => p.status === 'completed',
-                    ).length;
-                    const inProgressInRow = origRow.find(
-                      (p) => p.status === 'in_progress',
-                    );
-                    const base = (completedInRow / origRow.length) * 800;
-                    const extra = inProgressInRow
-                      ? ((inProgressInRow.progress / 100) * 800) /
-                        origRow.length
-                      : 0;
-                    const filled = base + extra;
-                    if (filled <= 0) return null;
-                    return (
-                      <line
-                        x1="800"
-                        y1="10"
-                        x2={800 - filled}
-                        y2="10"
-                        stroke="url(#roadGrad2)"
-                        strokeWidth="12"
-                        strokeLinecap="round"
-                      />
-                    );
-                  })()}
-                  <line
-                    x1="0"
-                    y1="10"
-                    x2="800"
-                    y2="10"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeDasharray="12 10"
-                    opacity="0.6"
-                  />
-                  <defs>
-                    <linearGradient id="roadGrad2" x1="1" y1="0" x2="0" y2="0">
-                      <stop offset="0%" stopColor="#8b5cf6" />
-                      <stop offset="50%" stopColor="#a78bfa" />
-                      <stop offset="100%" stopColor="#d1d5db" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                {/* GOAL 깃발 */}
-                <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 flex flex-col items-center gap-0.5">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span className="text-[10px] font-bold text-yellow-600">
-                    GOAL
-                  </span>
-                </div>
-              </div>
-              {/* 카드 + 기둥 + 도트 */}
-              <div className="flex justify-around items-start px-8 -mt-3">
-                {row2.map((phase) => (
-                  <RoadPhaseCard
-                    key={phase.id}
-                    phase={phase}
-                    isSelected={selectedPhaseId === phase.id}
-                    onClick={() => togglePhase(phase.id)}
-                    position="bottom"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* 선택된 Phase 상세 */}
-        {selectedPhase && (
-          <div className="mt-4">
-            <PhaseDetail phase={selectedPhase} />
-          </div>
+      {/* ── 모듈 경로: 2줄 ── */}
+      <div className="flex flex-col gap-5 sm:gap-6">
+        {renderModuleRow(row1)}
+        {row2.length > 0 && (
+          <>
+            <div
+              className="mx-auto h-5 w-0 shrink-0 border-l-2 border-dotted border-[#c4bfb5]"
+              aria-hidden
+            />
+            {renderModuleRow(row2)}
+          </>
         )}
       </div>
 
-      {/* ════════════ 모바일 세로 타임라인 ════════════ */}
-      <div className="flex flex-col md:hidden">
-        <div className="relative">
-          {/* 세로 도로 */}
-          <div className="absolute left-6 top-0 bottom-0 w-1 bg-gray-200 rounded-full">
-            <div
-              className="w-1 bg-linear-to-b from-green-500 to-student-500 rounded-full transition-all duration-500"
-              style={{
-                height: `${
-                  (curriculum.filter((c) => c.status === 'completed')
-                    .length /
-                    totalPhases) *
-                    100 +
-                  (curriculum.find((c) => c.status === 'in_progress')
-                    ?.progress ?? 0) /
-                    totalPhases
-                }%`,
-              }}
-            />
-          </div>
-
-          <div className="space-y-4 pl-14">
-            {curriculum.map((phase) => {
-              const config = statusConfig[phase.status];
-              const PhaseIcon = Icons[phase.icon] || Icons.BookOpen;
-              const isSelected = selectedPhaseId === phase.id;
-              return (
-                <div key={phase.id} className="relative">
-                  {/* 도로 위 도트 */}
-                  <div
-                    className={`
-                      absolute -left-11 top-5 w-5 h-5 rounded-full border-[3px]
-                      flex items-center justify-center
-                      ${
-                        phase.status === 'completed'
-                          ? 'border-green-500 bg-green-50'
-                          : phase.status === 'in_progress'
-                            ? 'border-student-500 bg-student-50'
-                            : 'border-gray-300 bg-gray-50'
-                      }
-                    `}
-                  >
-                    {phase.status === 'completed' && (
-                      <CheckCircle2 className="w-3 h-3 text-green-500" />
-                    )}
-                    {phase.status === 'in_progress' && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-student-500" />
-                    )}
-                  </div>
-
-                  {/* 카드 */}
-                  <div
-                    onClick={() => togglePhase(phase.id)}
-                    className={`
-                      rounded-xl border-2 p-4 transition-all cursor-pointer
-                      ${
-                        isSelected
-                          ? `bg-linear-to-br ${config.gradient} text-white shadow-lg`
-                          : phase.status === 'in_progress'
-                            ? 'border-student-300 bg-white shadow-md'
-                            : phase.status === 'completed'
-                              ? 'border-green-200 bg-white shadow-sm'
-                              : 'border-gray-200 bg-gray-50'
-                      }
-                    `}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            isSelected ? 'bg-white/25' : config.iconBg
-                          }`}
-                        >
-                          <PhaseIcon
-                            className={`w-4 h-4 ${isSelected ? 'text-white' : config.iconColor}`}
-                          />
-                        </div>
-                        <div>
-                          <h3
-                            className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-900'}`}
-                          >
-                            {phase.title}
-                          </h3>
-                          <span
-                            className={`text-xs ${isSelected ? 'text-white/70' : 'text-gray-400'}`}
-                          >
-                            Phase {phase.phase}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={isSelected ? 'default' : config.badgeVariant}
-                          size="sm"
-                        >
-                          {config.label}
-                        </Badge>
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform ${isSelected ? 'text-white/70 rotate-180' : 'text-gray-400'}`}
-                        />
-                      </div>
-                    </div>
-                    <div
-                      className={`w-full rounded-full h-1.5 ${isSelected ? 'bg-white/20' : 'bg-gray-200'}`}
-                    >
-                      <div
-                        className={`h-1.5 rounded-full transition-all duration-500 ${isSelected ? 'bg-white/80' : config.color}`}
-                        style={{ width: `${phase.progress}%` }}
-                      />
-                    </div>
-                    <span
-                      className={`text-xs mt-1 block ${isSelected ? 'text-white/80' : 'text-gray-400'}`}
-                    >
-                      {phase.progress}%
-                    </span>
-
-                    {/* 진행 중 펄스 */}
-                    {phase.status === 'in_progress' && !isSelected && (
-                      <div className="absolute -left-11 top-3 w-5 h-5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-student-400 opacity-50" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 상세 */}
-                  {isSelected && (
-                    <div className="mt-3">
-                      <PhaseDetail phase={phase} />
-                    </div>
-                  )}
+      {/* ── 선택된 Phase 상세 ── */}
+      {selectedPhase && (
+        <div className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_12px_40px_rgba(45,42,38,0.07)] sm:p-7">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
+            <div>
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f0ede6] text-[#4a4640]">
+                  {(() => {
+                    const Ic = Icons[selectedPhase.icon] || Icons.BookOpen;
+                    return <Ic className="h-5 w-5" />;
+                  })()}
                 </div>
-              );
-            })}
+                <div>
+                  <h2
+                    className="text-[1.35rem] font-semibold text-[#1f1e1c] sm:text-[1.5rem]"
+                  >
+                    {selectedPhase.phase}. {selectedPhase.title}
+                  </h2>
+                  <p className="mt-2 text-[0.9rem] leading-relaxed text-[#5c5852]">
+                    {selectedPhase.description}
+                  </p>
+                  <p className="mt-2 text-[0.75rem] text-[#8a847a]">
+                    {selectedPhase.start_date} ~ {selectedPhase.end_date}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <ul className="space-y-3.5">
+                {(selectedPhase.tasks || []).map((task, idx) => (
+                  <TaskRow key={`${task.name}-${idx}`} task={task} />
+                ))}
+              </ul>
+              <div className="mt-6 rounded-2xl border border-[#ebe5cf] bg-[#faf6e8] px-4 py-3.5 sm:px-5">
+                <div className="flex gap-2.5">
+                  <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[#c9a227]" />
+                  <p className="text-[0.8125rem] leading-relaxed text-[#4d5a38]">
+                    {aiTip}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
