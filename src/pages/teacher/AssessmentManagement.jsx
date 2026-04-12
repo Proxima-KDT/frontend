@@ -299,12 +299,12 @@ export default function AssessmentManagement() {
     <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#dbd8d1] pb-3">
         <div>
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.15em] text-[#8d877e]">
-            Ethereal Instructor
-          </p>
           <h1 className="text-[2rem] text-[#2a2a2a]">
             능력단위평가 관리
           </h1>
+          <p className="mt-1 text-[0.8rem] font-medium tracking-wide text-[#a39c92]">
+            Competency Evaluation Management
+          </p>
         </div>
         <div className="flex items-center gap-2 text-[11px] font-semibold text-[#7e7a74]">
           <span className="px-2 py-1">Dashboard</span>

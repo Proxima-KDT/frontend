@@ -284,6 +284,11 @@ export default function AssignmentManagement() {
     focusAssignment?.studentSubmissions?.filter((s) => s.status === 'graded')
       .length ?? 0;
 
+  const totalSubmissionCount = assignments.reduce(
+    (acc, a) =>
+      acc + a.studentSubmissions.filter((s) => s.status !== 'pending').length,
+    0,
+  );
   const totalPending = assignments.reduce(
     (acc, a) =>
       acc + a.studentSubmissions.filter((s) => s.status === 'submitted').length,
@@ -453,12 +458,12 @@ export default function AssignmentManagement() {
     <div className="relative rounded-3xl bg-[#efede8] px-4 py-5 sm:px-6 md:-mx-2 md:px-8 md:py-7">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#d8d5cf] pb-3">
         <div>
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#8d877e]">
-            Ethereal Instructor
-          </p>
           <h1 className="text-[2rem] leading-tight text-[#2a2a2a]">
             과제 관리
           </h1>
+          <p className="mt-1 text-[0.8rem] font-medium tracking-wide text-[#a39c92]">
+            Assignment Management
+          </p>
         </div>
         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7e7a74]">
           <button className="rounded-full px-3 py-1.5 hover:bg-[#e2dfd8]">Dashboard</button>
@@ -483,7 +488,13 @@ export default function AssignmentManagement() {
 
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+          <p className="text-sm font-semibold text-[#5c5852]">
+            전체 제출 수{' '}
+            <span className="text-xl font-bold tabular-nums text-[#1f2f43]">
+              {totalSubmissionCount}
+            </span>
+          </p>
+          <p className="mt-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
             Total Assignments
           </p>
           <p className="mt-1 text-5xl text-[#1f2f43]">{assignments.length}</p>
@@ -491,11 +502,11 @@ export default function AssignmentManagement() {
           <ClipboardList className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
         <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+          <p className="text-sm font-semibold text-[#5c5852]">제출 대기</p>
+          <p className="mt-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
             Pending Submissions
           </p>
           <p className="mt-1 text-5xl text-[#1f2f43]">{totalPending}</p>
-          <p className="mt-2 text-xs text-[#8a6a28]">Due within 48 hours</p>
           <FileText className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
         <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
@@ -580,24 +591,27 @@ export default function AssignmentManagement() {
                   <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${PHASE_COLORS[(assignment.phase - 1) % 6]}`}>
                     {assignment.subject || `Phase ${assignment.phase}`}
                   </span>
-                  <span className="text-xs font-semibold uppercase text-[#77726a]">
-                    Status {pendingGrade > 0 ? 'Active' : 'Upcoming'}
-                  </span>
                 </div>
                 <p className="text-[2rem] leading-tight text-[#1f2f43]">
                     {assignment.title}
                 </p>
                 <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[#e0ddd6] pt-4 text-sm">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">Submissions</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                      제출
+                    </p>
                     <p className="text-[1.6rem] font-semibold text-[#1f2f43]">{submitted}/{total}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">Graded</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                      채점 완료
+                    </p>
                     <p className="text-[1.6rem] font-semibold text-[#1f2f43]">{graded}/{total}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">Due Date</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                      제출 기한
+                    </p>
                     <p className="text-[1.6rem] font-semibold text-[#884c3a]">{assignment.dueDate || '-'}</p>
                   </div>
                 </div>

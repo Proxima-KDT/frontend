@@ -16,7 +16,8 @@ import { assessmentsApi } from '@/api/assessments';
 import { useToast } from '@/context/ToastContext';
 import Skeleton from '@/components/common/Skeleton';
 
-const pageBg = '#F7F5F0';const GOLD = '#c9a962';
+const pageBg = '#F7F5F0';
+const GOLD = '#c9a962';
 
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -478,7 +479,6 @@ export default function Assessments() {
   }, []);
 
   const graded = assessments.filter((a) => a.status === 'graded');
-  const passed = graded.filter((a) => a.passed);
   const avgScore =
     graded.length > 0
       ? Math.round(graded.reduce((s, a) => s + a.score, 0) / graded.length)
@@ -491,43 +491,43 @@ export default function Assessments() {
     >
       {/* 헤더 */}
       <div>
-        <p className={`text-[1.85rem] text-[#5e666a]`}>Competency Evaluation</p>
-        <h1 className="mt-1 text-h1 font-bold text-[#2c2b28]">능력단위평가</h1>
-        <p className="mt-1 text-sm text-[#7a746b]">
+        <h1 className="text-h1 font-bold text-[#2c2b28]">능력단위 평가</h1>
+        <p className="mt-1 text-[0.8rem] font-medium tracking-wide text-[#a39c92]">
+          Competency Evaluation
+        </p>
+        <p className="mt-2 text-sm text-[#7a746b]">
           학습 성취도를 확인하고 역량 평가 현황을 관리하세요.
         </p>
       </div>
 
-      {/* 요약 통계 */}
+      {/* 요약 통계 — 제출 완료 · 제출 대기 · 평균 점수 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="rounded-2xl border border-[#eceae4] bg-white p-5 shadow-[0_2px_18px_rgba(60,52,40,0.04)]">
-          <p className="text-xs font-semibold text-[#8b857b] tracking-wide">
-            PASSED UNITS (통과)
-          </p>
+          <p className="text-sm font-semibold text-[#2c2b28]">제출 완료</p>
           <p className="mt-1 text-[2.2rem] leading-none font-semibold text-[#2c2b28]">
-            {passed.length}
-            <span className="ml-1 text-base font-medium text-[#9d978d]">개</span>
+            {
+              assessments.filter(
+                (a) => a.status === 'submitted' || a.status === 'graded',
+              ).length
+            }
+            <span className="ml-1 text-base font-medium text-[#9d978d]">건</span>
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[#eceae4] bg-white p-5 shadow-[0_2px_18px_rgba(60,52,40,0.04)]">
+          <p className="text-sm font-semibold text-[#2c2b28]">제출 대기</p>
+          <p className="mt-1 text-[2.2rem] leading-none font-semibold text-[#9d4a4a]">
+            {assessments.filter((a) => a.status === 'open').length}
+            <span className="ml-1 text-base font-medium text-[#9d978d]">건</span>
           </p>
         </div>
         <div
           className="rounded-2xl border border-[#eceae4] bg-white p-5 shadow-[0_2px_18px_rgba(60,52,40,0.04)]"
           style={{ borderLeft: `3px solid ${GOLD}` }}
         >
-          <p className="text-xs font-semibold text-[#8b857b] tracking-wide">
-            AVERAGE SCORE (평균 점수)
-          </p>
+          <p className="text-sm font-semibold text-[#2c2b28]">평균 점수</p>
           <p className="mt-1 text-[2.2rem] leading-none font-semibold text-[#2c2b28]">
             {avgScore ?? 0}
             <span className="ml-1 text-base font-medium text-[#9d978d]">점</span>
-          </p>
-        </div>
-        <div className="rounded-2xl border border-[#eceae4] bg-white p-5 shadow-[0_2px_18px_rgba(60,52,40,0.04)]">
-          <p className="text-xs font-semibold text-[#8b857b] tracking-wide">
-            AWAITING SUBMISSION (제출 대기)
-          </p>
-          <p className="mt-1 text-[2.2rem] leading-none font-semibold text-[#9d4a4a]">
-            {assessments.filter((a) => a.status === 'open').length}
-            <span className="ml-1 text-base font-medium text-[#9d978d]">건</span>
           </p>
         </div>
       </div>

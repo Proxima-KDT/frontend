@@ -13,6 +13,11 @@ import { useToast } from '@/context/ToastContext';
 import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
 import Skeleton from '@/components/common/Skeleton';
+import {
+  SKILL_LABEL_MAP,
+  toDisplaySkillLabel,
+  SKILL_BAR_BG_CLASSES,
+} from '@/utils/skillDisplay';
 
 const JOB_POSITIONS = [
   { value: 'frontend_developer', label: '프론트엔드 개발자' },
@@ -24,33 +29,6 @@ const JOB_POSITIONS = [
   { value: 'devops_engineer', label: 'DevOps 엔지니어' },
   { value: 'qa_engineer', label: 'QA 엔지니어' },
 ];
-
-const SKILL_LABEL_MAP = {
-  출석: '출결',
-  출결: '출결',
-  'AI 말하기': 'AI 말하기 학습',
-};
-
-function toDisplaySkillLabel(subject) {
-  const s = SKILL_LABEL_MAP[subject] || subject;
-  if (s.includes('출결') || subject === '출석') return '출결';
-  if (s.includes('말하기')) return 'AI 말하기';
-  if (s.includes('면접')) return 'AI 면접';
-  if (s.includes('포트폴리오')) return '포트폴리오';
-  if (s.includes('프로젝트') || s.includes('과제') || s.includes('시험'))
-    return '프로젝트·과제·시험';
-  return String(subject);
-}
-
-function isOliveSkillBar(subject) {
-  const s = SKILL_LABEL_MAP[subject] || subject;
-  return (
-    s.includes('프로젝트') ||
-    s.includes('과제') ||
-    s.includes('시험') ||
-    subject.includes('프로젝트')
-  );
-}
 
 function getTierInfo(score) {
   if (score >= 80)
@@ -472,22 +450,17 @@ export default function MyPage() {
                   color="#4a4845"
                 />
               </div>
-              <div className="flex flex-1 flex-col justify-center gap-3.5 lg:min-w-[200px]">
-                {chartScores.map((skill) => {
-                  const barColor = isOliveSkillBar(skill.subject)
-                    ? 'bg-[#6f7749]'
-                    : 'bg-[#4a4643]';
-                  return (
-                    <ProgressBar
-                      key={skill.subject}
-                      value={skill.score}
-                      label={toDisplaySkillLabel(skill.subject)}
-                      color={barColor}
-                      size="md"
-                      labelClassName="text-[0.7rem] font-bold tracking-[0.03em] text-[#4a4640]"
-                    />
-                  );
-                })}
+              <div className="flex flex-1 flex-col justify-center gap-3.5 lg:min-w-[220px]">
+                {chartScores.map((skill, idx) => (
+                  <ProgressBar
+                    key={`${skill.subject}-${idx}`}
+                    value={skill.score}
+                    label={toDisplaySkillLabel(skill.subject)}
+                    color={SKILL_BAR_BG_CLASSES[idx % SKILL_BAR_BG_CLASSES.length]}
+                    size="md"
+                    labelClassName="text-[0.78rem] font-semibold tracking-tight text-[#3d3a36] whitespace-normal break-keep leading-snug pr-1"
+                  />
+                ))}
               </div>
             </div>
 

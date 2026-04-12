@@ -7,14 +7,10 @@ import Card from '@/components/common/Card';
 import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
 import Skeleton from '@/components/common/Skeleton';
-
-const SKILL_COLORS = [
-  'bg-blue-500',
-  'bg-green-500',
-  'bg-violet-500',
-  'bg-orange-500',
-  'bg-pink-500',
-];
+import {
+  displaySkillFromRaw,
+  SKILL_BAR_BG_CLASSES,
+} from '@/utils/skillDisplay';
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
@@ -46,40 +42,50 @@ export default function TeacherDashboard() {
       label: '전체 학생',
       value: students.length,
       icon: Users,
-      color: 'text-primary-500',
-      bg: 'bg-primary-50',
+      color: 'text-[#4e5f6e]',
+      bg: 'bg-[#e8eef2]',
     },
     {
       label: '평균 출석률',
       value: `${avgAttendance}%`,
       icon: Calendar,
-      color: 'text-success-500',
-      bg: 'bg-success-50',
+      color: 'text-[#4a6b52]',
+      bg: 'bg-[#e6ede5]',
     },
     {
       label: '집중 관리 대상',
       value: students.filter((s) => (s.attendance_rate ?? 0) < 80).length,
       icon: TrendingUp,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      color: 'text-[#8a6d3a]',
+      bg: 'bg-[#f0e8d8]',
     },
   ];
   const recentStudents = [...students].slice(0, 6);
   const focusStudent =
     students.find((s) => (s.attendance_rate ?? 0) < 80) ?? students[0] ?? null;
-  const focusSkills = Object.entries(focusStudent?.skills || {}).slice(0, 3);
+  const skillEntries = Object.entries(focusStudent?.skills || {}).map(
+    ([rawKey, score]) => ({
+      label: displaySkillFromRaw(rawKey),
+      score: Number(score) || 0,
+    }),
+  );
+  const radarChartData = skillEntries.map(({ label, score }) => ({
+    subject: label,
+    score,
+    fullMark: 100,
+  }));
 
   return (
     <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="mx-auto max-w-[1180px]">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className="mb-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#8b8478]">
-              Ethereal Academy
-            </p>
-            <h1 className={`text-[2.2rem] font-semibold text-[#2d3138]`}>
-              수강생 현황 (Student Roster Overview)
+            <h1 className="text-[2.2rem] font-semibold leading-tight text-[#2d3138]">
+              수강생 현황
             </h1>
+            <p className="mt-1 text-[0.95rem] font-medium tracking-tight text-[#8b8478]">
+              Student Roster Overview
+            </p>
             <p className="text-sm text-[#7a756c]">
               개별 학습 진행도와 출결을 한 화면에서 확인합니다.
             </p>
@@ -87,7 +93,6 @@ export default function TeacherDashboard() {
               <p className="mt-1 text-sm text-[#7a756c]">
                 {selectedCourse.track_type === 'main' ? '[메인] ' : '[서브] '}
                 {selectedCourse.name}
-                {selectedCourse.classroom ? ` · ${selectedCourse.classroom}` : ''}
               </p>
             )}
           </div>
@@ -136,10 +141,7 @@ export default function TeacherDashboard() {
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
           <Card className="rounded-3xl border border-[#e1ddd6] bg-[#f8f7f4] shadow-none">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className={`text-[1.55rem] text-[#2f333a]`}>
-                Recent Enrollments
-              </h3>
+            <div className="mb-4 flex items-center justify-end">
               <div className="flex items-center gap-2">
                 <span className="rounded-full bg-[#f0efeb] px-2.5 py-1 text-[11px] text-[#777267]">Sort: Name</span>
                 <span className="rounded-full bg-[#f0efeb] px-2.5 py-1 text-[11px] text-[#777267]">Filter: All</span>
@@ -203,22 +205,20 @@ export default function TeacherDashboard() {
                 Performance Matrix
               </p>
               <SkillRadarChart
-                data={Object.entries(focusStudent?.skills || {}).map(([subject, score]) => ({
-                  subject,
-                  score,
-                  fullMark: 100,
-                }))}
-                color="#58636d"
+                data={radarChartData}
+                variant="editorial"
+                color="#4a4845"
                 size="sm"
               />
-              <div className="mt-2 space-y-1">
-                {focusSkills.map(([subject, score], idx) => (
+              <div className="mt-3 space-y-2">
+                {skillEntries.map(({ label, score }, idx) => (
                   <ProgressBar
-                    key={subject}
+                    key={`${label}-${idx}`}
                     value={score}
-                    label={subject}
-                    color={SKILL_COLORS[idx % SKILL_COLORS.length]}
+                    label={label}
+                    color={SKILL_BAR_BG_CLASSES[idx % SKILL_BAR_BG_CLASSES.length]}
                     size="sm"
+                    labelClassName="text-[0.72rem] font-semibold tracking-tight text-[#3d3a36] whitespace-normal break-keep leading-snug pr-1"
                   />
                 ))}
               </div>

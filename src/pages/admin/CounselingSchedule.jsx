@@ -11,11 +11,11 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  X,
+  Circle,
   Search,
   Bell,
   Plus,
-  SlidersHorizontal,
-  Download,
 } from 'lucide-react';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -121,6 +121,7 @@ export default function CounselingSchedule() {
     [currentYear, currentMonth],
   );
 
+  // 날짜별 예약/차단 여부 (캘린더 점 표시용)
   const datesWithBookings = useMemo(
     () =>
       new Set(
@@ -136,6 +137,7 @@ export default function CounselingSchedule() {
     [blockedSlots],
   );
 
+  // 선택 날짜의 슬롯 상태 계산
   function getSlotStatus(slot) {
     const booking = bookings.find(
       (b) =>
@@ -158,6 +160,7 @@ export default function CounselingSchedule() {
       ? prevSlots.filter((s) => s !== slot)
       : [...prevSlots, slot];
 
+    // 낙관적 업데이트
     setBlockedSlots((prev) => ({ ...prev, [selectedDate]: updatedSlots }));
 
     counselingManageApi
@@ -171,26 +174,33 @@ export default function CounselingSchedule() {
         });
       })
       .catch(() => {
+        // 실패 시 이전 상태로 롤백
         setBlockedSlots((prev) => ({ ...prev, [selectedDate]: prevSlots }));
         showToast({ message: '슬롯 상태 변경에 실패했습니다.', type: 'error' });
       });
   }
 
-  function handleConfirmBooking(booking) {
-    const target = booking ?? selectedBooking;
+  function handleConfirmBooking() {
     counselingManageApi
-      .updateBooking(target.id, 'confirm')
+      .updateBooking(selectedBooking.id, 'confirm')
       .then(() => {
         setBookings((prev) =>
           prev.map((b) =>
-            b.id === target.id ? { ...b, status: 'confirmed' } : b,
+            b.id === selectedBooking.id ? { ...b, status: 'confirmed' } : b,
           ),
         );
-        showToast({ message: '면담이 확정되었습니다.', type: 'success' });
-        if (!booking) setSelectedBooking(null);
+        showToast({
+          message:
+            '\uba74\ub2f4\uc774 \ud655\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
+          type: 'success',
+        });
+        setSelectedBooking(null);
       })
       .catch(() =>
-        showToast({ message: '확정에 실패했습니다.', type: 'error' }),
+        showToast({
+          message: '\ud655\uc815\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.',
+          type: 'error',
+        }),
       );
   }
 
@@ -203,11 +213,18 @@ export default function CounselingSchedule() {
             b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b,
           ),
         );
-        showToast({ message: '면담이 취소되었습니다.', type: 'warning' });
+        showToast({
+          message:
+            '\uba74\ub2f4\uc774 \ucde8\uc18c\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
+          type: 'error',
+        });
         setSelectedBooking(null);
       })
       .catch(() =>
-        showToast({ message: '취소에 실패했습니다.', type: 'error' }),
+        showToast({
+          message: '\ucde8\uc18c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.',
+          type: 'error',
+        }),
       );
   }
 
@@ -224,6 +241,7 @@ export default function CounselingSchedule() {
     } else setCurrentMonth((m) => m + 1);
   }
 
+  // 통계
   const totalCount = bookings.length;
   const pendingCount = bookings.filter((b) => b.status === 'pending').length;
   const confirmedCount = bookings.filter(
@@ -236,12 +254,13 @@ export default function CounselingSchedule() {
     (b) => b.status === 'cancelled',
   ).length;
 
+  // 하단 탭 필터
   const filteredBookings = bookings.filter((b) => {
     if (activeTab === 'pending') return b.status === 'pending';
     if (activeTab === 'confirmed') return b.status === 'confirmed';
     if (activeTab === 'completed') return b.status === 'completed';
     if (activeTab === 'cancelled') return b.status === 'cancelled';
-    return true;
+    return true; // 전체
   });
 
   const tabs = [
@@ -271,15 +290,22 @@ export default function CounselingSchedule() {
     {
       key: 'student_name',
       label: '학생명',
-      render: (val) => (
-        <span className="text-body-sm font-medium text-[#2c2b28]">{val}</span>
+      render: (val, row) => (
+        <span className="inline-flex items-center gap-1.5 flex-wrap">
+          <span className="text-body-sm font-medium text-gray-800">{val}</span>
+          {row.course_name && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+              {row.course_name}
+            </span>
+          )}
+        </span>
       ),
     },
     {
       key: 'date',
       label: '날짜·시간',
       render: (val, row) => (
-        <span className="text-body-sm text-[#6b6560]">
+        <span className="text-body-sm text-gray-600">
           {val} {row.time ? row.time.slice(0, 5) : ''}
         </span>
       ),
@@ -288,7 +314,7 @@ export default function CounselingSchedule() {
       key: 'reason',
       label: '신청 사유',
       render: (val) => (
-        <p className="line-clamp-1 text-body-sm text-[#6b6560]">{val}</p>
+        <p className="text-body-sm text-gray-600 line-clamp-1">{val}</p>
       ),
     },
     {
@@ -300,25 +326,9 @@ export default function CounselingSchedule() {
         </Badge>
       ),
     },
-    {
-      key: 'id',
-      label: '액션',
-      render: (val, row) =>
-        row.status === 'pending' ? (
-          <Button
-            size="sm"
-            className="rounded-lg !bg-[#5f6972] !text-white hover:!bg-[#4e5760]"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleConfirmBooking(row);
-            }}
-          >
-            확정
-          </Button>
-        ) : null,
-    },
   ];
 
+  // 선택 날짜 표시 텍스트
   const selectedMonth = parseInt(selectedDate.split('-')[1]);
   const selectedDay = parseInt(selectedDate.split('-')[2]);
   const selectedDow = formatDayOfWeek(selectedDate);
@@ -343,6 +353,7 @@ export default function CounselingSchedule() {
         </div>
       </div>
 
+      {/* 통계 카드 */}
       <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-4">
         <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
           <p className="mb-1 text-sm text-[#848079]">전체 신청 (Total Requests)</p>
@@ -354,7 +365,7 @@ export default function CounselingSchedule() {
           <div className="mt-2 h-1 rounded-full bg-[#8f7728]" />
         </Card>
         <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
-          <p className="mb-1 text-sm text-[#848079]">오늘 확정 (Confirmed)</p>
+          <p className="mb-1 text-sm text-[#848079]">예약 확정 (Confirmed)</p>
           <p className="text-4xl font-semibold text-[#2f3f54]">{confirmedCount}</p>
         </Card>
         <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
@@ -363,27 +374,26 @@ export default function CounselingSchedule() {
         </Card>
       </div>
 
+      {/* 캘린더 + 슬롯 패널 */}
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
+        {/* 월간 캘린더 */}
         <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
+          {/* 헤더 */}
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-[2.1rem] text-[#262a31]">
                 {MONTH_NAMES[currentMonth]} {currentYear}
               </p>
-              <p className="text-sm text-[#7f7b72]">
-                학사 분기 일정 · Curator Schedule
-              </p>
+              <p className="text-sm text-[#7f7b72]">학사 분기 일정 · Curator Schedule</p>
             </div>
             <div className="flex items-center gap-1">
               <button
-                type="button"
                 onClick={prevMonth}
                 className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd]"
               >
                 <ChevronLeft className="h-4 w-4 text-[#5f5b53]" />
               </button>
               <button
-                type="button"
                 onClick={nextMonth}
                 className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd]"
               >
@@ -392,8 +402,9 @@ export default function CounselingSchedule() {
             </div>
           </div>
 
+          {/* 요일 헤더 */}
           <div className="mb-1 grid grid-cols-7 rounded-t-xl bg-[#f8f7f4]">
-            {DAYS_OF_WEEK.map((d) => (
+            {DAYS_OF_WEEK.map((d, i) => (
               <div
                 key={d}
                 className="py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-[#8f8a80]"
@@ -403,6 +414,7 @@ export default function CounselingSchedule() {
             ))}
           </div>
 
+          {/* 날짜 그리드 */}
           <div className="grid grid-cols-7 overflow-hidden rounded-b-xl border border-[#e2dfd8]">
             {calendarDays.map((day, idx) => {
               if (!day) return <div key={`empty-${idx}`} />;
@@ -416,14 +428,13 @@ export default function CounselingSchedule() {
 
               return (
                 <button
-                  type="button"
                   key={dateStr}
                   onClick={() => !isPast && setSelectedDate(dateStr)}
                   disabled={isPast}
                   className={`
-                    relative flex h-16 flex-col items-start justify-start border-b border-r border-[#e4e1da] px-2 py-1 text-left text-[13px] font-medium transition-colors
-                    ${isPast ? 'cursor-default text-gray-300' : ''}
-                    ${!isPast && !isSelected ? 'text-[#373f4a] hover:bg-[#ece9e2]' : ''}
+                    relative flex h-16 flex-col items-start justify-start border-r border-b border-[#e4e1da] px-2 py-1 text-left text-[13px] font-medium transition-colors
+                    ${isPast ? 'text-gray-300 cursor-default' : ''}
+                    ${!isPast && !isSelected ? 'hover:bg-[#ece9e2] text-[#373f4a]' : ''}
                     ${isSelected ? 'bg-[#e9e8e5] text-[#223248] ring-1 ring-[#8a8f96]' : ''}
                     ${isToday && !isSelected ? 'text-[#2f3f54]' : ''}
                     ${!isPast && !isSelected && dow === 5 ? 'text-[#47576b]' : ''}
@@ -431,17 +442,19 @@ export default function CounselingSchedule() {
                   `}
                 >
                   {day}
+                  {/* 인디케이터 점 */}
                   {!isPast && (hasBooking || hasBlocked) && (
                     <span
-                      className={`absolute bottom-1 h-1 w-1 rounded-full ${
-                        hasBooking
-                          ? isSelected
-                            ? 'bg-[#2f3f54]'
-                            : 'bg-[#5b6677]'
-                          : isSelected
-                            ? 'bg-[#8f8a80]'
-                            : 'bg-gray-300'
-                      }`}
+                      className={`absolute bottom-1 w-1 h-1 rounded-full
+                        ${
+                          hasBooking
+                            ? isSelected
+                              ? 'bg-[#2f3f54]'
+                              : 'bg-[#5b6677]'
+                            : isSelected
+                              ? 'bg-[#8f8a80]'
+                              : 'bg-gray-300'
+                        }`}
                     />
                   )}
                 </button>
@@ -449,6 +462,7 @@ export default function CounselingSchedule() {
             })}
           </div>
 
+          {/* 범례 */}
           <div className="mt-4 flex items-center gap-4 border-t border-[#e0ddd7] pt-3">
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-[#5b6677]" />
@@ -465,6 +479,7 @@ export default function CounselingSchedule() {
           </div>
         </Card>
 
+        {/* 시간 슬롯 패널 */}
         <Card className="rounded-[28px] border border-[#d8d5cd] bg-[#e4e2db] shadow-none">
           <h2 className="mb-1 text-[2rem] text-[#333740]">
             {MONTH_NAMES[selectedMonth - 1]} {selectedDay} ({selectedDow})
@@ -480,26 +495,15 @@ export default function CounselingSchedule() {
               if (status.type === 'booked') {
                 return (
                   <button
-                    type="button"
                     key={slot}
                     onClick={() => handleSlotClick(slot)}
                     className="flex w-full items-center justify-between rounded-xl border border-[#d8e2e4] bg-[#f5f7f6] px-3 py-2.5 text-left transition-colors hover:bg-[#eef3f2]"
                   >
                     <div>
                       <p className="text-sm font-semibold text-[#2f3f54]">{slot}</p>
-                      <p className="text-xs text-[#7f8793]">
-                        {status.booking.student_name}
-                      </p>
+                      <p className="text-xs text-[#7f8793]">{status.booking.student_name}</p>
                     </div>
-                    <Badge
-                      variant={
-                        STATUS_CONFIG[status.booking.status]?.variant ??
-                        'soft-info'
-                      }
-                      className="font-semibold"
-                    >
-                      {STATUS_CONFIG[status.booking.status]?.label ?? '예약'}
-                    </Badge>
+                    <Badge variant="soft-info" className="font-semibold">확정</Badge>
                   </button>
                 );
               }
@@ -507,32 +511,24 @@ export default function CounselingSchedule() {
               if (status.type === 'blocked') {
                 return (
                   <button
-                    type="button"
                     key={slot}
                     onClick={() => handleSlotClick(slot)}
                     className="flex w-full items-center justify-between rounded-xl bg-[#ecebe7] px-3 py-2.5 text-left transition-colors hover:bg-[#e2e0db]"
                   >
-                    <p className="text-sm font-semibold text-[#8f8c85] line-through">
-                      {slot}
-                    </p>
-                    <Badge variant="soft-amber" className="font-semibold">
-                      차단
-                    </Badge>
+                    <p className="text-sm font-semibold text-[#8f8c85] line-through">{slot}</p>
+                    <Badge variant="soft-amber" className="font-semibold">차단</Badge>
                   </button>
                 );
               }
 
               return (
                 <button
-                  type="button"
                   key={slot}
                   onClick={() => handleSlotClick(slot)}
                   className="flex w-full items-center justify-between rounded-xl bg-[#f5f4f1] px-3 py-2.5 text-left transition-colors hover:bg-[#ecebe7]"
                 >
                   <p className="text-sm font-semibold text-[#2f3f54]">{slot}</p>
-                  <Badge variant="soft-success" className="font-semibold">
-                    가능
-                  </Badge>
+                  <Badge variant="soft-success" className="font-semibold">가능</Badge>
                 </button>
               );
             })}
@@ -543,27 +539,10 @@ export default function CounselingSchedule() {
         </Card>
       </div>
 
+      {/* 하단 면담 신청 목록 */}
       <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[2rem] text-[#2f333a]">
-            최근 신청 활동
-          </h2>
-          <div className="flex items-center gap-3 text-sm text-[#6f746f]">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 hover:text-[#4f5450]"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              필터
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 hover:text-[#4f5450]"
-            >
-              <Download className="h-4 w-4" />
-             보내기
-            </button>
-          </div>
+        <div className="mb-4">
+          <h2 className="text-[2rem] text-[#2f333a]">최근 신청 활동</h2>
         </div>
         <div className="overflow-x-auto">
           <Tabs
@@ -580,9 +559,10 @@ export default function CounselingSchedule() {
           emptyMessage="신청된 면담이 없습니다."
         />
 
+        {/* 페이지네이션 */}
         {filteredBookings.length > 0 && (
-          <div className="mt-4 flex items-center justify-between border-t border-[#e0ddd7] pt-4">
-            <span className="text-caption text-[#9a968e]">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <span className="text-caption text-gray-400">
               {(safeBookingPage - 1) * BOOKING_PAGE_SIZE + 1}–
               {Math.min(
                 safeBookingPage * BOOKING_PAGE_SIZE,
@@ -592,12 +572,11 @@ export default function CounselingSchedule() {
             </span>
             <div className="flex items-center gap-1">
               <button
-                type="button"
                 onClick={() => setBookingPage((p) => Math.max(1, p - 1))}
                 disabled={safeBookingPage === 1}
-                className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd] disabled:cursor-not-allowed disabled:opacity-30"
+                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronLeft className="h-4 w-4 text-[#5f5b53]" />
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
               </button>
               {Array.from({ length: totalBookingPages }, (_, i) => i + 1)
                 .filter(
@@ -615,19 +594,18 @@ export default function CounselingSchedule() {
                   p === '…' ? (
                     <span
                       key={`ellipsis-${idx}`}
-                      className="px-1 text-body-sm text-[#9a968e]"
+                      className="px-1 text-gray-400 text-body-sm"
                     >
                       …
                     </span>
                   ) : (
                     <button
-                      type="button"
                       key={p}
                       onClick={() => setBookingPage(p)}
-                      className={`h-8 min-w-8 rounded-lg text-body-sm font-medium transition-colors ${
+                      className={`min-w-8 h-8 rounded-lg text-body-sm font-medium transition-colors ${
                         p === safeBookingPage
                           ? 'bg-[#5f6972] text-white'
-                          : 'text-[#5f5b53] hover:bg-[#e7e3dd]'
+                          : 'hover:bg-gray-100 text-gray-600'
                       }`}
                     >
                       {p}
@@ -635,14 +613,13 @@ export default function CounselingSchedule() {
                   ),
                 )}
               <button
-                type="button"
                 onClick={() =>
                   setBookingPage((p) => Math.min(totalBookingPages, p + 1))
                 }
                 disabled={safeBookingPage === totalBookingPages}
-                className="rounded-lg p-1.5 transition-colors hover:bg-[#e7e3dd] disabled:cursor-not-allowed disabled:opacity-30"
+                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                <ChevronRight className="h-4 w-4 text-[#5f5b53]" />
+                <ChevronRight className="w-4 h-4 text-gray-600" />
               </button>
             </div>
           </div>
@@ -657,6 +634,7 @@ export default function CounselingSchedule() {
         <Plus className="h-6 w-6" />
       </button>
 
+      {/* 면담 상세 Drawer */}
       <Drawer
         isOpen={selectedBooking !== null}
         onClose={() => setSelectedBooking(null)}
@@ -665,15 +643,18 @@ export default function CounselingSchedule() {
       >
         {selectedBooking && (
           <div className="space-y-8">
-            <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
-                <User className="h-8 w-8 text-primary-500" />
+            {/* 학생 프로필 */}
+            <div className="flex flex-col items-center text-center gap-3 py-4">
+              <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
+                <User className="w-8 h-8 text-primary-500" />
               </div>
               <div>
-                <p className="mb-1 text-h3 font-bold text-gray-900">
+                <p className="text-h3 font-bold text-gray-900 mb-1">
                   {selectedBooking.student_name}
                 </p>
-                <p className="text-body-sm text-gray-400">수강생</p>
+                <p className="text-body-sm text-gray-400">
+                  {selectedBooking.course_name || '수강생'}
+                </p>
               </div>
               <Badge
                 variant={
@@ -684,13 +665,16 @@ export default function CounselingSchedule() {
               </Badge>
             </div>
 
+            {/* 일시 */}
             <div>
-              <p className="mb-3 text-caption font-semibold uppercase tracking-wider text-gray-400">
+              <p className="text-caption font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 면담 일시
               </p>
-              <div className="space-y-4 rounded-2xl bg-gray-50 p-5">
+              <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center justify-between gap-8">
-                  <span className="shrink-0 text-body-sm text-gray-500">날짜</span>
+                  <span className="text-body-sm text-gray-500 shrink-0">
+                    날짜
+                  </span>
                   <span className="text-body font-semibold text-gray-900">
                     {selectedBooking.date}&nbsp;
                     <span className="text-body-sm font-normal text-gray-500">
@@ -700,33 +684,32 @@ export default function CounselingSchedule() {
                 </div>
                 <div className="h-px bg-gray-200" />
                 <div className="flex items-center justify-between gap-8">
-                  <span className="shrink-0 text-body-sm text-gray-500">시간</span>
+                  <span className="text-body-sm text-gray-500 shrink-0">
+                    시간
+                  </span>
                   <span className="text-body font-semibold text-gray-900">
-                    {selectedBooking.time
-                      ? selectedBooking.time.slice(0, 5)
-                      : '-'}
-                    &nbsp;
-                    {selectedBooking.duration ? (
-                      <span className="text-body-sm font-normal text-gray-500">
-                        ({selectedBooking.duration}분)
-                      </span>
-                    ) : null}
+                    {selectedBooking.time}&nbsp;
+                    <span className="text-body-sm font-normal text-gray-500">
+                      ({selectedBooking.duration}분)
+                    </span>
                   </span>
                 </div>
               </div>
             </div>
 
+            {/* 신청 사유 */}
             <div>
-              <p className="mb-3 text-caption font-semibold uppercase tracking-wider text-gray-400">
+              <p className="text-caption font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 신청 사유
               </p>
-              <div className="rounded-2xl bg-gray-50 p-5">
-                <p className="whitespace-pre-wrap text-body leading-relaxed text-gray-700">
+              <div className="bg-gray-50 rounded-2xl p-5">
+                <p className="text-body text-gray-700 leading-relaxed whitespace-pre-wrap">
                   {selectedBooking.reason}
                 </p>
               </div>
             </div>
 
+            {/* 액션 버튼 */}
             {selectedBooking.status === 'pending' && (
               <div className="flex gap-3 pt-2">
                 <Button
@@ -736,7 +719,7 @@ export default function CounselingSchedule() {
                 >
                   면담 취소
                 </Button>
-                <Button className="flex-1" onClick={() => handleConfirmBooking()}>
+                <Button className="flex-1" onClick={handleConfirmBooking}>
                   확정하기
                 </Button>
               </div>

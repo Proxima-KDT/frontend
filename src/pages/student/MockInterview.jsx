@@ -313,6 +313,7 @@ export default function MockInterview() {
 
             <Button
               fullWidth
+              variant="warm"
               icon={Play}
               onClick={handleStartInterview}
               disabled={!company || !position || !interviewType || isLoading}

@@ -115,7 +115,7 @@ export default function StudentManagement() {
       <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#8b8478]">
-            Ethereal Academy
+            Korea IT Academy
           </p>
           <h1 className="text-[2.2rem] text-[#2f333a]">
             수강생 현황 (Student Roster Overview)

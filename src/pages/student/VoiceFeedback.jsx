@@ -47,7 +47,7 @@ const difficultyColors = {
   intermediate: 'bg-[#faf4e8] text-[#9a6220] border-[#e8d9b8]',
   advanced: 'bg-[#f3e8e8] text-[#944848] border-[#e0c5c5]',
 };
-const etherealCard =
+const softPortalCard =
   'rounded-3xl border border-[#e8e4dc] bg-white shadow-[0_8px_32px_rgba(45,42,38,0.05)]';
 const pillActive = 'bg-[#2d2a26] text-white border-[#2d2a26] shadow-sm';
 const pillIdle =
@@ -414,7 +414,7 @@ export default function VoiceFeedback() {
           )}
 
           {/* 주제 선택 + 키워드 */}
-          <div className={`${etherealCard} p-5 sm:p-6`}>
+          <div className={`${softPortalCard} p-5 sm:p-6`}>
             <p className="mb-2 text-[0.65rem] font-bold tracking-[0.14em] text-[#8a847a]">
               SUBJECTS · 과목
             </p>
@@ -560,7 +560,7 @@ export default function VoiceFeedback() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
             {/* 왼쪽: 타이머 · 마이크 */}
             <div
-              className={`${etherealCard} flex h-full flex-col items-center px-5 py-8 sm:px-8`}
+              className={`${softPortalCard} flex h-full flex-col items-center px-5 py-8 sm:px-8`}
             >
               <p className="mb-6 font-mono text-[2rem] font-semibold tabular-nums tracking-tight text-[#1f1e1c]">
                 {formatTime(seconds)}
@@ -669,7 +669,7 @@ export default function VoiceFeedback() {
             <div className="flex min-h-[320px] flex-col gap-4 lg:min-h-[420px]">
               {showReview ? (
                 <div
-                  className={`${etherealCard} flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[420px]`}
+                  className={`${softPortalCard} flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[420px]`}
                 >
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#faf4e8]">
                     <Sparkles className="h-8 w-8 text-[#c9a227]" />
@@ -685,7 +685,7 @@ export default function VoiceFeedback() {
                 <div className="flex h-full flex-col gap-4">
                   <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
                     <div
-                      className={`${etherealCard} flex flex-col items-center p-4 sm:p-5`}
+                      className={`${softPortalCard} flex flex-col items-center p-4 sm:p-5`}
                     >
                       <h3 className="mb-2 text-body font-semibold text-[#1f1e1c]">
                         종합 점수
@@ -698,7 +698,7 @@ export default function VoiceFeedback() {
                       />
                     </div>
 
-                    <div className={`${etherealCard} p-4 sm:p-5`}>
+                    <div className={`${softPortalCard} p-4 sm:p-5`}>
                       <h3 className="mb-3 text-body font-semibold text-[#1f1e1c]">
                         키워드 분석
                       </h3>
@@ -731,7 +731,7 @@ export default function VoiceFeedback() {
                     </div>
                   </div>
 
-                  <div className={`${etherealCard} p-4 sm:p-5`}>
+                  <div className={`${softPortalCard} p-4 sm:p-5`}>
                     <h3 className="mb-2 text-body font-semibold text-[#1f1e1c]">
                       AI 피드백
                     </h3>
@@ -752,7 +752,7 @@ export default function VoiceFeedback() {
                 </div>
               ) : analyzing ? (
                 <div
-                  className={`${etherealCard} flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[420px]`}
+                  className={`${softPortalCard} flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[420px]`}
                 >
                   <div className="relative mb-6 h-20 w-20">
                     <div className="absolute inset-0 rounded-full border-4 border-[#ebe8e3]" />
@@ -784,7 +784,7 @@ export default function VoiceFeedback() {
                 </div>
               ) : (
                 <div
-                  className={`${etherealCard} flex h-full min-h-[320px] flex-col items-center justify-center px-8 py-16 text-center lg:min-h-[420px]`}
+                  className={`${softPortalCard} flex h-full min-h-[320px] flex-col items-center justify-center px-8 py-16 text-center lg:min-h-[420px]`}
                 >
                   <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f7]">
                     <BarChart3 className="h-8 w-8 text-[#7a8fa3]" />
@@ -819,7 +819,7 @@ export default function VoiceFeedback() {
             </>
           ) : history.length === 0 ? (
             <div
-              className={`${etherealCard} flex flex-col items-center justify-center py-16 text-center`}
+              className={`${softPortalCard} flex flex-col items-center justify-center py-16 text-center`}
             >
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f7]">
                 <Mic className="h-8 w-8 text-[#7a8fa3]" />

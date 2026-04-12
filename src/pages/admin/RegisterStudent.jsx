@@ -161,20 +161,20 @@ export default function RegisterStudent() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-admin-50 flex items-center justify-center">
-          <UserPlus className="w-5 h-5 text-admin-500" />
+    <div className="mx-auto max-w-2xl rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e8eef2]">
+          <UserPlus className="h-5 w-5 text-[#5c6675]" />
         </div>
         <div>
-          <h1 className="text-h1 font-bold text-gray-900">학생 등록</h1>
-          <p className="text-body-sm text-gray-500">
+          <h1 className="text-[1.65rem] font-semibold text-[#2d3138]">학생 등록</h1>
+          <p className="text-sm text-[#7a756c]">
             관리자가 학생 계정을 생성합니다. 학생은 1개의 과정만 수강할 수 있습니다.
           </p>
         </div>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
             label="이메일"
@@ -222,7 +222,7 @@ export default function RegisterStudent() {
               onClick={() =>
                 setForm((prev) => ({ ...prev, password: generatePassword() }))
               }
-              className="self-start text-caption text-primary-500 hover:underline"
+              className="self-start text-caption font-medium text-[#4e5f6e] hover:underline"
             >
               자동 생성
             </button>
@@ -266,23 +266,23 @@ export default function RegisterStudent() {
       </Card>
 
       {lastCreated && (
-        <Card className="mt-4 border border-success-200 bg-success-50">
+        <Card className="mt-4 rounded-2xl border border-[#c9d8c4] bg-[#eef4ec] shadow-none">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-body-sm font-semibold text-success-700 mb-2">
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-body-sm font-semibold text-[#3d5a42]">
                 {lastCreated.name}님 계정이 생성되었습니다.
               </p>
-              <div className="text-body-sm text-gray-700 space-y-1">
+              <div className="space-y-1 text-body-sm text-[#2d3138]">
                 <p>
-                  <span className="text-gray-500">이메일</span>{' '}
+                  <span className="text-[#6b7568]">이메일</span>{' '}
                   <span className="font-mono">{lastCreated.email}</span>
                 </p>
                 <p>
-                  <span className="text-gray-500">임시 비밀번호</span>{' '}
+                  <span className="text-[#6b7568]">임시 비밀번호</span>{' '}
                   <span className="font-mono">{lastCreated.password}</span>
                 </p>
               </div>
-              <p className="text-caption text-gray-500 mt-2">
+              <p className="mt-2 text-caption text-[#5f6a5c]">
                 학생에게 이 정보를 전달해 주세요. 페이지를 벗어나면 비밀번호는 다시 확인할 수 없습니다.
               </p>
             </div>

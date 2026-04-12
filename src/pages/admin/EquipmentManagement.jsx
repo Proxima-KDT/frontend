@@ -6,8 +6,6 @@ import {
   ArrowUpCircle,
   Wrench,
   History,
-  Bell,
-  HelpCircle,
   Download,
   Search,
   Package,
@@ -222,7 +220,6 @@ export default function EquipmentManagement() {
   const [equipment, setEquipment] = useState([]);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [inventoryMainTab, setInventoryMainTab] = useState('status');
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [showAddModal, setShowAddModal] = useState(false);
@@ -474,8 +471,6 @@ export default function EquipmentManagement() {
   const kpiCards = [
     {
       key: 'total',
-      tag: 'GLOBAL',
-      tagClass: 'bg-[#eef0f3] text-[#6b7280]',
       value: counts.all,
       labelKo: '전체 장비',
       labelEn: 'Total equipment',
@@ -485,8 +480,6 @@ export default function EquipmentManagement() {
     },
     {
       key: 'avail',
-      tag: 'HEALTHY',
-      tagClass: 'bg-emerald-50 text-emerald-700',
       value: counts.available,
       labelKo: '대여 가능',
       labelEn: 'Available',
@@ -496,8 +489,6 @@ export default function EquipmentManagement() {
     },
     {
       key: 'use',
-      tag: 'ACTIVE',
-      tagClass: 'bg-amber-50 text-amber-800',
       value: counts.borrowed,
       labelKo: '대여중',
       labelEn: 'In use',
@@ -507,8 +498,6 @@ export default function EquipmentManagement() {
     },
     {
       key: 'maint',
-      tag: 'URGENT',
-      tagClass: 'bg-red-50 text-red-700',
       value: counts.maintenance,
       labelKo: '수리중',
       labelEn: 'Maintenance',
@@ -522,8 +511,8 @@ export default function EquipmentManagement() {
     <div className="rounded-3xl border border-[#ebe4d8]/80 bg-[#fdfbf7] px-4 py-6 shadow-[0_1px_0_rgba(255,255,255,0.85)_inset] sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="min-h-0 text-[#1a1c21]">
       {/* 상단 툴바 (검색 · 알림 영역) */}
-      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative mx-auto w-full max-w-xl sm:mx-0">
+      <div className="mb-4">
+        <div className="relative w-full max-w-xl">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
           <input
             type="search"
@@ -533,53 +522,6 @@ export default function EquipmentManagement() {
             className="w-full rounded-full border border-[#e5e7eb] bg-white py-2.5 pl-10 pr-4 text-sm text-[#374151] shadow-sm outline-none transition focus:border-[#2d2d2d] focus:ring-1 focus:ring-[#2d2d2d]"
           />
         </div>
-        <div className="flex items-center justify-center gap-2 sm:justify-end">
-          <span
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#9ca3af]"
-            title="알림 · Notifications"
-            aria-hidden
-          >
-            <Bell className="h-4 w-4" />
-          </span>
-          <span
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#9ca3af]"
-            title="도움말 · Help"
-            aria-hidden
-          >
-            <HelpCircle className="h-4 w-4" />
-          </span>
-        </div>
-      </div>
-
-      <div className="mb-6 flex gap-8 border-b border-[#e5e0d6]">
-        <button
-          type="button"
-          onClick={() => setInventoryMainTab('status')}
-          className={`relative pb-3 text-sm font-semibold transition-colors ${
-            inventoryMainTab === 'status'
-              ? 'text-[#121926]'
-              : 'text-[#9a968e] hover:text-[#5c5852]'
-          }`}
-        >
-          상태 · Status
-          {inventoryMainTab === 'status' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#121926]" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setInventoryMainTab('reports')}
-          className={`relative pb-3 text-sm font-semibold transition-colors ${
-            inventoryMainTab === 'reports'
-              ? 'text-[#121926]'
-              : 'text-[#9a968e] hover:text-[#5c5852]'
-          }`}
-        >
-          리포트 · Reports
-          {inventoryMainTab === 'reports' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#121926]" />
-          )}
-        </button>
       </div>
 
       {/* 히어로 */}
@@ -588,36 +530,16 @@ export default function EquipmentManagement() {
           <h1
             className={`text-[1.75rem] font-bold tracking-tight text-[#121926] sm:text-[2rem]`}
           >
-            Inventory Command
+            대여용 장비 현황
           </h1>
-          <p className="mt-1 text-[0.95rem] text-[#6b7280]">
-            장비 재고와 대여 상태를 한곳에서 관리합니다. · Central inventory for
-            your campus fleet.
-          </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-3 sm:flex-row sm:items-center">
-          <div
-            className="flex -space-x-2"
-            title="활성 운영자 · Active operators"
-            aria-hidden
-          >
-            {['from-[#dbe4f0] to-[#9fb3d9]', 'from-[#e8dfd8] to-[#c4a99f]', 'from-[#dde8e4] to-[#8fb0a6]'].map(
-              (g, i) => (
-                <div
-                  key={i}
-                  className={`h-9 w-9 rounded-full border-2 border-[#fdfbf7] bg-gradient-to-br ${g} shadow-sm`}
-                />
-              ),
-            )}
-          </div>
-          <div className="flex shrink-0 items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-3 py-2 text-caption text-[#6b7280] shadow-sm">
-            <Globe className="h-4 w-4 text-[#9ca3af]" />
-            <span>
-              승인 대기{' '}
-              <span className="font-semibold text-[#121926]">{requests.length}</span>건 · Pending{' '}
-              <span className="font-semibold text-[#121926]">{requests.length}</span>
-            </span>
-          </div>
+        <div className="flex shrink-0 items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-3 py-2 text-caption text-[#6b7280] shadow-sm">
+          <Globe className="h-4 w-4 text-[#9ca3af]" />
+          <span>
+            승인 대기{' '}
+            <span className="font-semibold text-[#121926]">{requests.length}</span>건 · Pending{' '}
+            <span className="font-semibold text-[#121926]">{requests.length}</span>
+          </span>
         </div>
       </div>
 
@@ -636,11 +558,6 @@ export default function EquipmentManagement() {
                 >
                   <Icon className={`h-5 w-5 ${k.iconColor}`} />
                 </div>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[0.6rem] font-bold tracking-wide ${k.tagClass}`}
-                >
-                  {k.tag}
-                </span>
               </div>
               <p className={`text-3xl font-bold text-[#121926]`}>
                 {k.value.toLocaleString()}

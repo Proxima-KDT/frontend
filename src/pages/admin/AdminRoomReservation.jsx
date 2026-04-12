@@ -9,6 +9,7 @@ import Modal from '@/components/common/Modal';
 import {
   BookOpen,
   Users,
+  Building2,
   MapPin,
   Clock,
   Info,
@@ -28,7 +29,8 @@ import {
 } from 'lucide-react';
 
 const TODAY = new Date().toISOString().slice(0, 10);
-const CURRENT_HOUR = new Date().getHours();const pageBg = '#F7F5F0';
+const CURRENT_HOUR = new Date().getHours();
+const pageBg = '#F7F5F0';
 
 const TIME_SLOTS = [
   '09:00',
@@ -49,15 +51,15 @@ const roomTypeMeta = {
   study: {
     label: '자습실',
     icon: BookOpen,
-    bg: 'bg-[#eef2f4]',
-    iconColor: 'text-[#6f8391]',
+    bg: 'bg-[#e8eef2]',
+    iconColor: 'text-[#4e5a61]',
     badgeVariant: 'info',
   },
   meeting: {
     label: '회의실',
-    icon: Users,
-    bg: 'bg-purple-50',
-    iconColor: 'text-purple-500',
+    icon: Building2,
+    bg: 'bg-[#ede8ee]',
+    iconColor: 'text-[#6b5b73]',
     badgeVariant: 'default',
   },
 };
@@ -191,7 +193,7 @@ export default function AdminRoomReservation() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [myResTab, setMyResTab] = useState('today');
-  const [showRules, setShowRules] = useState(true);
+  const [showRules, setShowRules] = useState(false);
   const [selectedDate, setSelectedDate] = useState(TODAY);
 
   // 방 목록 및 내 예약 초기 로드
@@ -283,8 +285,11 @@ export default function AdminRoomReservation() {
     if (showAvailableNow)
       list = list.filter((r) => availableNowIds.includes(r.id));
     return [...list].sort((a, b) => {
-      if (a.type === b.type) return 0;
-      return a.type === 'study' ? -1 : 1;
+      if (a.type !== b.type) return a.type === 'study' ? -1 : 1;
+      return (a.name || '').localeCompare(b.name || '', 'ko', {
+        numeric: true,
+        sensitivity: 'base',
+      });
     });
   }, [rooms, activeTab, showAvailableNow, availableNowIds]);
 
@@ -542,7 +547,7 @@ export default function AdminRoomReservation() {
                 icon: XCircle,
                 text: '예약 후 노쇼(미이용) 시 당일 예약 기능 제한',
               },
-              { icon: Users, text: '회의실은 반드시 2인 이상 이용' },
+              { icon: Building2, text: '회의실은 반드시 2인 이상 이용' },
               { icon: DoorOpen, text: '이용 종료 후 원상복구 및 전원 끄기' },
               { icon: CheckCircle, text: '예약은 이용 30분 전까지 취소 가능' },
             ].map(({ icon, text }, i) => {
@@ -584,9 +589,9 @@ export default function AdminRoomReservation() {
             label: '회의실',
             total: stats.meetingTotal,
             available: stats.meetingAvailable,
-            icon: Users,
-            bg: 'bg-purple-50',
-            iconColor: 'text-purple-500',
+            icon: Building2,
+            bg: 'bg-[#f4f0f7]',
+            iconColor: 'text-[#6b5b73]',
           },
         ].map(({ label, total, available, icon, bg, iconColor }) => {
           const StatIcon = icon;
@@ -598,7 +603,15 @@ export default function AdminRoomReservation() {
             >
               <div className="mb-2 flex items-center gap-2">
                 <StatIcon size={16} className="text-[#6f6860]" />
-                <span className="text-xs font-medium text-[#8a847a]">
+                <span
+                  className={`text-xs font-medium ${
+                    label === '회의실'
+                      ? 'text-[#5c4d66]'
+                      : label === '자습실'
+                        ? 'text-[#4e5a61]'
+                        : 'text-[#8a847a]'
+                  }`}
+                >
                   {label}
                 </span>
               </div>
@@ -621,7 +634,7 @@ export default function AdminRoomReservation() {
         <p
           className={`mb-2 text-[1.55rem] font-semibold text-[#2c2b28]`}
         >
-          Select Date
+          예약일 선택
         </p>
         <div className="overflow-x-auto -mx-1 px-1">
           <div className="flex gap-2 pb-1" style={{ minWidth: 'max-content' }}>
@@ -774,55 +787,11 @@ export default function AdminRoomReservation() {
               }}
             >
               <thead>
-                {/* 전체 탭: 자습실/회의실 그룹 구분 헤더 행 */}
-                {activeTab === 'all' && (
-                  <tr>
-                    <th className="sticky left-0 z-10 w-20 min-w-20 border-b border-r border-[#eceae4] bg-white" />
-                    {filteredRooms.filter((r) => r.type === 'study').length >
-                      0 && (
-                      <th
-                        colSpan={
-                          filteredRooms.filter((r) => r.type === 'study').length
-                        }
-                        className="py-2 text-center text-xs font-bold text-blue-600 bg-blue-50 border-b border-r border-blue-200"
-                      >
-                        <div className="flex items-center justify-center gap-1.5">
-                          <BookOpen size={11} />
-                          자습실{' '}
-                          {
-                            filteredRooms.filter((r) => r.type === 'study')
-                              .length
-                          }
-                          개
-                        </div>
-                      </th>
-                    )}
-                    {filteredRooms.filter((r) => r.type === 'meeting').length >
-                      0 && (
-                      <th
-                        colSpan={
-                          filteredRooms.filter((r) => r.type === 'meeting')
-                            .length
-                        }
-                        className="py-2 text-center text-xs font-bold text-purple-600 bg-purple-50 border-b border-gray-200"
-                      >
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Users size={11} />
-                          회의실{' '}
-                          {
-                            filteredRooms.filter((r) => r.type === 'meeting')
-                              .length
-                          }
-                          개
-                        </div>
-                      </th>
-                    )}
-                  </tr>
-                )}
                 <tr className="bg-[#faf9f6]">
-                  <th className="sticky left-0 z-10 w-20 min-w-20 border-b border-r border-[#eceae4] bg-[#faf9f6] px-3 py-3 text-left font-medium text-[#8a847a]">
-                    시간
-                  </th>
+                  <th
+                    className="sticky left-0 z-10 w-20 min-w-20 border-b border-r border-[#eceae4] bg-[#faf9f6] px-3 py-3 text-left font-medium text-[#8a847a]"
+                    aria-hidden="true"
+                  />
                   {filteredRooms.map((room) => {
                     const meta = roomTypeMeta[room.type];
                     const Icon = meta.icon;
@@ -836,13 +805,19 @@ export default function AdminRoomReservation() {
                         key={room.id}
                         className={`min-w-25 border-b border-r border-[#eceae4] px-2 py-3 text-center font-medium last:border-r-0 ${
                           room.status === 'closed' ? 'opacity-50' : ''
-                        } ${isFirstMeeting ? 'border-l-2 border-l-purple-200' : ''}`}
+                        } ${isFirstMeeting ? 'border-l-2 border-l-[#d4c6d8]' : ''}`}
                       >
                         <div className="flex flex-col items-center gap-1">
                           <div className={`p-1.5 rounded-lg ${meta.bg}`}>
                             <Icon size={14} className={meta.iconColor} />
                           </div>
-                          <span className="font-semibold text-[#3f3b36]">
+                          <span
+                            className={`font-semibold ${
+                              room.type === 'meeting'
+                                ? 'text-[#5c4d66]'
+                                : 'text-[#4e5a61]'
+                            }`}
+                          >
                             {room.name}
                           </span>
                           <div className="flex items-center gap-1 text-[#a39c92]">
@@ -896,7 +871,7 @@ export default function AdminRoomReservation() {
                           <td
                             key={room.id}
                             onClick={() => handleCellClick(room, slot)}
-                            className={`h-10 border-b border-r border-[#f0ede8] text-center align-middle transition-colors duration-100 last:border-r-0 ${getCellStyle(status)} ${isFirstMeeting ? 'border-l-2 border-l-purple-100' : ''}`}
+                            className={`h-10 border-b border-r border-[#f0ede8] text-center align-middle transition-colors duration-100 last:border-r-0 ${getCellStyle(status)} ${isFirstMeeting ? 'border-l-2 border-l-[#e8dfe8]' : ''}`}
                           >
                             {getCellContent(room.id, slot)}
                           </td>
@@ -911,13 +886,8 @@ export default function AdminRoomReservation() {
         </Card>
       )}
 
-      {/* ── 방 정보 카드 ────────────────────────────────── */}
+      {/* ── 방 카드 ────────────────────────────────── */}
       <div>
-        <h2
-          className={`mb-3 text-[1.7rem] font-semibold text-[#2c2b28]`}
-        >
-          방 정보
-        </h2>
         {activeTab === 'all' ? (
           <div className="space-y-5">
             {['study', 'meeting'].map((type) => {
@@ -931,7 +901,7 @@ export default function AdminRoomReservation() {
                     <TypeIcon size={13} className={meta.iconColor} />
                     <h3
                       className={`text-sm font-semibold ${
-                        type === 'study' ? 'text-blue-600' : 'text-purple-600'
+                        type === 'study' ? 'text-[#4e5a61]' : 'text-[#5c4d66]'
                       }`}
                     >
                       {meta.label}

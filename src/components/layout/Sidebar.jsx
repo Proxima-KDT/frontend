@@ -78,7 +78,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
             <p
               className={`text-[0.95rem] italic font-semibold ${isTeacherTheme ? 'text-[#f9fafb]' : 'text-[#4a4640]'}`}
             >
-              Ethereal Academy
+              Korea IT Academy
             </p>
             <p
               className={`text-[0.62rem] tracking-[0.12em] ${isTeacherTheme ? 'text-[#d1d5db]/75' : 'text-[#a8a29e]'}`}
@@ -89,14 +89,11 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         )}
         {!collapsed && isAdminNavy && (
           <div className="min-w-0 text-left leading-tight">
-            <p className="text-[1.05rem] font-semibold tracking-tight text-white">
-              관리자 콘솔
+            <p className="text-[0.95rem] font-semibold italic tracking-tight text-[#fdf8f3]">
+              Korea IT Academy
             </p>
-            <p className="text-[0.72rem] italic text-[#b8c5d6]">
-              Admin Console
-            </p>
-            <p className="mt-0.5 text-[0.58rem] uppercase tracking-[0.14em] text-[#7d8fa3]">
-              운영 포털 · Management Portal
+            <p className="text-[0.62rem] tracking-[0.12em] text-[#e8d8cc]/85">
+              운영 포털
             </p>
           </div>
         )}
@@ -105,13 +102,13 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       {/* 강사 전용: 담당 과정 드롭다운 */}
       {role === 'teacher' && !collapsed && courses.length > 0 && (
         <div className="px-4 pt-3 pb-3 border-b border-white/10">
-          <label className="text-[10px] uppercase tracking-widest text-white/40 mb-1.5 block">
+          <label className="mb-2 block text-[0.92rem] font-medium text-white/90">
             담당 과정
           </label>
           <select
             value={selectedCourseId || ''}
             onChange={(e) => setSelectedCourseId(e.target.value)}
-            className="w-full bg-white/10 text-white text-body-sm rounded-md px-2 py-1.5 border border-white/10 focus:outline-none focus:border-white/30 cursor-pointer"
+            className="w-full bg-white/10 text-white text-[0.92rem] font-medium rounded-md px-2 py-1.5 border border-white/10 focus:outline-none focus:border-white/30 cursor-pointer"
           >
             {courses.map((c) => (
               <option key={c.id} value={c.id} className="text-gray-900">
@@ -120,11 +117,6 @@ export default function Sidebar({ collapsed = false, onToggle }) {
               </option>
             ))}
           </select>
-          {selectedCourse?.classroom && (
-            <p className="mt-1 text-[10px] text-white/40">
-              {selectedCourse.classroom}
-            </p>
-          )}
         </div>
       )}
 
@@ -216,48 +208,60 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                             className={`min-w-0 truncate transition-transform duration-200 group-hover:translate-x-0.5 ${
                               item.ai && isStudentLightTheme
                                 ? 'font-semibold text-[#2a2620]'
-                                : ''
+                                : item.ai && isTeacherTheme
+                                  ? 'font-semibold text-[#f9fafb]'
+                                  : ''
                             }`}
                           >
                             {item.label}
                           </span>
-                          {item.ai && isStudentLightTheme && (
-                            <span
-                              className="student-menu-ai-badge relative ml-0.5 inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-full border border-amber-200/95 bg-gradient-to-r from-[#6d28d9] via-[#c026d3] to-[#ea580c] px-2 py-0.5"
-                              title="AI 기능"
-                            >
-                              <Icons.Sparkles
-                                className="relative z-[1] h-3.5 w-3.5 shrink-0 text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.95)]"
-                                aria-hidden
-                              />
-                              <span className="relative z-[1] pr-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.12em] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
+                          {item.ai &&
+                            !collapsed &&
+                            (isStudentLightTheme || isTeacherTheme) && (
+                              <span
+                                className="student-menu-ai-badge relative ml-0.5 inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-full border border-amber-200/95 bg-gradient-to-r from-[#6d28d9] via-[#c026d3] to-[#ea580c] px-2 py-0.5"
+                                title="AI 기능"
+                              >
+                                <Icons.Sparkles
+                                  className="relative z-[1] h-3.5 w-3.5 shrink-0 text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.95)]"
+                                  aria-hidden
+                                />
+                                <span className="relative z-[1] pr-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.12em] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
+                                  AI
+                                </span>
+                                <span
+                                  className="student-menu-glint pointer-events-none absolute inset-y-0 left-0 w-[55%] bg-gradient-to-r from-transparent via-white to-transparent opacity-95"
+                                  aria-hidden
+                                />
+                              </span>
+                            )}
+                          {item.ai &&
+                            !collapsed &&
+                            !isStudentLightTheme &&
+                            !isTeacherTheme && (
+                              <span className="ml-auto inline-flex shrink-0 items-center gap-0.5 rounded-md bg-gradient-to-r from-violet-500 to-blue-500 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm shadow-violet-500/40 animate-pulse">
                                 AI
                               </span>
-                              <span
-                                className="student-menu-glint pointer-events-none absolute inset-y-0 left-0 w-[55%] bg-gradient-to-r from-transparent via-white to-transparent opacity-95"
-                                aria-hidden
-                              />
-                            </span>
-                          )}
-                          {item.ai && !isStudentLightTheme && !collapsed && (
-                            <span className="ml-auto inline-flex shrink-0 items-center gap-0.5 rounded-md bg-gradient-to-r from-violet-500 to-blue-500 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm shadow-violet-500/40 animate-pulse">
-                              AI
-                            </span>
-                          )}
+                            )}
                         </div>
                       )}
-                      {collapsed && item.ai && isStudentLightTheme && (
-                        <span
-                          className="student-menu-ai-dot pointer-events-none absolute right-1.5 top-2 h-2 w-2 rounded-full bg-gradient-to-br from-amber-300 to-fuchsia-500 ring-2 ring-white/90 shadow-[0_0_10px_rgba(251,191,36,0.95)]"
-                          aria-hidden
-                        />
-                      )}
-                      {collapsed && item.ai && !isStudentLightTheme && (
-                        <span
-                          className="pointer-events-none absolute -top-0.5 -right-0.5 h-2 w-2 animate-pulse rounded-full bg-violet-400 shadow-sm shadow-violet-400/60"
-                          aria-hidden
-                        />
-                      )}
+                      {collapsed &&
+                        item.ai &&
+                        (isStudentLightTheme || isTeacherTheme) && (
+                          <span
+                            className="student-menu-ai-dot pointer-events-none absolute right-1.5 top-2 h-2 w-2 rounded-full bg-gradient-to-br from-amber-300 to-fuchsia-500 ring-2 ring-white/90 shadow-[0_0_10px_rgba(251,191,36,0.95)]"
+                            aria-hidden
+                          />
+                        )}
+                      {collapsed &&
+                        item.ai &&
+                        !isStudentLightTheme &&
+                        !isTeacherTheme && (
+                          <span
+                            className="pointer-events-none absolute -top-0.5 -right-0.5 h-2 w-2 animate-pulse rounded-full bg-violet-400 shadow-sm shadow-violet-400/60"
+                            aria-hidden
+                          />
+                        )}
                     </>
                   )}
                 </NavLink>

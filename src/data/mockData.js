@@ -2514,7 +2514,7 @@ export const studentMenuItems = [
   },
   {
     key: 'attendance',
-    label: '출석',
+    label: '출결 확인',
     icon: 'Calendar',
     path: '/student/attendance',
     group: '내 정보',
@@ -3869,7 +3869,7 @@ export const teacherMenuItems = [
   },
   {
     key: 'attendance-check',
-    label: '출석 확인',
+    label: '출결 확인',
     icon: 'UserCheck',
     path: '/teacher/attendance-check',
     group: '수업 관리',

@@ -8,7 +8,6 @@ import Modal from '@/components/common/Modal';
 import Textarea from '@/components/common/Textarea';
 import EmptyState from '@/components/common/EmptyState';
 import {
-  User,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -19,7 +18,8 @@ import {
   Shield,
 } from 'lucide-react';
 
-const pageBg = '#F7F5F0';const _now = new Date();
+const pageBg = '#F7F5F0';
+const _now = new Date();
 const TODAY = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
 const TODAY_DATE = new Date(TODAY);
 
@@ -350,18 +350,12 @@ export default function CounselingBooking() {
 
       {/* ── 멘토 선택 ── */}
       <section>
-        <div className="mb-3 flex items-center justify-between gap-4">
+        <div className="mb-3">
           <h2
             className={`text-[1.4rem] font-semibold text-[#2c2b28]`}
           >
             멘토 선택
           </h2>
-          <button
-            type="button"
-            className="text-sm font-medium text-[#8a847a] hover:text-[#5c5852]"
-          >
-            전체 보기 →
-          </button>
         </div>
 
         <div className="flex gap-3 overflow-x-auto pb-2">
@@ -404,16 +398,6 @@ export default function CounselingBooking() {
               </button>
             );
           })}
-
-          <button
-            type="button"
-            className="min-w-[220px] rounded-2xl border border-dashed border-[#d9d4c9] bg-[#fbfaf7] p-4 text-left text-[#6b6560] hover:border-[#c9c2b7]"
-          >
-            <div className="flex h-full items-center justify-center gap-2">
-              <User className="h-4 w-4 text-[#9c988e]" />
-              <span className="text-sm font-semibold">모든 멘토 보기</span>
-            </div>
-          </button>
         </div>
       </section>
 
@@ -597,7 +581,7 @@ export default function CounselingBooking() {
               Quick Guide
             </p>
             <p className="mt-2 text-[0.85rem] leading-relaxed text-[#4a3b12]">
-              준비물: 이전 학기 프로젝트 요약본 및 질문 리스트를 미리 작성해 오시면 면담이 더 효율적입니다.
+              준비물: 질문 리스트를 미리 작성해 오시면 면담이 더 효율적입니다.
             </p>
           </Card>
         </div>

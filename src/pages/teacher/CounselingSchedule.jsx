@@ -16,8 +16,6 @@ import {
   Search,
   Bell,
   Plus,
-  SlidersHorizontal,
-  Download,
 } from 'lucide-react';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -367,7 +365,7 @@ export default function CounselingSchedule() {
           <div className="mt-2 h-1 rounded-full bg-[#8f7728]" />
         </Card>
         <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
-          <p className="mb-1 text-sm text-[#848079]">오늘 확정 (Confirmed)</p>
+          <p className="mb-1 text-sm text-[#848079]">예약 확정 (Confirmed)</p>
           <p className="text-4xl font-semibold text-[#2f3f54]">{confirmedCount}</p>
         </Card>
         <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
@@ -543,20 +541,8 @@ export default function CounselingSchedule() {
 
       {/* 하단 면담 신청 목록 */}
       <Card className="rounded-[28px] border border-[#dfdbd4] bg-[#f2f1ee] shadow-none">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[2rem] text-[#2f333a]">
-            최근 신청 활동
-          </h2>
-          <div className="flex items-center gap-3 text-sm text-[#6f746f]">
-            <button className="inline-flex items-center gap-1 hover:text-[#4f5450]">
-              <SlidersHorizontal className="h-4 w-4" />
-              필터
-            </button>
-            <button className="inline-flex items-center gap-1 hover:text-[#4f5450]">
-              <Download className="h-4 w-4" />
-              내보내기
-            </button>
-          </div>
+        <div className="mb-4">
+          <h2 className="text-[2rem] text-[#2f333a]">최근 신청 활동</h2>
         </div>
         <div className="overflow-x-auto">
           <Tabs

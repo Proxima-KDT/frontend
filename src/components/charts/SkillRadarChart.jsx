@@ -8,9 +8,9 @@ import {
   LabelList,
 } from 'recharts';
 
-/** 꼭짓점(축)마다 구분되는 색 — 점수·라벨에 동일 적용 */
-const AXIS_COLORS = [
-  '#2563a8',
+/** 꼭짓점(축)마다 구분되는 색 — 점수·라벨·막대 그래프에 동일 적용 */
+export const SKILL_AXIS_COLORS = [
+  '#2563ab',
   '#2d7a52',
   '#b45309',
   '#a84868',
@@ -18,6 +18,8 @@ const AXIS_COLORS = [
   '#0d9488',
   '#7c2d12',
 ];
+
+const AXIS_COLORS = SKILL_AXIS_COLORS;
 
 function axisLabelFromTickPayload(payload) {
   if (payload == null) return '';
@@ -27,6 +29,18 @@ function axisLabelFromTickPayload(payload) {
   return inner?.subject ?? inner?.value ?? payload.subject ?? payload.value ?? '';
 }
 
+/** 긴 한글 라벨이 잘리지 않도록 2줄로 나눔 (대략 중간·공백 우선) */
+function splitAxisLabel(text) {
+  const t = String(text || '').trim();
+  if (t.length <= 6) return [t];
+  const space = t.indexOf(' ');
+  if (space > 0 && space < t.length - 1) {
+    return [t.slice(0, space), t.slice(space + 1)];
+  }
+  const mid = Math.ceil(t.length / 2);
+  return [t.slice(0, mid), t.slice(mid)];
+}
+
 export default function SkillRadarChart({
   data,
   color = '#3B82F6',
@@ -34,10 +48,10 @@ export default function SkillRadarChart({
   variant = 'default',
 }) {
   const isEditorial = variant === 'editorial';
-  const height = size === 'mini' ? 220 : isEditorial ? 300 : 330;
-  const outerRadius = size === 'mini' ? 78 : isEditorial ? 100 : 118;
+  const height = size === 'mini' ? 220 : isEditorial ? 320 : 330;
+  const outerRadius = size === 'mini' ? 78 : isEditorial ? 88 : 118;
   const chartMargin = isEditorial
-    ? { top: 28, right: 36, bottom: 28, left: 36 }
+    ? { top: 36, right: 52, bottom: 36, left: 52 }
     : { top: 16, right: 28, bottom: 16, left: 28 };
 
   const renderAngleTick = (props) => {
@@ -46,6 +60,28 @@ export default function SkillRadarChart({
     const label = axisLabelFromTickPayload(payload);
     if (!label) return null;
     const fill = AXIS_COLORS[(index ?? 0) % AXIS_COLORS.length];
+    const fontSize = isEditorial ? 10 : size === 'mini' ? 10 : 11.5;
+    if (isEditorial) {
+      const lines = splitAxisLabel(label);
+      const firstDy = lines.length > 1 ? '-0.35em' : '0.35em';
+      return (
+        <text
+          x={x}
+          y={y}
+          textAnchor={textAnchor || 'middle'}
+          fill={fill}
+          fontSize={fontSize}
+          fontWeight={600}
+          fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
+        >
+          {lines.map((line, i) => (
+            <tspan key={i} x={x} dy={i === 0 ? firstDy : '1.05em'}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      );
+    }
     return (
       <text
         x={x}
@@ -53,7 +89,7 @@ export default function SkillRadarChart({
         textAnchor={textAnchor || 'middle'}
         dy="0.35em"
         fill={fill}
-        fontSize={isEditorial ? 10.5 : size === 'mini' ? 10 : 11.5}
+        fontSize={fontSize}
         fontWeight={600}
         fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
       >
