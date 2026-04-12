@@ -497,7 +497,7 @@ export default function ConceptQuiz() {
       {/* 문제 카드 */}
       <Card>
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="mb-2 flex items-center gap-2">
             <span className="text-caption font-medium text-[#4f6475]">
               문제 {currentIndex + 1}
             </span>
@@ -521,7 +521,7 @@ export default function ConceptQuiz() {
                 let bgClass = '';
 
                 if (isSubmitted) {
-                  const correctIdx = currentProblem.answer - 1;
+                  const correctIdx = currentProblem.answer - 1; // DB는 1-based
                   if (idx === correctIdx) {
                     borderClass = 'border-[#6f8391]';
                     bgClass = 'bg-[#f4f8fb]';
@@ -540,18 +540,18 @@ export default function ConceptQuiz() {
                 return (
                   <label
                     key={idx}
-                    className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all ${borderClass} ${bgClass} ${
+                    className={`flex items-start gap-3 rounded-xl border-2 p-4 transition-all ${borderClass} ${bgClass} ${
                       isSubmitted ? 'pointer-events-none' : 'cursor-pointer'
                     }`}
                   >
-                    <div className="shrink-0 mt-0.5">
+                    <div className="mt-0.5 shrink-0">
                       {isSubmitted ? (
                         idx === currentProblem.answer - 1 ? (
                           <CheckCircle2 className="h-5 w-5 text-[#6f8391]" />
                         ) : idx === selectedAnswer ? (
-                          <XCircle className="w-5 h-5 text-red-500" />
+                          <XCircle className="h-5 w-5 text-red-500" />
                         ) : (
-                          <div className="w-5 h-5 rounded-full border-2 border-gray-200" />
+                          <div className="h-5 w-5 rounded-full border-2 border-gray-200" />
                         )
                       ) : (
                         <input
@@ -570,7 +570,6 @@ export default function ConceptQuiz() {
               })}
             </div>
 
-            {/* 해설 (제출 후) */}
             {isSubmitted && currentProblem.explanation && (
               <div className="mt-6 rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
                 <h4 className="mb-1 text-body-sm font-semibold text-[#4f6475]">해설</h4>
@@ -579,7 +578,6 @@ export default function ConceptQuiz() {
             )}
           </>
         ) : (
-          /* 서술형 → 해설 바로 공개 (선택지 없는 문제 처리) */
           <div className="space-y-4">
             <div className="rounded-xl border border-[#ebe5cf] bg-[#faf6e8] p-4">
               <p className="text-caption flex items-center gap-1.5 text-[#7a6330]">

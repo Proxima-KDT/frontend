@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles } from 'lucide-react'
+import { GraduationCap } from 'lucide-react'
 
 export default function LandingLayout({ children }) {
   const [scrolled, setScrolled] = useState(false)
@@ -27,13 +27,12 @@ export default function LandingLayout({ children }) {
             onClick={() => navigate('/')}
             className="flex items-center gap-2 group"
           >
-            <div className="h-8 w-8 shrink-0 rounded-full bg-[#ece9e3] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-[#8a847a]" />
+            <div className="w-9 h-9 rounded-lg bg-primary-500 flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            <div className="leading-tight">
-              <p className="text-[0.95rem] italic font-semibold text-[#4a4640]">Korea IT Academy</p>
-              <p className="text-[0.62rem] tracking-[0.12em] text-[#a8a29e]">학습 포털</p>
-            </div>
+            <span className="text-lg font-bold text-gray-900">
+              EduPilot
+            </span>
           </button>
         </div>
       </nav>

@@ -17,7 +17,6 @@ import { voiceApi } from '@/api/voice';
 import Card from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import Badge from '@/components/common/Badge';
-import Tabs from '@/components/common/Tabs';
 import ScoreGauge from '@/components/charts/ScoreGauge';
 import Skeleton from '@/components/common/Skeleton';
 
@@ -48,7 +47,6 @@ const difficultyColors = {
   intermediate: 'bg-[#faf4e8] text-[#9a6220] border-[#e8d9b8]',
   advanced: 'bg-[#f3e8e8] text-[#944848] border-[#e0c5c5]',
 };
-
 const softPortalCard =
   'rounded-3xl border border-[#e8e4dc] bg-white shadow-[0_8px_32px_rgba(45,42,38,0.05)]';
 const pillActive = 'bg-[#2d2a26] text-white border-[#2d2a26] shadow-sm';
@@ -370,13 +368,16 @@ export default function VoiceFeedback() {
     <div className="space-y-8 rounded-3xl bg-[#F9F7F2] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-8">
       <header>
         <h1
-          className="text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]"
+          className={`text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
         >
-          AI 말하기 학습
+          AI 말하기 연습
         </h1>
+        <p className="mt-0.5 text-[0.7rem] font-semibold tracking-[0.2em] text-[#8a847a] uppercase">
+          AI Speaking Practice
+        </p>
         <p className="mt-2 text-[0.875rem] leading-relaxed text-[#6b6560]">
-          오늘의 주제로 자유롭게 말하고, AI가 핵심 키워드 포함 여부를 분석해
-          학습 피드백을 제공합니다.
+          주제를 고르고 말하기를 연습하면 AI가 발음·어휘·문장을 참고해 피드백을
+          드립니다.
         </p>
       </header>
 
@@ -415,9 +416,8 @@ export default function VoiceFeedback() {
           {/* 주제 선택 + 키워드 */}
           <div className={`${softPortalCard} p-5 sm:p-6`}>
             <p className="mb-2 text-[0.65rem] font-bold tracking-[0.14em] text-[#8a847a]">
-              SUBJECTS
+              SUBJECTS · 과목
             </p>
-            {/* 카테고리 필터 */}
             <div className="mb-5 flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -436,9 +436,8 @@ export default function VoiceFeedback() {
               ))}
             </div>
             <p className="mb-2 text-[0.65rem] font-bold tracking-[0.14em] text-[#8a847a]">
-              PROFICIENCY
+              PROFICIENCY · 난이도
             </p>
-            {/* 난이도 필터 */}
             <div className="mb-6 flex flex-wrap gap-2">
               {DIFFICULTIES.map((d) => (
                 <button
@@ -545,15 +544,21 @@ export default function VoiceFeedback() {
                     <BookOpen className="h-7 w-7" />
                   )}
                 </div>
-                <span className="text-body font-medium text-[#1f1e1c]">
-                  {topicLoading ? '문제 불러오는 중...' : '문제 뽑기'}
-                </span>
+                <div className="text-center px-4">
+                  <p className={`text-lg font-semibold text-[#1f1e1c]`}>
+                    주제 선택
+                  </p>
+                  <p className="mt-2 max-w-md text-[0.8125rem] leading-relaxed text-[#6b6560]">
+                    위에서 과목·난이도를 고른 뒤, 여기를 눌러 연습 문제를 뽑으세요
+                    (문제 뽑기).
+                  </p>
+                </div>
               </button>
             )}
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
-            {/* 왼쪽: 마이크 */}
+            {/* 왼쪽: 타이머 · 마이크 */}
             <div
               className={`${softPortalCard} flex h-full flex-col items-center px-5 py-8 sm:px-8`}
             >
@@ -581,7 +586,6 @@ export default function VoiceFeedback() {
                   <div className="pointer-events-none absolute inset-0 animate-ping rounded-full border-4 border-[#c97a6a]/50" />
                 )}
               </div>
-
               <p className="mb-1 text-center text-[0.8125rem] font-medium text-[#4a4640]">
                 {isRecording
                   ? '녹음 중... 버튼을 눌러 종료하세요'
@@ -592,8 +596,11 @@ export default function VoiceFeedback() {
                       : showResults
                         ? '녹음 완료'
                         : !currentTopic
-                          ? '위에서 문제를 먼저 뽑아주세요'
-                          : '버튼을 눌러 녹음을 시작하세요'}
+                          ? '먼저 위에서 주제를 뽑아 주세요'
+                          : '마이크를 눌러 말하기를 시작하세요'}
+              </p>
+              <p className="mb-5 text-center text-[0.75rem] text-[#8a847a]">
+                마이크에 맑게 말하면 인식과 분석이 더 정확해져요.
               </p>
 
               <div className="w-full max-w-md flex-1 space-y-3">
@@ -671,7 +678,7 @@ export default function VoiceFeedback() {
                     발화 내용을 확인해주세요
                   </h3>
                   <p className="max-w-sm text-body-sm text-[#8a847a]">
-                    왼쪽에서 내용 확인 후 분석 요청을 눌러주세요
+                    왼쪽에서 내용을 확인한 뒤 분석 요청을 눌러주세요
                   </p>
                 </div>
               ) : showResults && analysisResult ? (
@@ -758,7 +765,7 @@ export default function VoiceFeedback() {
                     AI 분석 중...
                   </h3>
                   <p className="mb-4 text-body-sm text-[#8a847a]">
-                    GPT가 답변 내용을 평가하고 있어요
+                    답변 내용을 평가하고 있어요
                   </p>
                   <div className="flex gap-1.5">
                     <span
@@ -782,11 +789,14 @@ export default function VoiceFeedback() {
                   <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f7]">
                     <BarChart3 className="h-8 w-8 text-[#7a8fa3]" />
                   </div>
-                  <h3 className="mb-2 text-xl font-semibold text-[#1f1e1c] sm:text-2xl">
+                  <h3
+                    className={`mb-2 text-xl font-semibold text-[#1f1e1c] sm:text-2xl`}
+                  >
                     학습 결과가 여기에 표시됩니다
                   </h3>
                   <p className="mb-8 max-w-sm text-[0.8125rem] leading-relaxed text-[#6b6560]">
-                    마이크 버튼을 눌러 말하기를 시작하세요
+                    마이크 버튼으로 말하기를 시작하면 AI가 발음·어휘·문법을
+                    실시간으로 분석해 요약합니다.
                   </p>
                   <div className="flex w-full max-w-xs flex-col gap-2">
                     <div className="h-2.5 rounded-full bg-[#ebe8e3]" />
@@ -814,7 +824,7 @@ export default function VoiceFeedback() {
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f7]">
                 <Mic className="h-8 w-8 text-[#7a8fa3]" />
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-[#4a4640]">
+              <h3 className={`mb-2 text-xl font-semibold text-[#4a4640]`}>
                 학습 기록이 없습니다
               </h3>
               <p className="mb-5 max-w-sm text-body-sm text-[#8a847a]">

@@ -12,6 +12,9 @@ import {
   FileText,
   X,
   Download,
+  Eye,
+  AlertCircle,
+  ChevronRight,
 } from 'lucide-react';
 import { assignmentsApi } from '@/api/assignments';
 import Skeleton from '@/components/common/Skeleton';
@@ -49,12 +52,48 @@ const FILTERS = ['전체', '미제출', '제출완료', '채점완료', '재제�
 
 // Phase 색상 팔레트 — subject는 DB의 assignment.subject를 사용하므로 여기선 색상만.
 const PHASE_PALETTE = [
-  { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500', tab: 'bg-purple-500', stripe: 'bg-violet-600' },
-  { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500',   tab: 'bg-blue-500',   stripe: 'bg-blue-600' },
-  { bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500',  tab: 'bg-green-500',  stripe: 'bg-emerald-600' },
-  { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500', tab: 'bg-orange-500', stripe: 'bg-amber-700' },
-  { bg: 'bg-pink-100',   text: 'text-pink-700',   dot: 'bg-pink-500',   tab: 'bg-pink-500',   stripe: 'bg-rose-600' },
-  { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500', tab: 'bg-indigo-500', stripe: 'bg-indigo-600' },
+  {
+    bg: 'bg-purple-100',
+    text: 'text-purple-700',
+    dot: 'bg-purple-500',
+    tab: 'bg-purple-500',
+    stripe: 'bg-violet-600',
+  },
+  {
+    bg: 'bg-blue-100',
+    text: 'text-blue-700',
+    dot: 'bg-blue-500',
+    tab: 'bg-blue-500',
+    stripe: 'bg-blue-600',
+  },
+  {
+    bg: 'bg-green-100',
+    text: 'text-green-700',
+    dot: 'bg-green-500',
+    tab: 'bg-green-500',
+    stripe: 'bg-emerald-600',
+  },
+  {
+    bg: 'bg-orange-100',
+    text: 'text-orange-700',
+    dot: 'bg-orange-500',
+    tab: 'bg-orange-500',
+    stripe: 'bg-amber-700',
+  },
+  {
+    bg: 'bg-pink-100',
+    text: 'text-pink-700',
+    dot: 'bg-pink-500',
+    tab: 'bg-pink-500',
+    stripe: 'bg-rose-600',
+  },
+  {
+    bg: 'bg-indigo-100',
+    text: 'text-indigo-700',
+    dot: 'bg-indigo-500',
+    tab: 'bg-indigo-500',
+    stripe: 'bg-indigo-600',
+  },
 ];
 
 function getPhaseCfg(phase) {
@@ -73,6 +112,31 @@ function getPhaseCfg(phase) {
   return { label: `Phase ${n}`, ...color };
 }
 
+function getAssignmentDueDate(a) {
+  return a.due_date || a.dueDate || '';
+}
+
+function getAssignmentSubmittedAt(a) {
+  return a.submitted_at || a.submittedAt || '';
+}
+
+function formatKoDate(iso) {
+  if (!iso) return '';
+  const d = new Date(`${String(iso).slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function subjectCategoryLine(subject) {
+  if (!subject) return '과제';
+  if (/[가-힣]/.test(subject)) return subject;
+  return String(subject).toUpperCase();
+}
+
 // 특정 phase의 첫 assignment subject를 그룹 라벨로 사용.
 function getPhaseSubject(assignments, phase) {
   const found = assignments.find((a) => Number(a.phase) === Number(phase));
@@ -88,25 +152,12 @@ function getDDay(dueDate) {
 }
 
 // ── 서브 컴포넌트 ──────────────────────────────────────────
-function StatusBadge({ status }) {
-  const cfg = STATUS_CONFIG[status];
-  const Icon = cfg.icon;
-  return (
-    <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.badgeClass}`}
-    >
-      <Icon className="w-3 h-3" />
-      {cfg.label}
-    </span>
-  );
-}
-
 function DueDateBadge({ dueDate, status }) {
   if (status === 'graded') return null;
   const dday = getDDay(dueDate);
   if (dday < 0)
     return (
-      <span className="text-xs text-gray-400">
+      <span className="text-xs text-[#9a9a9a]">
         마감 {new Date(dueDate).toLocaleDateString('ko-KR')}
       </span>
     );
@@ -115,7 +166,7 @@ function DueDateBadge({ dueDate, status }) {
   if (dday <= 3)
     return <span className="text-xs font-semibold text-red-500">D-{dday}</span>;
   return (
-    <span className="text-xs text-gray-500">
+    <span className="text-xs text-[#7a7a7a]">
       D-{dday} · {new Date(dueDate).toLocaleDateString('ko-KR')}
     </span>
   );
@@ -124,7 +175,10 @@ function DueDateBadge({ dueDate, status }) {
 function RubricTable({ rubric }) {
   if (!rubric) return null;
   const total = rubric.reduce((s, r) => s + (r.score ?? 0), 0);
-  const max = rubric.reduce((s, r) => s + (r.maxScore ?? 0), 0);
+  const max = rubric.reduce(
+    (s, r) => s + (r.maxScore ?? r.max_score ?? 0),
+    0,
+  );
   return (
     <div className="mt-4">
       <p className="text-body-sm font-semibold text-gray-700 mb-2">
@@ -150,7 +204,7 @@ function RubricTable({ rubric }) {
               <tr key={i} className="border-t border-gray-100">
                 <td className="px-4 py-2.5 text-gray-700">{r.item}</td>
                 <td className="px-4 py-2.5 text-right text-gray-500">
-                  {r.maxScore ?? '-'}점
+                  {r.maxScore ?? r.max_score ?? '-'}점
                 </td>
                 <td className="px-4 py-2.5 text-right font-semibold text-student-600">
                   {r.score != null ? (
@@ -255,7 +309,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
   const [deletingPath, setDeletingPath] = useState(null); // 삭제 중인 파일 path
   // 제출 파일 목록은 로컬에서 관리 (삭제 후 즉시 반영)
   const [localSubmittedFiles, setLocalSubmittedFiles] = useState(
-    assignment.submitted_files ?? [],
+    assignment.submitted_files ?? assignment.submittedFiles ?? [],
   );
 
   const canSubmit =
@@ -302,76 +356,148 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
     }
   };
 
+  const dueStr = getAssignmentDueDate(assignment);
+  const dday = dueStr ? getDDay(dueStr) : 99;
+  const urgent =
+    (assignment.status === 'pending' ||
+      assignment.status === 'resubmit_required') &&
+    dday >= 0 &&
+    dday <= 3;
+  const maxScr = assignment.max_score ?? assignment.maxScore ?? 100;
+
+  const statusPill = {
+    graded: 'bg-[#e8e8e8] text-[#3a3a3a] border border-[#d0d0d0]',
+    submitted: 'bg-[#e4e4e4] text-[#2f2f2f] border border-[#c8c8c8]',
+    pending: 'bg-[#ededed] text-[#4a4a4a] border border-[#d4d4d4]',
+    resubmit_required:
+      'bg-[#ebe8e4] text-[#5c4a38] border border-[#d8d4ce]',
+  }[assignment.status];
+
+  const statusPillLabel = {
+    graded: '채점완료',
+    submitted: '검토 중',
+    pending: '미제출',
+    resubmit_required: '재제출',
+  }[assignment.status];
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* 카드 헤더 */}
-      <button
-        className="w-full text-left p-5 hover:bg-gray-50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-1.5">
-              {/* Phase 뱃지 (subject 포함) */}
-              {assignment.phase
-                ? (() => {
-                    const pcfg = getPhaseCfg(assignment.phase);
-                    return (
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold ${pcfg.bg} ${pcfg.text}`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${pcfg.dot} inline-block shrink-0`}
-                        />
-                        {pcfg.label}
-                        {assignment.subject && (
-                          <span className="font-medium opacity-75">
-                            · {assignment.subject}
-                          </span>
-                        )}
-                      </span>
-                    );
-                  })()
-                : assignment.subject && (
-                    <span className="text-caption text-gray-400 font-medium">
-                      {assignment.subject}
-                    </span>
-                  )}
-              <StatusBadge status={assignment.status} />
+    <div
+      className={`relative overflow-hidden rounded-2xl border border-[#e0e0e0] border-l-[3px] border-t-[3px] bg-white shadow-[2px_3px_0_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[3px_4px_0_rgba(0,0,0,0.06)] ${
+        urgent
+          ? 'border-l-[#8b2f2f] border-t-[#8b2f2f]'
+          : 'border-l-[#2a2a2a] border-t-[#2a2a2a]'
+      }`}
+    >
+      <div className="relative">
+        <div className="flex items-stretch gap-2 sm:gap-4">
+          <button
+            type="button"
+            className="min-w-0 flex-1 px-4 py-4 pl-5 text-left transition-colors hover:bg-[#fafafa] sm:px-5 sm:py-5"
+            onClick={() => setExpanded(!expanded)}
+          >
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#8c8c8c]">
+                {subjectCategoryLine(assignment.subject)}
+              </span>
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${statusPill}`}
+              >
+                {statusPillLabel}
+              </span>
               {assignment.status !== 'graded' && (
-                <DueDateBadge
-                  dueDate={assignment.due_date}
-                  status={assignment.status}
-                />
+                <DueDateBadge dueDate={dueStr} status={assignment.status} />
               )}
             </div>
-            <h3 className="text-body font-bold text-gray-900 truncate">
+            <h3 className="text-[1.05rem] font-bold leading-snug text-[#2a2a2a] sm:text-[1.2rem]">
               {assignment.title}
             </h3>
+            <p className="mt-1.5 text-[0.8rem] text-[#7a7a7a]">
+              {assignment.status === 'graded' ? (
+                <>
+                  완료일{' '}
+                  {formatKoDate(
+                    getAssignmentSubmittedAt(assignment) || dueStr,
+                  )}
+                </>
+              ) : (
+                <>마감 {formatKoDate(dueStr) || '—'}</>
+              )}
+            </p>
+          </button>
+
+          <div className="flex shrink-0 flex-col items-end justify-center gap-2 pr-3 sm:pr-4">
             {assignment.status === 'graded' && (
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-h3 font-bold text-student-600">
-                  {assignment.score}점
+              <div className="text-right">
+                <p className="text-[1.35rem] font-bold tabular-nums leading-none text-[#2c2b28] sm:text-[1.5rem]">
+                  {assignment.score}
+                  <span className="text-base font-semibold text-[#8a8a8a]">
+                    {' '}
+                    / {maxScr}
+                  </span>
+                </p>
+                <p className="mt-1 text-[10px] font-semibold tracking-wide text-[#8a8a8a]">
+                  현재 점수
+                </p>
+              </div>
+            )}
+            {assignment.status === 'submitted' && (
+              <div className="flex flex-col items-end gap-2">
+                <span className="text-xs font-semibold text-[#5a5a5a]">
+                  검토 중
                 </span>
-                <span className="text-caption text-gray-400">
-                  / {assignment.max_score}점
+                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d0d0d0] bg-white text-[#4a4a4a] shadow-sm">
+                  <Eye className="h-4 w-4" aria-hidden />
                 </span>
               </div>
             )}
-          </div>
-          <div className="shrink-0 mt-0.5">
-            {expanded ? (
-              <ChevronUp className="w-5 h-5 text-gray-400" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+            {(assignment.status === 'pending' ||
+              assignment.status === 'resubmit_required') && (
+              <div className="flex flex-col items-end gap-2">
+                {urgent && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded bg-[#9b3d3d] px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white">
+                      긴급
+                    </span>
+                    <span className="text-[11px] font-bold text-[#9b3d3d]">
+                      D-{dday} 남음
+                    </span>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpanded(true);
+                  }}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    urgent
+                      ? 'bg-[#8b2f2f] text-white shadow-sm hover:bg-[#732828]'
+                      : 'border border-[#c8c8c8] bg-white text-[#333333] hover:bg-[#f5f5f5]'
+                  }`}
+                >
+                  {urgent ? '지금 제출' : '상세 보기'}
+                </button>
+              </div>
             )}
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d0d0d0] bg-white text-[#4a4a4a] transition-colors hover:bg-[#f5f5f5]"
+              onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
+            >
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
           </div>
         </div>
-      </button>
+      </div>
 
       {/* 상세 영역 */}
       {expanded && (
-        <div className="border-t border-gray-100 p-5 space-y-5">
+        <div className="space-y-5 border-t border-[#e8e8e8] bg-[#fafafa] p-5">
           {/* 과제 설명 */}
           <div>
             <p className="text-body-sm font-semibold text-gray-700 mb-1.5">
@@ -441,9 +567,9 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
                     )}
                   </div>
                 ))}
-                {assignment.submitted_at && (
+                {getAssignmentSubmittedAt(assignment) && (
                   <p className="text-caption text-gray-400">
-                    제출일시: {assignment.submitted_at}
+                    제출일시: {getAssignmentSubmittedAt(assignment)}
                   </p>
                 )}
               </div>
@@ -632,35 +758,67 @@ export default function Assignments() {
 
   return (
     <div
-      className="mx-auto max-w-3xl space-y-6 rounded-3xl px-4 py-6"
+      className="mx-auto max-w-3xl space-y-6 rounded-3xl px-4 py-6 sm:px-5 md:-mx-2 md:px-8 md:py-8"
       style={{ backgroundColor: pageBg }}
     >
       {/* 헤더 */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-student-100 flex items-center justify-center">
-          <ClipboardList className="w-5 h-5 text-student-600" />
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#e0e0e0] bg-white shadow-sm">
+          <ClipboardList className="h-5 w-5 text-[#4a4a4a]" />
         </div>
         <div>
-          <h1 className="text-h2 font-bold text-gray-900">과제</h1>
-          <p className="text-caption text-gray-500">
+          <h1 className="font-serif text-[1.75rem] font-semibold leading-tight tracking-tight text-[#2a2a2a] sm:text-[2rem]">
+            과제
+          </h1>
+          <p className="mt-1 text-sm leading-relaxed text-[#6a6a6a]">
             과제를 제출하고 피드백을 확인하세요
           </p>
         </div>
       </div>
 
       {/* 요약 통계 */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-gray-900">{stats.graded}</p>
-          <p className="text-caption text-gray-500 mt-0.5">채점완료</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ececec]">
+            <CheckCircle2 className="h-5 w-5 text-[#4a4a4a]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-2xl font-bold tabular-nums text-[#2a2a2a]">
+              {stats.graded}
+            </p>
+            <p className="text-xs font-medium text-[#6a6a6a]">채점완료</p>
+            <span className="mt-1 inline-block rounded-full border border-[#d8d8d8] bg-[#efefef] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#4a4a4a]">
+              완료
+            </span>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-blue-600">{stats.submitted}</p>
-          <p className="text-caption text-gray-500 mt-0.5">제출완료</p>
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e4e4e4]">
+            <FileText className="h-5 w-5 text-[#3d3d3d]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-2xl font-bold tabular-nums text-[#2a2a2a]">
+              {stats.submitted}
+            </p>
+            <p className="text-xs font-medium text-[#6a6a6a]">제출완료</p>
+            <span className="mt-1 inline-block rounded-full border border-[#d0d0d0] bg-[#ececec] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#3d3d3d]">
+              검토중
+            </span>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-orange-500">{stats.pending}</p>
-          <p className="text-caption text-gray-500 mt-0.5">미제출</p>
+        <div className="flex items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ebe4e4]">
+            <AlertCircle className="h-5 w-5 text-[#8b2f2f]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-2xl font-bold tabular-nums text-[#8b2f2f]">
+              {stats.pending}
+            </p>
+            <p className="text-xs font-medium text-[#6a6a6a]">미제출</p>
+            <span className="mt-1 inline-block rounded-full border border-[#ddd4d4] bg-[#f5eded] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#6b3030]">
+              대기
+            </span>
+          </div>
         </div>
       </div>
 
@@ -675,7 +833,7 @@ export default function Assignments() {
                 : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
             }`}
           >
-            전체 Phase
+            전체
           </button>
           {presentPhases.map((p) => {
             const cfg = getPhaseCfg(p);
@@ -692,7 +850,7 @@ export default function Assignments() {
                 }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full inline-block ${isActive ? 'bg-white' : cfg.dot}`}
+                  className={`inline-block h-1.5 w-1.5 rounded-full ${cfg.dot} ${isActive ? 'ring-2 ring-white/40' : ''}`}
                 />
                 {cfg.label}
                 {pendingCnt > 0 && (

@@ -4,7 +4,6 @@ import * as Icons from 'lucide-react';
 import { curriculumApi } from '@/api/curriculum';
 import Skeleton from '@/components/common/Skeleton';
 
-/* ── 상태별 스타일 ── */
 const statusUi = {
   completed: {
     card: 'bg-white border-[#e8e4dc] shadow-[0_4px_20px_rgba(45,42,38,0.06)]',
@@ -32,7 +31,6 @@ const statusUi = {
   },
 };
 
-/* ── 태스크 행 ── */
 function TaskRow({ task }) {
   const Icon =
     task.progress === 100
@@ -68,7 +66,6 @@ function TaskRow({ task }) {
   );
 }
 
-/* ── AI 팁 생성 ── */
 function buildAiTip(phase) {
   if (!phase?.tasks?.length) {
     return 'AI Tip: 단계를 선택하면 맞춤 학습 팁이 표시됩니다.';
@@ -82,7 +79,6 @@ function buildAiTip(phase) {
   return `AI Tip: 이번 주는 ${phase.title} 핵심 개념을 복습하고, 미완료 토픽부터 차근차근 채워 보세요.`;
 }
 
-/* ── 모듈 카드 ── */
 function ModuleCard({ phase, selected, onSelect }) {
   const ui = statusUi[phase.status] || statusUi.upcoming;
   const PhaseIcon = Icons[phase.icon] || Icons.BookOpen;
@@ -114,7 +110,7 @@ function ModuleCard({ phase, selected, onSelect }) {
         </span>
       </div>
       <p
-        className="line-clamp-2 text-[0.85rem] font-semibold leading-snug text-[#1f1e1c] sm:text-[0.95rem]"
+        className={`line-clamp-2 text-[0.85rem] font-semibold leading-snug text-[#1f1e1c] sm:text-[0.95rem]`}
       >
         {phase.phase}. {phase.title}
       </p>
@@ -136,9 +132,6 @@ function ModuleCard({ phase, selected, onSelect }) {
   );
 }
 
-/* ══════════════════════════════════════════════════
-   메인 Dashboard
-   ══════════════════════════════════════════════════ */
 export default function Dashboard() {
   const [curriculum, setCurriculum] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -196,21 +189,21 @@ export default function Dashboard() {
     return (
       <div className="flex w-full min-w-0 items-stretch justify-center gap-2 sm:gap-3">
         {phases.map((phase, i) => (
-          <Fragment key={phase.id}>
-            <div className="min-w-0 flex-1 basis-0">
-              <ModuleCard
-                phase={phase}
-                selected={selectedPhaseId === phase.id}
-                onSelect={setSelectedPhaseId}
-              />
-            </div>
-            {i < phases.length - 1 && (
-              <div
-                className="w-2 shrink-0 self-center border-t-2 border-dotted border-[#c4bfb5] sm:w-4 md:w-6"
-                aria-hidden
-              />
-            )}
-          </Fragment>
+            <Fragment key={phase.id}>
+              <div className="min-w-0 flex-1 basis-0">
+                <ModuleCard
+                  phase={phase}
+                  selected={selectedPhaseId === phase.id}
+                  onSelect={setSelectedPhaseId}
+                />
+              </div>
+              {i < phases.length - 1 && (
+                <div
+                  className="w-2 shrink-0 self-center border-t-2 border-dotted border-[#c4bfb5] sm:w-4 md:w-6"
+                  aria-hidden
+                />
+              )}
+            </Fragment>
         ))}
       </div>
     );
@@ -229,13 +222,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 rounded-3xl bg-[#F9F8F6] px-2 py-4 sm:px-4 md:-mx-2 md:px-6 md:py-6">
-      {/* ── 헤더 ── */}
+      {/* 헤더 */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1
-            className="text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]"
+            className={`text-[1.75rem] font-semibold tracking-tight text-[#1f1e1c] sm:text-[2rem]`}
           >
-            커리큘럼 로드맵
+            학습 과정
           </h1>
           <p className="mt-1 text-[0.875rem] text-[#6b6560]">
             {curriculumStart && curriculumEnd
@@ -257,7 +250,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── 전체 진행률 ── */}
+      {/* 전체 진행률 바 */}
       <div className="rounded-xl border border-[#e8e4dc] bg-white/80 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ebe8e3]">
           <div
@@ -267,7 +260,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── 모듈 경로: 2줄 ── */}
+      {/* 모듈 경로: 2줄 고정 (가로 스크롤 없음) */}
       <div className="flex flex-col gap-5 sm:gap-6">
         {renderModuleRow(row1)}
         {row2.length > 0 && (
@@ -281,7 +274,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* ── 선택된 Phase 상세 ── */}
+      {/* 현재 모듈 상세 */}
       {selectedPhase && (
         <div className="rounded-3xl border border-[#e8e4dc] bg-white p-5 shadow-[0_12px_40px_rgba(45,42,38,0.07)] sm:p-7">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
@@ -295,7 +288,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <h2
-                    className="text-[1.35rem] font-semibold text-[#1f1e1c] sm:text-[1.5rem]"
+                    className={`text-[1.35rem] font-semibold text-[#1f1e1c] sm:text-[1.5rem]`}
                   >
                     {selectedPhase.phase}. {selectedPhase.title}
                   </h2>

@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useCourse } from '@/context/CourseContext';
 import {
@@ -35,10 +35,13 @@ export default function Sidebar({ collapsed = false, onToggle }) {
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse } =
     useCourse();
   const navigate = useNavigate();
+  const location = useLocation();
   const items = menuMap[role] || [];
   const isStudentLightTheme = role === 'student';
   const isTeacherTheme = role === 'teacher';
   const isAdminNavy = role === 'admin';
+  const showEquipmentAddCta =
+    isAdminNavy && location.pathname.startsWith('/admin/equipment');
 
   const handleLogout = () => {
     logout();
@@ -114,11 +117,6 @@ export default function Sidebar({ collapsed = false, onToggle }) {
               </option>
             ))}
           </select>
-          {selectedCourse?.classroom && (
-            <p className="mt-1 text-[10px] text-white/40">
-              {selectedCourse.classroom}
-            </p>
-          )}
         </div>
       )}
 
@@ -278,6 +276,18 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         className={`border-t ${isStudentLightTheme ? 'border-[#ebe8e1]' : 'border-white/10'} p-4 ${collapsed ? 'px-2' : ''}`}
       >
         <div className={`${collapsed ? 'justify-center' : ''}`}>
+          {!collapsed && showEquipmentAddCta && (
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent('admin-equipment-open-add'))
+              }
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg border border-[#3d4f66] bg-[#1e2a3a] py-2.5 text-[0.72rem] font-semibold tracking-wide text-[#dbe7f5] transition-colors hover:bg-[#243044]"
+            >
+              <Icons.Plus className="h-3.5 w-3.5 shrink-0" />
+              장비 등록 · ADD EQUIPMENT
+            </button>
+          )}
           <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
           <Avatar
             name={user?.name}
