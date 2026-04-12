@@ -16,10 +16,9 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  CalendarOff,
 } from 'lucide-react';
-
-const CHECKOUT_HOUR = 17;
-const CHECKOUT_MINUTE = 50;
 
 export default function Attendance() {
   const [name, setName] = useState('');
@@ -33,6 +32,8 @@ export default function Attendance() {
   const [showEarlyLeaveConfirm, setShowEarlyLeaveConfirm] = useState(false);
   const [localAttendance, setLocalAttendance] = useState([]);
   const [summary, setSummary] = useState(null);
+  // 수업 시간 창 (주말·시간 외 비활성화)
+  const [scheduleWindow, setScheduleWindow] = useState(null);
   const { showToast } = useToast();
 
   // 달력 월 탐색 상태
@@ -41,9 +42,12 @@ export default function Attendance() {
   const [viewMonth, setViewMonth] = useState(now2.getMonth() + 1);
 
   const now = new Date();
+  // 퇴실 가능 시각: scheduleWindow에서 class_end 사용, 없으면 17:50 기본값
+  const [checkoutH, checkoutM] = scheduleWindow?.class_end
+    ? scheduleWindow.class_end.split(':').map(Number)
+    : [17, 50];
   const isAfterCheckoutTime =
-    now.getHours() * 60 + now.getMinutes() >=
-    CHECKOUT_HOUR * 60 + CHECKOUT_MINUTE;
+    now.getHours() * 60 + now.getMinutes() >= checkoutH * 60 + checkoutM;
 
   // 오늘 출석 상태 조회 → 이미 체크인/퇴실한 경우 UI 반영
   useEffect(() => {
@@ -71,6 +75,11 @@ export default function Attendance() {
       .getSummary()
       .then(setSummary)
       .catch(() => {});
+    // 수업 시간 창 조회 (주말·시간 외 비활성화 판단)
+    attendanceApi
+      .getWindow()
+      .then(setScheduleWindow)
+      .catch(() => setScheduleWindow({ can_checkin: true })); // 실패 시 기본 허용
   }, []);
 
   // 월별 출석 데이터 fetch
@@ -122,7 +131,7 @@ export default function Attendance() {
       setSignatureSubmitted(true);
       showToast({
         type: 'success',
-        message: '입실 처리가 완료되었습니다. 17:50 이후 퇴실해주세요.',
+        message: `입실 처리가 완료되었습니다. ${scheduleWindow?.class_end ?? '17:50'} 이후 퇴실해주세요.`,
       });
     } catch {
       // Storage 버킷이 없어도 체크인은 시도 (URL 없이)
@@ -131,7 +140,7 @@ export default function Attendance() {
         setSignatureSubmitted(true);
         showToast({
           type: 'success',
-          message: '입실 처리가 완료되었습니다. 17:50 이후 퇴실해주세요.',
+          message: `입실 처리가 완료되었습니다. ${scheduleWindow?.class_end ?? '17:50'} 이후 퇴실해주세요.`,
         });
       } catch {
         showToast({ type: 'error', message: '체크인에 실패했습니다.' });
@@ -311,27 +320,56 @@ export default function Attendance() {
             ) : null}
           </div>
 
-          {/* 안내 규칙 - 2열 그리드 */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-gray-100">
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-              <span>09:00 이전 → 출석</span>
-            </div>
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
-              <span>09:00~09:30 → 지각</span>
-            </div>
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <XCircle className="w-4 h-4 text-red-500 shrink-0" />
-              <span>09:30 이후 → 결석</span>
-            </div>
-            <div className="flex items-center gap-2 text-body-sm text-gray-600">
-              <LogOut className="w-4 h-4 text-student-500 shrink-0" />
-              <span>17:50 이후 → 퇴실</span>
-            </div>
-          </div>
+          {/* 안내 규칙 - 2열 그리드 (수업 시간 동적 반영) */}
+          {(() => {
+            const start = scheduleWindow?.class_start ?? '09:00';
+            const end = scheduleWindow?.class_end ?? '17:50';
+            const [sh, sm] = start.split(':').map(Number);
+            const lateMinutes = sh * 60 + sm + 30;
+            const late = `${String(Math.floor(lateMinutes / 60)).padStart(2, '0')}:${String(lateMinutes % 60).padStart(2, '0')}`;
+            return (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2 text-body-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                  <span>{start} 이전 → 출석</span>
+                </div>
+                <div className="flex items-center gap-2 text-body-sm text-gray-600">
+                  <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
+                  <span>{start}~{late} → 지각</span>
+                </div>
+                <div className="flex items-center gap-2 text-body-sm text-gray-600">
+                  <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+                  <span>{late} 이후 → 결석</span>
+                </div>
+                <div className="flex items-center gap-2 text-body-sm text-gray-600">
+                  <LogOut className="w-4 h-4 text-student-500 shrink-0" />
+                  <span>{end} 이후 → 퇴실</span>
+                </div>
+              </div>
+            );
+          })()}
 
-          {/* 이름 입력 + 확인 버튼 */}
+          {/* 주말·시간 외 비활성화 안내 */}
+          {scheduleWindow && !scheduleWindow.can_checkin && (
+            <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
+              {scheduleWindow.is_weekend ? (
+                <CalendarOff className="w-10 h-10 text-gray-300" />
+              ) : (
+                <Clock className="w-10 h-10 text-gray-300" />
+              )}
+              <p className="text-body-sm font-medium text-gray-500">
+                {scheduleWindow.reason}
+              </p>
+              {scheduleWindow.is_before_window && (
+                <p className="text-caption text-gray-400">
+                  수업 시작: {scheduleWindow.class_start}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* 이름 입력 + 서명 — 수업 시간 창 내에서만 표시 */}
+          {(!scheduleWindow || scheduleWindow.can_checkin) && <>
           <div className="mb-3">
             <label className="block text-body-sm font-medium text-gray-700 mb-1">
               이름 <span className="text-red-500">*</span>
@@ -392,6 +430,7 @@ export default function Attendance() {
             onEarlyLeave={() => setShowEarlyLeaveConfirm(true)}
             earlyLeaveDone={earlyLeaveDone}
           />
+          </>}
         </Card>
 
         {/* Right: Calendar & Stats */}

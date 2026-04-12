@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserX, FolderOpen } from 'lucide-react';
 import { adminApi } from '@/api/admin';
@@ -8,6 +8,15 @@ import ProgressBar from '@/components/common/ProgressBar';
 import SkillRadarChart from '@/components/charts/SkillRadarChart';
 
 const ADMIN_COLOR = '#8B5CF6'; // --color-admin-500
+
+// 컴포넌트 밖에 선언 — 렌더마다 재생성 방지
+const RADAR_MAP = {
+  출결: '출결',
+  AI_말하기: 'AI말하기',
+  AI_면접: 'AI면접',
+  포트폴리오: '포트폴리오',
+  프로젝트_과제_시험: '프로젝트',
+};
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -27,6 +36,20 @@ export default function AdminDashboard() {
   const portfolioCount = students.filter((s) =>
     s.files?.some((f) => f.type === 'portfolio'),
   ).length;
+
+  // students 변경 시에만 radarData 전처리 — 렌더마다 재계산 방지
+  const processedStudents = useMemo(
+    () =>
+      students.map((s) => ({
+        ...s,
+        radarData: Object.entries(s.skills || {}).map(([key, score]) => ({
+          subject: RADAR_MAP[key] ?? key,
+          score,
+          fullMark: 100,
+        })),
+      })),
+    [students],
+  );
 
   const stats = [
     {
@@ -77,21 +100,7 @@ export default function AdminDashboard() {
 
       {/* 수강생 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {students.map((student) => {
-          const RADAR_MAP = {
-            출결: '출결',
-            AI_말하기: 'AI말하기',
-            AI_면접: 'AI면접',
-            포트폴리오: '포트폴리오',
-            프로젝트_과제_시험: '프로젝트',
-          };
-          const radarData = Object.entries(student.skills || {}).map(
-            ([key, score]) => ({
-              subject: RADAR_MAP[key] ?? key,
-              score,
-              fullMark: 100,
-            }),
-          );
+        {processedStudents.map((student) => {
           const hasPortfolio = student.files?.some(
             (f) => f.type === 'portfolio',
           );
@@ -146,7 +155,7 @@ export default function AdminDashboard() {
               {/* 역량 레이더 */}
               <div className="border-t border-gray-100 pt-4">
                 <SkillRadarChart
-                  data={radarData}
+                  data={student.radarData}
                   color={ADMIN_COLOR}
                   size="mini"
                 />

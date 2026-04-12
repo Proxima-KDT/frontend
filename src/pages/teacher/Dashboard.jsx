@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Users, Calendar } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import { useCourse } from '@/context/CourseContext';
@@ -21,6 +21,26 @@ export default function TeacherDashboard() {
   const { selectedCourseId, selectedCourse } = useCourse();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // students 변경 시에만 radarData/skillData 전처리 — 렌더마다 재계산 방지
+  const processedStudents = useMemo(
+    () =>
+      students.map((s) => {
+        const skillData = Object.entries(s.skills || {}).map(
+          ([subject, score]) => ({ subject, score, fullMark: 100 }),
+        );
+        return {
+          ...s,
+          skillData,
+          radarData: skillData.map((item) => ({
+            ...item,
+            subject:
+              item.subject === '프로젝트.과제.시험' ? '프로젝트..' : item.subject,
+          })),
+        };
+      }),
+    [students],
+  );
 
   useEffect(() => {
     if (!selectedCourseId) {
@@ -108,23 +128,7 @@ export default function TeacherDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {students.map((student) => {
-            const skillData = Object.entries(student.skills || {}).map(
-              ([subject, score]) => ({
-                subject,
-                score,
-                fullMark: 100,
-              }),
-            );
-
-            // 레이더 차트용: 긴 라벨 축약
-            const radarData = skillData.map((item) => ({
-              ...item,
-              subject:
-                item.subject === '프로젝트.과제.시험'
-                  ? '프로젝트..'
-                  : item.subject,
-            }));
+          {processedStudents.map((student) => {
 
             return (
               <Card
@@ -164,12 +168,12 @@ export default function TeacherDashboard() {
                 {/* 역량 분석 - MyPage 스타일 2열 레이아웃 */}
                 <div className="grid grid-cols-2 gap-3">
                   <SkillRadarChart
-                    data={radarData}
+                    data={student.radarData}
                     color="#3B82F6"
                     size="mini"
                   />
                   <div className="flex flex-col justify-center gap-2">
-                    {skillData.map((skill, idx) => (
+                    {student.skillData.map((skill, idx) => (
                       <ProgressBar
                         key={skill.subject}
                         value={skill.score}

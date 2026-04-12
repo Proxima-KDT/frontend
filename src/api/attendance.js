@@ -24,4 +24,7 @@ export const attendanceApi = {
 
   getSummary: () =>
     axiosInstance.get('/api/attendance/summary').then((r) => r.data),
+
+  getWindow: () =>
+    axiosInstance.get('/api/attendance/window').then((r) => r.data),
 };
