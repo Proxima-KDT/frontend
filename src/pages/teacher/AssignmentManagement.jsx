@@ -13,6 +13,9 @@ import {
   MessageSquare,
   RotateCcw,
   Trash2,
+  Bell,
+  Search,
+  Star,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import { useCourse } from '@/context/CourseContext';
@@ -272,7 +275,20 @@ export default function AssignmentManagement() {
     .slice()
     .sort((a, b) => (a.phase ?? 99) - (b.phase ?? 99))
     .filter((a) => phaseFilter === 0 || a.phase === phaseFilter);
+  const focusAssignment = filteredAssignments[0] ?? null;
+  const focusTotal = focusAssignment?.studentSubmissions?.length ?? 0;
+  const focusSubmitted =
+    focusAssignment?.studentSubmissions?.filter((s) => s.status !== 'pending')
+      .length ?? 0;
+  const focusGraded =
+    focusAssignment?.studentSubmissions?.filter((s) => s.status === 'graded')
+      .length ?? 0;
 
+  const totalSubmissionCount = assignments.reduce(
+    (acc, a) =>
+      acc + a.studentSubmissions.filter((s) => s.status !== 'pending').length,
+    0,
+  );
   const totalPending = assignments.reduce(
     (acc, a) =>
       acc + a.studentSubmissions.filter((s) => s.status === 'submitted').length,
@@ -285,6 +301,12 @@ export default function AssignmentManagement() {
         .length,
     0,
   );
+  const groupedAssignments = filteredAssignments.reduce((acc, assignment) => {
+    const key = assignment.phase || 0;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(assignment);
+    return acc;
+  }, {});
 
   const openFeedbackModal = (assignment, student) => {
     const rubricScores = assignment.rubric.map((r) => ({
@@ -434,64 +456,71 @@ export default function AssignmentManagement() {
 
   return (
     <div className="relative rounded-3xl bg-[#efede8] px-4 py-5 sm:px-6 md:-mx-2 md:px-8 md:py-7">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-h1 font-bold text-gray-900">과제 관리</h1>
-        <Button
-          variant="primary"
-          size="sm"
-          icon={Plus}
-          onClick={() => setShowAddModal(true)}
-        >
-          과제 추가
-        </Button>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#d8d5cf] pb-3">
+        <div>
+          <h1 className="text-[2rem] leading-tight text-[#2a2a2a]">
+            과제 관리
+          </h1>
+          <p className="mt-1 text-[0.8rem] font-medium tracking-wide text-[#a39c92]">
+            Assignment Management
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7e7a74]">
+          <button className="rounded-full px-3 py-1.5 hover:bg-[#e2dfd8]">Dashboard</button>
+          <button className="rounded-full border border-[#bab7b0] bg-[#e8e5de] px-3 py-1.5 text-[#343230]">
+            Evaluations
+          </button>
+          <button className="rounded-full px-3 py-1.5 hover:bg-[#e2dfd8]">Analytics</button>
+          <button className="rounded-full px-3 py-1.5 hover:bg-[#e2dfd8]">Resources</button>
+          <Search className="h-4 w-4 text-[#7b7871]" />
+          <Bell className="h-4 w-4 text-[#7b7871]" />
+          <Button
+            variant="primary"
+            size="sm"
+            icon={Plus}
+            onClick={() => setShowAddModal(true)}
+            className="rounded-full !bg-[#69717a] px-5 !text-white hover:!bg-[#535a62]"
+          >
+            Create Evaluation
+          </Button>
+        </div>
       </div>
 
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-primary-500" />
-            </div>
-            <div>
-              <p className="text-caption text-gray-500">전체 과제</p>
-              <p className="text-h3 font-bold text-gray-900">
-                {assignments.length}개
-              </p>
-            </div>
-          </div>
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
+          <p className="text-sm font-semibold text-[#5c5852]">
+            전체 제출 수{' '}
+            <span className="text-xl font-bold tabular-nums text-[#1f2f43]">
+              {totalSubmissionCount}
+            </span>
+          </p>
+          <p className="mt-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+            Total Assignments
+          </p>
+          <p className="mt-1 text-5xl text-[#1f2f43]">{assignments.length}</p>
+          <ClipboardList className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-caption text-gray-500">채점 대기</p>
-              <p className="text-h3 font-bold text-gray-900">
-                {totalPending}건
-              </p>
-            </div>
-          </div>
+        <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
+          <p className="text-sm font-semibold text-[#5c5852]">제출 대기</p>
+          <p className="mt-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+            Pending Submissions
+          </p>
+          <p className="mt-1 text-5xl text-[#1f2f43]">{totalPending}</p>
+          <FileText className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-              <RefreshCcw className="w-5 h-5 text-orange-500" />
-            </div>
-            <div>
-              <p className="text-caption text-gray-500">재제출 요청</p>
-              <p className="text-h3 font-bold text-gray-900">
-                {totalResubmit}건
-              </p>
-            </div>
-          </div>
+        <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+            Grading Requests
+          </p>
+          <p className="mt-1 text-5xl text-[#1f2f43]">{totalResubmit}</p>
+          <span className="mt-3 inline-flex rounded-full bg-[#d9bf63] px-3 py-1 text-[10px] font-bold uppercase text-[#4a3a14]">
+            High Priority
+          </span>
+          <Star className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
         </Card>
       </div>
 
-      {/* Phase 탭 필터 */}
-      <div className="mb-4 flex gap-2 rounded-full bg-[#e2dfd8] p-1.5 w-fit flex-wrap">
+      <div className="mb-6 flex gap-2 rounded-full bg-[#e2dfd8] p-1.5 w-fit flex-wrap">
         {[0, 1, 2, 3, 4, 5, 6].map((p) => {
           const count =
             p === 0
@@ -508,15 +537,37 @@ export default function AssignmentManagement() {
                   : 'text-[#69645c] hover:bg-white/70'
               }`}
             >
-              {p === 0 ? `전체 (${count})` : `Phase ${p} (${count})`}
+              {p === 0 ? `ALL ${count}` : `PHASE ${p} · ${count}`}
             </button>
           );
         })}
       </div>
 
-      {/* 과제 목록 */}
-      <div className="space-y-3">
-        {filteredAssignments.map((assignment) => {
+      <div className="space-y-8">
+        {Object.entries(groupedAssignments)
+          .sort((a, b) => Number(a[0]) - Number(b[0]))
+          .map(([phase, phaseAssignments]) => {
+            const minOpen = phaseAssignments
+              .map((a) => a.openDate)
+              .filter(Boolean)
+              .sort()[0];
+            const maxDue = phaseAssignments
+              .map((a) => a.dueDate)
+              .filter(Boolean)
+              .sort()
+              .slice(-1)[0];
+            return (
+              <section key={phase}>
+                <div className="mb-3 flex items-center justify-between gap-3 border-b border-[#dbd7d0] pb-2">
+                  <h2 className="text-[2rem] text-[#202020]">
+                    Phase {String(phase).padStart(2, '0')}
+                  </h2>
+                  <span className="text-sm italic text-[#7c7870]">
+                    {(minOpen || '').replaceAll('-', '.')} - {(maxDue || '').replaceAll('-', '.')}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {phaseAssignments.map((assignment) => {
           const submitted = assignment.studentSubmissions.filter(
             (s) => s.status !== 'pending',
           ).length;
@@ -529,50 +580,40 @@ export default function AssignmentManagement() {
           ).length;
           const isExpanded = expandedId === assignment.id;
 
-          return (
-            <Card key={assignment.id} padding="p-0" className="relative">
-              {/* 과제 헤더 */}
+                    return (
+            <Card key={assignment.id} padding="p-0" className="relative rounded-[24px] border border-[#ddd9d2] bg-[#f7f6f2]">
               <button
-                className="w-full flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 rounded-2xl transition-colors"
+                className="w-full cursor-pointer rounded-[24px] p-6 text-left transition-colors hover:bg-[#f2f0ea]"
                 onClick={() => setExpandedId(isExpanded ? null : assignment.id)}
               >
-                <span
-                  className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${PHASE_COLORS[(assignment.phase - 1) % 6]}`}
-                >
-                  Phase {assignment.phase}
-                </span>
-                <div className="flex-1 text-left">
-                  <p className="font-semibold text-gray-900">
+                <div className="mb-3 flex items-start justify-between gap-4">
+                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${PHASE_COLORS[(assignment.phase - 1) % 6]}`}>
+                    {assignment.subject || `Phase ${assignment.phase}`}
+                  </span>
+                </div>
+                <p className="text-[2rem] leading-tight text-[#1f2f43]">
                     {assignment.title}
-                  </p>
-                  <p className="text-caption text-gray-500">
-                    {assignment.subject} · 마감 {assignment.dueDate}
-                  </p>
-                </div>
-                <div className="hidden md:flex items-center gap-4 mr-2">
-                  <div className="text-right">
-                    <p className="text-caption text-gray-500">제출 현황</p>
-                    <p className="font-semibold text-gray-900">
-                      {submitted}/{total}
+                </p>
+                <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[#e0ddd6] pt-4 text-sm">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                      제출
                     </p>
+                    <p className="text-[1.6rem] font-semibold text-[#1f2f43]">{submitted}/{total}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-caption text-gray-500">채점 완료</p>
-                    <p className="font-semibold text-gray-900">
-                      {graded}/{total}
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                      채점 완료
                     </p>
+                    <p className="text-[1.6rem] font-semibold text-[#1f2f43]">{graded}/{total}</p>
                   </div>
-                  {pendingGrade > 0 && (
-                    <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                      채점 대기 {pendingGrade}
-                    </span>
-                  )}
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                      제출 기한
+                    </p>
+                    <p className="text-[1.6rem] font-semibold text-[#884c3a]">{assignment.dueDate || '-'}</p>
+                  </div>
                 </div>
-                {isExpanded ? (
-                  <ChevronUp className="w-5 h-5 text-gray-400 shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400 shrink-0" />
-                )}
               </button>
 
               {/* 삭제 버튼 — 카드 우상단 */}
@@ -705,6 +746,7 @@ export default function AssignmentManagement() {
                                 variant="primary"
                                 size="sm"
                                 icon={MessageSquare}
+                                className="!bg-[#59606a] !text-white hover:!bg-[#444b55]"
                                 onClick={() =>
                                   openFeedbackModal(assignment, student)
                                 }
@@ -736,9 +778,22 @@ export default function AssignmentManagement() {
                 </div>
               )}
             </Card>
-          );
-        })}
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
       </div>
+
+      <button
+        type="button"
+        onClick={() => setShowAddModal(true)}
+        className="fixed bottom-8 right-8 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#69717a] text-white shadow-[0_12px_30px_rgba(49,53,58,0.35)] transition-colors hover:bg-[#565e67]"
+        title="과제 추가"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       {/* 과제 추가 모달 */}
       <Modal
@@ -859,7 +914,7 @@ export default function AssignmentManagement() {
               과제가 추가되면 전체 수강생에게 자동으로 배정됩니다.
             </p>
           </div>
-          <Button variant="primary" fullWidth onClick={handleCreateAssignment}>
+          <Button variant="primary" fullWidth className="!bg-[#59606a] !text-white hover:!bg-[#444b55]" onClick={handleCreateAssignment}>
             과제 추가하기
           </Button>
         </div>
@@ -956,7 +1011,7 @@ export default function AssignmentManagement() {
               </Button>
               <Button
                 variant="primary"
-                className="flex-1"
+                className="flex-1 !bg-[#59606a] !text-white hover:!bg-[#444b55]"
                 onClick={() => handleSubmitFeedback(false)}
                 disabled={!feedbackForm.text.trim()}
               >

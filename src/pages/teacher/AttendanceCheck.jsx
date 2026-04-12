@@ -777,8 +777,15 @@ export default function AttendanceCheck() {
   return (
     <div className="rounded-3xl bg-[#eeefed] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-h1 font-bold text-gray-900">출석 확인</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-[2.05rem] font-semibold text-[#2a2d33]">
+            출결 확인
+          </h1>
+          <p className="mt-1 text-[0.95rem] text-[#6f747b]">
+            오늘의 출결과 강의실 상태를 확인하고 관리합니다.
+          </p>
+        </div>
         {!isLoading && (
           <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-1.5 shadow-[0_1px_4px_rgba(45,42,38,0.08)]">
             <Users size={16} className="text-[#6b7280]" />
@@ -790,7 +797,7 @@ export default function AttendanceCheck() {
       </div>
 
       {/* 날짜 네비게이션 */}
-      <div className="flex items-center gap-1 mb-5">
+      <div className="mb-5 flex items-center gap-1">
         <button
           onClick={() => setSelectedDate((d) => moveDateByWorkday(d, -1))}
           className="rounded-lg p-2 text-[#6b6f76] transition-colors hover:bg-[#e3e5e2]"
@@ -830,7 +837,7 @@ export default function AttendanceCheck() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-5">
+        <div className="mb-5 grid grid-cols-3 gap-3 md:grid-cols-6">
           <Card padding="p-4" className="rounded-2xl border border-[#e5e6e4] bg-[#f8f9f8] shadow-none">
             <p className="mb-1 text-caption text-[#9aa0a8]">전체</p>
             <p className="text-h2 font-bold text-[#3f4752]">{total}명</p>
