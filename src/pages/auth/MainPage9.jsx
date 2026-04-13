@@ -6,19 +6,19 @@ const ROLE_ITEMS = [
   {
     key: 'student',
     label: '수강생',
-    desc: '학습 진도, 과제, 피드백을 한 번에 확인',
+    desc: '수업·과제·피드백을 한눈에 관리',
     icon: GraduationCap,
   },
   {
     key: 'teacher',
     label: '강사',
-    desc: '학생 관리, 상담, 평가 리포트 운영',
+    desc: '수강생·상담·평가를 통합 운영',
     icon: UserRound,
   },
   {
     key: 'admin',
     label: '관리자',
-    desc: '전체 운영 현황과 계정/시스템 관리',
+    desc: '운영 현황과 시스템을 통합 관리',
     icon: ShieldCheck,
   },
 ];
@@ -332,7 +332,7 @@ export default function MainPage9() {
           />
         </div>
         <MagneticGlowText as="p" className="text-center text-xs font-semibold tracking-[0.18em] md:text-sm" intensity={0.75}>
-          <span style={{ color: T.body, fontFamily: fontApp }}>Innovative experience</span>
+          <span style={{ color: T.body, fontFamily: fontApp }}>Uni-Sphere</span>
         </MagneticGlowText>
       </header>
 
@@ -358,9 +358,9 @@ export default function MainPage9() {
             </MagneticGlowText>
           </h2>
 
-          <p className="mt-8 max-w-[650px] text-[1.15rem] leading-relaxed md:text-[1.35rem]" style={{ color: T.body }}>
+          <p className="mt-8 max-w-[650px] text-[1.15rem] leading-relaxed break-keep md:text-[1.35rem]" style={{ color: T.body }}>
             <MagneticGlowText as="span" className="block" intensity={0.55}>
-              수강생·강사·관리자 모두를 위한 AI 기반 학습 운영 플랫폼. 학습 관리, 피드백, 취업 연계를 하나의 경험으로 연결합니다.
+              Korea IT Academy AI 기반 학습 운영 플랫폼으로 효율적인 학습 관리를 경험 합니다.
             </MagneticGlowText>
           </p>
 
@@ -386,7 +386,7 @@ export default function MainPage9() {
                     {role.label}
                   </p>
                   <p
-                    className="relative mt-1.5 text-xs leading-relaxed transition-all duration-300 group-hover:translate-x-0.5 group-hover:brightness-105 group-hover:text-[#4a4338]"
+                    className="relative mt-1.5 text-xs leading-relaxed whitespace-nowrap break-keep transition-all duration-300 group-hover:translate-x-0.5 group-hover:brightness-105 group-hover:text-[#4a4338]"
                     style={{ color: T.body }}
                   >
                     {role.desc}

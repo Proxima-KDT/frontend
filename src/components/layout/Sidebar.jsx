@@ -8,6 +8,7 @@ import {
 } from '@/data/mockData';
 import { UserCircle } from 'lucide-react';
 import * as Icons from 'lucide-react';
+import pageLogo from '@/assets/pagelogo.png';
 
 const menuMap = {
   student: studentMenuItems,
@@ -67,10 +68,12 @@ export default function Sidebar({ collapsed = false }) {
         className={`flex items-center gap-3 px-4 h-16 border-b ${isStudentLightTheme ? 'border-[#ebe8e1]' : 'border-white/10'} ${collapsed ? 'justify-center' : ''}`}
       >
         <div
-          className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center ${isAdminNavy || isTeacherTheme ? 'bg-white/12' : 'bg-[#ece9e3]'}`}
+          className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center overflow-hidden ${isAdminNavy || isTeacherTheme ? 'bg-white/12' : 'bg-[#ece9e3]'}`}
         >
-          <Icons.Sparkles
-            className={`w-4 h-4 ${isAdminNavy || isTeacherTheme ? 'text-[#e5e7eb]' : 'text-[#8a847a]'}`}
+          <img
+            src={pageLogo}
+            alt="Uni-Sphere"
+            className="h-full w-full object-contain"
           />
         </div>
         {!collapsed && !isAdminNavy && (
@@ -78,22 +81,22 @@ export default function Sidebar({ collapsed = false }) {
             <p
               className={`text-[0.95rem] italic font-semibold ${isTeacherTheme ? 'text-[#f9fafb]' : 'text-[#4a4640]'}`}
             >
-              Korea IT Academy
+              Uni-Sphere
             </p>
             <p
               className={`text-[0.62rem] tracking-[0.12em] ${isTeacherTheme ? 'text-[#d1d5db]/75' : 'text-[#a8a29e]'}`}
             >
-              학습 포털
+              Learning Hub
             </p>
           </div>
         )}
         {!collapsed && isAdminNavy && (
           <div className="min-w-0 text-left leading-tight">
             <p className="text-[0.95rem] font-semibold italic tracking-tight text-[#fdf8f3]">
-              Korea IT Academy
+              Uni-Sphere
             </p>
             <p className="text-[0.62rem] tracking-[0.12em] text-[#e8d8cc]/85">
-              운영 포털
+              Operations Hub
             </p>
           </div>
         )}
