@@ -20,21 +20,21 @@ const pageBg = '#F7F5F0';
 const GOLD = '#c9a962';
 
 const PHASE_COLORS = [
-  'from-violet-500 to-purple-600',
-  'from-blue-500 to-cyan-600',
-  'from-emerald-500 to-teal-600',
-  'from-amber-500 to-orange-600',
-  'from-rose-500 to-pink-600',
-  'from-indigo-500 to-blue-600',
+  'bg-[#8a7060]',
+  'bg-[#4e7a9a]',
+  'bg-[#4a7a58]',
+  'bg-[#b07840]',
+  'bg-[#8a5060]',
+  'bg-[#5a6a7a]',
 ];
 
 // ── 상수 ──────────────────────────────────────────────────
 const STATUS_CONFIG = {
   locked: {
     label: '평가 예정',
-    badgeClass: 'bg-gray-100 text-gray-500',
+    badgeClass: 'bg-[#ede9e2] text-[#8a847a]',
     icon: Lock,
-    iconClass: 'text-gray-400',
+    iconClass: 'text-[#a8a29e]',
   },
   open: {
     label: '제출 대기',
@@ -44,9 +44,9 @@ const STATUS_CONFIG = {
   },
   submitted: {
     label: '제출완료',
-    badgeClass: 'bg-[#e9eff3] text-[#4f6475]',
+    badgeClass: 'bg-[#e8edf0] text-[#4a5a68]',
     icon: CheckCircle2,
-    iconClass: 'text-[#6f8391]',
+    iconClass: 'text-[#5a7888]',
   },
   graded: {
     label: '채점완료',
@@ -84,7 +84,7 @@ function ScoreRing({ score, maxScore, passed }) {
             cx="40"
             cy="40"
             r={radius}
-            stroke="#e5e7eb"
+            stroke="#e8e4dc"
             strokeWidth="8"
             fill="none"
           />
@@ -92,7 +92,7 @@ function ScoreRing({ score, maxScore, passed }) {
             cx="40"
             cy="40"
             r={radius}
-            stroke={passed ? '#16a34a' : '#dc2626'}
+            stroke={passed ? '#4a7a58' : '#b05040'}
             strokeWidth="8"
             fill="none"
             strokeLinecap="round"
@@ -106,7 +106,7 @@ function ScoreRing({ score, maxScore, passed }) {
       </div>
       <span
         className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-          passed ? 'bg-[#edf1e8] text-[#5e7455]' : 'bg-[#f7e5e3] text-[#a33b39]'
+          passed ? 'bg-[#e8f0ea] text-[#3a6a48]' : 'bg-[#f4e8e4] text-[#8a4030]'
         }`}
       >
         {passed ? '통과' : '미통과'}
@@ -148,7 +148,7 @@ function RubricTable({ rubric, totalScore }) {
                 {r.maxScore}점
               </td>
               {isGraded && (
-                <td className="px-4 py-2.5 text-right font-semibold text-[#4e5a61]">
+                <td className="px-4 py-2.5 text-right font-semibold text-[#2c2b28]">
                   {r.score !== null ? `${r.score}점` : '-'}
                 </td>
               )}
@@ -193,7 +193,7 @@ function FileUploadArea({ files, onFilesChange }) {
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
         <p className="text-body-sm text-gray-600">
           파일을 드래그하거나{' '}
-          <span className="text-[#4e5a61] font-semibold">클릭하여 업로드</span>
+          <span className="text-[#3d3d3d] font-semibold">클릭하여 업로드</span>
         </p>
         <p className="text-caption text-gray-400 mt-1">
           PDF, ZIP, 이미지 등 최대 100MB
@@ -288,7 +288,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
         <div className="flex items-center gap-4 p-5">
           {/* Phase 번호 배지 */}
           <div
-            className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center shrink-0`}
+            className={`w-12 h-12 rounded-xl ${colorClass} flex items-center justify-center shrink-0`}
           >
             <span className="text-white font-bold text-body">
               {assessment.phase_id}
@@ -313,7 +313,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
           {/* 점수 (채점완료) */}
           {isGraded && (
             <div className="text-right shrink-0">
-              <p className="text-h2 font-bold text-[#4e5a61]">
+              <p className="text-h2 font-bold text-[#2c2b28]">
                 {assessment.score}
                 <span className="text-body text-gray-400 font-normal">점</span>
               </p>
@@ -328,7 +328,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
           )}
 
           {/* 잠금 아이콘 */}
-          {isLocked && <Lock className="w-5 h-5 text-[#c5c2ba] shrink-0" />}
+          {isLocked && <Lock className="w-5 h-5 text-[#b8b0a8] shrink-0" />}
 
           {/* 펼치기 아이콘 */}
           {!isLocked && (
@@ -347,14 +347,14 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
       {!isLocked && expanded && (
         <div className="border-t border-gray-100 p-5 space-y-5">
           {/* 평가 주제 + 설명 */}
-          <div className="rounded-xl border border-[#e3edf3] bg-[#f4f8fb] p-4">
-            <p className="mb-1 text-caption font-semibold uppercase tracking-wide text-[#6f8391]">
+          <div className="rounded-xl border border-[#e8e4dc] bg-[#faf9f7] p-4">
+            <p className="mb-1 text-caption font-semibold uppercase tracking-wide text-[#8a847a]">
               평가 주제
             </p>
             <p className="mb-2 text-body font-bold text-[#2c2b28]">
               {assessment.subject}
             </p>
-            <p className="text-body-sm leading-relaxed text-[#4f6475]">
+            <p className="text-body-sm leading-relaxed text-[#5c5852]">
               {assessment.description}
             </p>
           </div>
@@ -367,7 +367,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
             <ul className="space-y-2">
               {assessment.requirements.map((req, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eef2f4] text-[11px] font-bold text-[#4e5a61]">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#ede9e2] text-[11px] font-bold text-[#6b6560]">
                     {i + 1}
                   </span>
                   <span className="text-body-sm text-gray-700 leading-relaxed">
@@ -415,11 +415,11 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                 passed={assessment.passed}
               />
               {assessment.feedback && (
-                <div className="flex-1 rounded-xl border border-[#e5ece0] bg-[#f3f6f1] p-4">
-                  <p className="mb-1 text-body-sm font-semibold text-[#5e7455]">
+                <div className="flex-1 rounded-xl border border-[#dde8dd] bg-[#f0f5f0] p-4">
+                  <p className="mb-1 text-body-sm font-semibold text-[#3a6a48]">
                     강사 피드백
                   </p>
-                  <p className="text-body-sm leading-relaxed text-[#667a5e]">
+                  <p className="text-body-sm leading-relaxed text-[#4a6048]">
                     {assessment.feedback}
                   </p>
                 </div>
@@ -455,7 +455,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                       className={`flex items-center gap-2 rounded-lg border p-2.5 text-body-sm ${
                         resubmitting
                           ? 'bg-gray-50 border-gray-200 text-gray-400 line-through'
-                          : 'border-[#e3edf3] bg-[#f4f8fb] text-[#4f6475]'
+                          : 'border-[#e8e4dc] bg-[#faf9f7] text-[#5c5852]'
                       }`}
                     >
                       <Paperclip className="w-4 h-4 shrink-0" />
@@ -529,8 +529,8 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
               <button
                 onClick={handleSubmit}
                 disabled={uploadedFiles.length === 0 || submitting}
-                className="mt-3 w-full rounded-xl bg-[#4e5a61] py-2.5 text-body-sm font-semibold text-white
-                  transition-colors hover:bg-[#424d53] active:bg-[#384248]
+                className="mt-3 w-full rounded-xl bg-[#3d3d3d] py-2.5 text-body-sm font-semibold text-white
+                  transition-colors hover:bg-[#2a2a28] active:bg-[#1f1e1c]
                   disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
                 {submitting ? '제출 중...' : '제출하기'}
@@ -570,12 +570,12 @@ export default function Assessments() {
     >
       {/* 헤더 */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-student-100 flex items-center justify-center">
-          <Award className="w-5 h-5 text-student-600" />
+        <div className="w-10 h-10 rounded-xl bg-[#f0ede8] flex items-center justify-center">
+          <Award className="w-5 h-5 text-[#8a7060]" />
         </div>
         <div>
-          <h1 className="text-h2 font-bold text-gray-900">능력단위 평가</h1>
-          <p className="text-caption text-gray-500">
+          <h1 className="text-h2 font-bold text-[#2c2b28]">능력단위 평가</h1>
+          <p className="text-caption text-[#6b6560]">
             각 Phase 종료 후 해당 역량에 대한 평가를 실시합니다.
           </p>
         </div>
@@ -584,19 +584,19 @@ export default function Assessments() {
       {/* 요약 통계 */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-green-600">{passed.length}</p>
+          <p className="text-h2 font-bold text-[#4a7a58]">{passed.length}</p>
           <p className="text-caption text-gray-500 mt-0.5">
             통과 ({graded.length}/{assessments.length})
           </p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-student-600">
+          <p className="text-h2 font-bold text-[#2c2b28]">
             {avgScore !== null ? `${avgScore}점` : '-'}
           </p>
-          <p className="text-caption text-gray-500 mt-0.5">평가점수</p>
+          <p className="text-caption text-[#6b6560] mt-0.5">평가점수</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-h2 font-bold text-blue-600">
+          <p className="text-h2 font-bold text-[#c07a30]">
             {assessments.filter((a) => a.status === 'open').length}
           </p>
           <p className="text-caption text-gray-500 mt-0.5">제출 대기</p>

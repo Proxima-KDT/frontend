@@ -341,7 +341,7 @@ export default function CounselingBooking() {
         <h1
           className={`text-[2.1rem] font-semibold tracking-tight text-[#2c2b28]`}
         >
-          면담 예약
+          면담 신청
         </h1>
         <p className="mt-1 text-[0.95rem] text-[#6b6560]">
           멘토 및 학업 매니저와의 1:1 세션을 통해 학습 방향을 설계하고 필요한 지원을 받으세요.

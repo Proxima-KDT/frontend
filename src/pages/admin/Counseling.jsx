@@ -16,7 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { teacherApi } from '@/api/teacher';
+import { adminApi } from '@/api/admin';
 import { useToast } from '@/context/ToastContext';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -29,7 +29,7 @@ const steps = [
   { key: 'summary', label: 'AI 요약', icon: Sparkles },
 ];
 
-export default function Counseling() {
+export default function AdminCounseling() {
   const { showToast } = useToast();
   const [currentStep, setCurrentStep] = useState(-1);
   const [processing, setProcessing] = useState(false);
@@ -51,13 +51,18 @@ export default function Counseling() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    teacherApi
+    adminApi
       .getCounselingRecords()
       .then((data) => setRecords(data))
-      .catch(() => showToast({ message: '상담 이력을 불러오지 못했습니다.', type: 'error' }))
+      .catch(() =>
+        showToast({
+          message: '면담 이력을 불러오지 못했습니다.',
+          type: 'error',
+        }),
+      )
       .finally(() => setRecordsLoading(false));
 
-    teacherApi
+    adminApi
       .getStudents()
       .then((data) => setStudents(data))
       .catch(() => {});
@@ -79,14 +84,28 @@ export default function Counseling() {
       showToast({ message: '먼저 학생을 선택해주세요.', type: 'error' });
       return;
     }
-    const allowed = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'audio/webm'];
-    const isAudio = allowed.includes(file.type) || file.name.match(/\.(mp3|wav|m4a|webm|ogg)$/i);
+    const allowed = [
+      'audio/mpeg',
+      'audio/wav',
+      'audio/mp4',
+      'audio/x-m4a',
+      'audio/webm',
+    ];
+    const isAudio =
+      allowed.includes(file.type) ||
+      file.name.match(/\.(mp3|wav|m4a|webm|ogg)$/i);
     if (!isAudio) {
-      showToast({ message: 'MP3, WAV, M4A 형식의 오디오 파일만 업로드 가능합니다.', type: 'error' });
+      showToast({
+        message: 'MP3, WAV, M4A 형식의 오디오 파일만 업로드 가능합니다.',
+        type: 'error',
+      });
       return;
     }
     if (file.size > 100 * 1024 * 1024) {
-      showToast({ message: '파일 크기는 최대 100MB까지 업로드 가능합니다.', type: 'error' });
+      showToast({
+        message: '파일 크기는 최대 100MB까지 업로드 가능합니다.',
+        type: 'error',
+      });
       return;
     }
     startUpload(file);
@@ -134,7 +153,7 @@ export default function Counseling() {
     }, 1500);
     const formData = new FormData();
     formData.append('file', file);
-    teacherApi
+    adminApi
       .uploadCounselingAudio(formData, selectedStudent.name)
       .then((result) => {
         clearInterval(interval);
@@ -145,13 +164,16 @@ export default function Counseling() {
           setProcessing(false);
           setShowResult(true);
         }, 500);
-        showToast({ message: '상담 기록이 저장되었습니다.', type: 'success' });
+        showToast({ message: '면담 기록이 저장되었습니다.', type: 'success' });
       })
       .catch(() => {
         clearInterval(interval);
         setProcessing(false);
         setCurrentStep(-1);
-        showToast({ message: '업로드 중 오류가 발생했습니다. 다시 시도해주세요.', type: 'error' });
+        showToast({
+          message: '업로드 중 오류가 발생했습니다. 다시 시도해주세요.',
+          type: 'error',
+        });
       });
   };
 
@@ -166,7 +188,6 @@ export default function Counseling() {
   const toggleNote = (id, currentNote) => {
     setOpenNotes((prev) => {
       const next = { ...prev, [id]: !prev[id] };
-      // 처음 열 때 기존 메모를 textarea에 채워둠
       if (next[id] && noteTexts[id] === undefined) {
         setNoteTexts((t) => ({ ...t, [id]: currentNote || '' }));
       }
@@ -176,15 +197,17 @@ export default function Counseling() {
 
   const handleSaveNote = (id) => {
     setNoteSaving((prev) => ({ ...prev, [id]: true }));
-    teacherApi
+    adminApi
       .updateCounselingNote(id, noteTexts[id] ?? '')
       .then(() => {
         setRecords((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, note: noteTexts[id] } : r))
+          prev.map((r) => (r.id === id ? { ...r, note: noteTexts[id] } : r)),
         );
         showToast({ message: '메모가 저장되었습니다.', type: 'success' });
       })
-      .catch(() => showToast({ message: '메모 저장에 실패했습니다.', type: 'error' }))
+      .catch(() =>
+        showToast({ message: '메모 저장에 실패했습니다.', type: 'error' }),
+      )
       .finally(() => setNoteSaving((prev) => ({ ...prev, [id]: false })));
   };
 
@@ -197,7 +220,7 @@ export default function Counseling() {
 
   return (
     <div className="rounded-3xl bg-[#F9F8F6] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
-      <h1 className="text-h1 font-bold text-gray-900 mb-6">상담 기록</h1>
+      <h1 className="text-h1 font-bold text-gray-900 mb-6">면담 기록</h1>
 
       {/* 업로드 영역 */}
       <Card className="mb-6">
@@ -211,24 +234,26 @@ export default function Counseling() {
             <div className="mb-4">
               <label className="block text-body-sm font-medium text-gray-700 mb-1">
                 <User className="w-4 h-4 inline mr-1" />
-                상담 학생 선택 <span className="text-red-500">*</span>
+                면담 학생 선택 <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-body-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teacher-400 bg-white"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-body-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#c5a88a] bg-white"
               >
                 <option value="">학생을 선택하세요</option>
-                {Object.entries(studentsByCourse).map(([courseName, courseStudents]) => (
-                  <optgroup key={courseName} label={`📚 ${courseName}`}>
-                    {courseStudents.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                        {s.cohort_number ? ` (${s.cohort_number}기)` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
+                {Object.entries(studentsByCourse).map(
+                  ([courseName, courseStudents]) => (
+                    <optgroup key={courseName} label={`📚 ${courseName}`}>
+                      {courseStudents.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                          {s.cohort_number ? ` (${s.cohort_number}기)` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ),
+                )}
               </select>
             </div>
 
@@ -248,17 +273,17 @@ export default function Counseling() {
                 !selectedStudentId
                   ? 'border-[#e0dcd6] cursor-not-allowed bg-[#faf9f7]'
                   : isDragOver
-                  ? 'border-[#a89a8a] bg-[#f2ede5] cursor-copy'
-                  : 'border-[#d4cfc9] cursor-pointer hover:border-[#a89a8a] hover:bg-[#f8f5f0]'
+                    ? 'border-[#c5a88a] bg-[#f7efe5] cursor-copy'
+                    : 'border-[#d4cfc9] cursor-pointer hover:border-[#c5a88a] hover:bg-[#f8f5f0]'
               }`}
             >
               <FileAudio
                 className={`w-12 h-12 mx-auto mb-3 ${
                   isDragOver
-                    ? 'text-[#8a7a6a]'
+                    ? 'text-[#a07850]'
                     : selectedStudentId
-                    ? 'text-[#c4bdb5]'
-                    : 'text-[#d8d3cd]'
+                      ? 'text-[#c4bdb5]'
+                      : 'text-[#d8d3cd]'
                 }`}
               />
               <p
@@ -266,15 +291,15 @@ export default function Counseling() {
                   isDragOver
                     ? 'text-[#3a2e22]'
                     : selectedStudentId
-                    ? 'text-gray-700'
-                    : 'text-gray-400'
+                      ? 'text-gray-700'
+                      : 'text-gray-400'
                 }`}
               >
                 {isDragOver
                   ? '파일을 여기에 놓으세요'
                   : selectedStudentId
-                  ? '음성 파일을 드래그하거나 클릭하세요'
-                  : '학생을 먼저 선택하세요'}
+                    ? '음성 파일을 드래그하거나 클릭하세요'
+                    : '학생을 먼저 선택하세요'}
               </p>
               <p className="text-caption text-gray-400">
                 MP3, WAV, M4A (최대 100MB)
@@ -294,7 +319,7 @@ export default function Counseling() {
                     w-10 h-10 rounded-full flex items-center justify-center
                     ${
                       i <= currentStep
-                        ? 'bg-teacher-500 text-white'
+                        ? 'bg-[#c5a88a] text-white'
                         : 'bg-gray-200 text-gray-400'
                     }
                   `}
@@ -308,7 +333,7 @@ export default function Counseling() {
                   <span
                     className={`text-caption mt-1 ${
                       i <= currentStep
-                        ? 'text-teacher-500 font-medium'
+                        ? 'text-[#a07850] font-medium'
                         : 'text-gray-400'
                     }`}
                   >
@@ -318,7 +343,7 @@ export default function Counseling() {
                 {i < steps.length - 1 && (
                   <div
                     className={`flex-1 h-0.5 mx-2 ${
-                      i < currentStep ? 'bg-teacher-500' : 'bg-gray-200'
+                      i < currentStep ? 'bg-[#c5a88a]' : 'bg-gray-200'
                     }`}
                   />
                 )}
@@ -352,7 +377,6 @@ export default function Counseling() {
               )}
             </div>
 
-            {/* 화자 정보 */}
             {uploadResult?.speakers?.length > 0 && (
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-gray-400 shrink-0" />
@@ -400,7 +424,6 @@ export default function Counseling() {
               </div>
             )}
 
-            {/* 원본 오디오 재생 */}
             {uploadResult?.audio_url && (
               <div>
                 <h3 className="text-body font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
@@ -422,13 +445,13 @@ export default function Counseling() {
         )}
       </Card>
 
-      {/* 상담 이력 */}
-      <h2 className="text-h3 font-semibold text-gray-900 mb-4">상담 이력</h2>
+      {/* 면담 이력 */}
+      <h2 className="text-h3 font-semibold text-gray-900 mb-4">면담 이력</h2>
       <div className="space-y-4">
         {recordsLoading ? (
           <p className="text-body-sm text-gray-400">로딩 중...</p>
         ) : records.length === 0 ? (
-          <p className="text-body-sm text-gray-400">상담 이력이 없습니다.</p>
+          <p className="text-body-sm text-gray-400">면담 이력이 없습니다.</p>
         ) : (
           (() => {
             const totalPages = Math.max(1, Math.ceil(records.length / recordPageSize));
@@ -457,14 +480,14 @@ export default function Counseling() {
                 <Badge variant="default">완료</Badge>
               </div>
 
-              {/* 화자 */}
               {record.speakers?.length > 0 && (
                 <div className="flex items-center gap-1.5 mb-2">
                   <Users className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                   <div className="flex flex-wrap gap-1">
                     {record.speakers.map((s, i) => (
                       <span key={i} className="text-caption text-gray-500">
-                        {s}{i < record.speakers.length - 1 ? ' ·' : ''}
+                        {s}
+                        {i < record.speakers.length - 1 ? ' ·' : ''}
                       </span>
                     ))}
                   </div>
@@ -485,7 +508,6 @@ export default function Counseling() {
                 </div>
               )}
 
-              {/* 오디오 재생 */}
               {record.audio_url && (
                 <audio
                   controls
@@ -494,15 +516,15 @@ export default function Counseling() {
                 />
               )}
 
-              {/* 강사 메모 아코디언 */}
+              {/* 관리자 메모 아코디언 */}
               <div className="mt-3 border-t border-gray-100 pt-3">
                 <button
                   onClick={() => toggleNote(record.id, record.note)}
-                  className="flex items-center gap-1.5 text-body-sm font-medium text-gray-500 hover:text-teacher-600 transition-colors w-full text-left"
+                  className="flex items-center gap-1.5 text-body-sm font-medium text-gray-500 hover:text-[#a07850] transition-colors w-full text-left"
                 >
                   <NotebookPen className="w-4 h-4 shrink-0" />
                   <span className="flex-1">
-                    {record.note ? '강사 메모 보기/수정' : '강사 메모 추가'}
+                    {record.note ? '메모 보기/수정' : '메모 추가'}
                   </span>
                   {openNotes[record.id] ? (
                     <ChevronUp className="w-4 h-4" />
@@ -522,8 +544,8 @@ export default function Counseling() {
                         }))
                       }
                       rows={4}
-                      placeholder="이 상담에 대한 개인 메모를 입력하세요..."
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-body-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-teacher-400 bg-gray-50"
+                      placeholder="이 면담에 대한 메모를 입력하세요..."
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-body-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#c5a88a] bg-gray-50"
                     />
                     <div className="flex justify-end">
                       <Button

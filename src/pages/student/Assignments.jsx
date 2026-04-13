@@ -25,26 +25,26 @@ const STATUS_CONFIG = {
   pending: {
     label: '미제출',
     icon: Clock,
-    badgeClass: 'bg-gray-100 text-gray-600',
-    iconClass: 'text-gray-400',
+    badgeClass: 'bg-[#ececec] text-[#4a4a4a]',
+    iconClass: 'text-[#8a8a8a]',
   },
   submitted: {
     label: '제출완료',
     icon: CheckCircle2,
-    badgeClass: 'bg-blue-100 text-blue-700',
-    iconClass: 'text-blue-500',
+    badgeClass: 'bg-[#e4e8f0] text-[#2a405a]',
+    iconClass: 'text-[#4a7aaa]',
   },
   graded: {
     label: '채점완료',
     icon: CheckCircle2,
-    badgeClass: 'bg-green-100 text-green-700',
-    iconClass: 'text-green-500',
+    badgeClass: 'bg-[#e4ede6] text-[#2a4a30]',
+    iconClass: 'text-[#4a8a58]',
   },
   resubmit_required: {
     label: '재제출 요청',
     icon: RefreshCcw,
-    badgeClass: 'bg-orange-100 text-orange-700',
-    iconClass: 'text-orange-500',
+    badgeClass: 'bg-[#f0e8d8] text-[#4a3820]',
+    iconClass: 'text-[#b07840]',
   },
 };
 
@@ -53,46 +53,46 @@ const FILTERS = ['전체', '미제출', '제출완료', '채점완료', '재제�
 // Phase 색상 팔레트 — subject는 DB의 assignment.subject를 사용하므로 여기선 색상만.
 const PHASE_PALETTE = [
   {
-    bg: 'bg-purple-100',
-    text: 'text-purple-700',
-    dot: 'bg-purple-500',
-    tab: 'bg-purple-500',
-    stripe: 'bg-violet-600',
+    bg: 'bg-[#f0ebe0]',
+    text: 'text-[#5a4a30]',
+    dot: 'bg-[#c07a30]',
+    tab: 'bg-[#c07a30]',
+    stripe: 'bg-[#a86828]',
   },
   {
-    bg: 'bg-blue-100',
-    text: 'text-blue-700',
-    dot: 'bg-blue-500',
-    tab: 'bg-blue-500',
-    stripe: 'bg-blue-600',
+    bg: 'bg-[#e4ecf4]',
+    text: 'text-[#2a405a]',
+    dot: 'bg-[#4a7aaa]',
+    tab: 'bg-[#4a7aaa]',
+    stripe: 'bg-[#3a6890]',
   },
   {
-    bg: 'bg-green-100',
-    text: 'text-green-700',
-    dot: 'bg-green-500',
-    tab: 'bg-green-500',
-    stripe: 'bg-emerald-600',
+    bg: 'bg-[#e4ede6]',
+    text: 'text-[#2a4a30]',
+    dot: 'bg-[#4a8a58]',
+    tab: 'bg-[#4a8a58]',
+    stripe: 'bg-[#3a7848]',
   },
   {
-    bg: 'bg-orange-100',
-    text: 'text-orange-700',
-    dot: 'bg-orange-500',
-    tab: 'bg-orange-500',
-    stripe: 'bg-amber-700',
+    bg: 'bg-[#f0e8d8]',
+    text: 'text-[#4a3820]',
+    dot: 'bg-[#b07840]',
+    tab: 'bg-[#b07840]',
+    stripe: 'bg-[#906030]',
   },
   {
-    bg: 'bg-pink-100',
-    text: 'text-pink-700',
-    dot: 'bg-pink-500',
-    tab: 'bg-pink-500',
-    stripe: 'bg-rose-600',
+    bg: 'bg-[#e0ece8]',
+    text: 'text-[#2a4a40]',
+    dot: 'bg-[#4a8a78]',
+    tab: 'bg-[#4a8a78]',
+    stripe: 'bg-[#3a7868]',
   },
   {
-    bg: 'bg-indigo-100',
-    text: 'text-indigo-700',
-    dot: 'bg-indigo-500',
-    tab: 'bg-indigo-500',
-    stripe: 'bg-indigo-600',
+    bg: 'bg-[#eae4f0]',
+    text: 'text-[#3a2a5a]',
+    dot: 'bg-[#7a6aaa]',
+    tab: 'bg-[#7a6aaa]',
+    stripe: 'bg-[#6a5890]',
   },
 ];
 
@@ -162,9 +162,9 @@ function DueDateBadge({ dueDate, status }) {
       </span>
     );
   if (dday === 0)
-    return <span className="text-xs font-bold text-red-600">오늘 마감</span>;
+    return <span className="text-xs font-bold text-[#c07a30]">오늘 마감</span>;
   if (dday <= 3)
-    return <span className="text-xs font-semibold text-red-500">D-{dday}</span>;
+    return <span className="text-xs font-semibold text-[#c07a30]">D-{dday}</span>;
   return (
     <span className="text-xs text-[#7a7a7a]">
       D-{dday} · {new Date(dueDate).toLocaleDateString('ko-KR')}
@@ -173,7 +173,16 @@ function DueDateBadge({ dueDate, status }) {
 }
 
 function RubricTable({ rubric }) {
-  if (!rubric) return null;
+  if (!rubric || rubric.length === 0) {
+    return (
+      <div className="mt-4">
+        <p className="text-body-sm font-semibold text-[#3a3a3a] mb-2">항목별 채점</p>
+        <div className="rounded-xl border border-[#e0dbd0] bg-[#f8f5f0] px-4 py-3 text-[0.8rem] text-[#8a847a]">
+          채점 항목이 설정되지 않은 과제입니다.
+        </div>
+      </div>
+    );
+  }
   const total = rubric.reduce((s, r) => s + (r.score ?? 0), 0);
   const max = rubric.reduce(
     (s, r) => s + (r.maxScore ?? r.max_score ?? 0),
@@ -250,7 +259,7 @@ function FileUploadArea({ files, onFilesChange }) {
   return (
     <div className="space-y-3">
       <div
-        className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-student-400 hover:bg-student-50 transition-colors cursor-pointer"
+        className="border-2 border-dashed border-[#d4cfc9] rounded-xl p-6 text-center hover:border-[#a89a8a] hover:bg-[#f8f5f0] transition-colors cursor-pointer"
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => document.getElementById('file-input').click()}
@@ -258,7 +267,7 @@ function FileUploadArea({ files, onFilesChange }) {
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
         <p className="text-body-sm text-gray-600">
           파일을 드래그하거나{' '}
-          <span className="text-student-600 font-semibold">
+          <span className="text-[#5a4a38] font-semibold">
             클릭하여 업로드
           </span>
         </p>
@@ -307,6 +316,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [deletingPath, setDeletingPath] = useState(null); // 삭제 중인 파일 path
+  const [deleteConfirmPath, setDeleteConfirmPath] = useState(null); // 삭제 확인 대기 중인 path
   // 제출 파일 목록은 로컬에서 관리 (삭제 후 즉시 반영)
   const [localSubmittedFiles, setLocalSubmittedFiles] = useState(
     assignment.submitted_files ?? assignment.submittedFiles ?? [],
@@ -382,11 +392,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-[#e0e0e0] border-l-[3px] border-t-[3px] bg-white shadow-[2px_3px_0_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[3px_4px_0_rgba(0,0,0,0.06)] ${
-        urgent
-          ? 'border-l-[#8b2f2f] border-t-[#8b2f2f]'
-          : 'border-l-[#2a2a2a] border-t-[#2a2a2a]'
-      }`}
+      className="relative overflow-hidden rounded-2xl border border-[#e0e0e0] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
     >
       <div className="relative">
         <div className="flex items-stretch gap-2 sm:gap-4">
@@ -408,7 +414,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
                 <DueDateBadge dueDate={dueStr} status={assignment.status} />
               )}
             </div>
-            <h3 className="text-[1.05rem] font-bold leading-snug text-[#2a2a2a] sm:text-[1.2rem]">
+            <h3 className="text-[1.05rem] font-bold leading-snug text-[#2c2b28] sm:text-[1.2rem]">
               {assignment.title}
             </h3>
             <p className="mt-1.5 text-[0.8rem] text-[#7a7a7a]">
@@ -451,34 +457,29 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
               </div>
             )}
             {(assignment.status === 'pending' ||
-              assignment.status === 'resubmit_required') && (
-              <div className="flex flex-col items-end gap-2">
-                {urgent && (
+              assignment.status === 'resubmit_required') &&
+              urgent && (
+                <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="rounded bg-[#9b3d3d] px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white">
+                    <span className="rounded bg-[#c07a30] px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white">
                       긴급
                     </span>
-                    <span className="text-[11px] font-bold text-[#9b3d3d]">
+                    <span className="text-[11px] font-bold text-[#c07a30]">
                       D-{dday} 남음
                     </span>
                   </div>
-                )}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setExpanded(true);
-                  }}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    urgent
-                      ? 'bg-[#8b2f2f] text-white shadow-sm hover:bg-[#732828]'
-                      : 'border border-[#c8c8c8] bg-white text-[#333333] hover:bg-[#f5f5f5]'
-                  }`}
-                >
-                  {urgent ? '지금 제출' : '상세 보기'}
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpanded(true);
+                    }}
+                    className="rounded-full px-3 py-1.5 text-xs font-semibold bg-[#c07a30] text-white shadow-sm hover:bg-[#a86828] transition-colors"
+                  >
+                    지금 제출
+                  </button>
+                </div>
+              )}
             <button
               type="button"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d0d0d0] bg-white text-[#4a4a4a] transition-colors hover:bg-[#f5f5f5]"
@@ -542,28 +543,46 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
                 {localSubmittedFiles.map((file, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-body-sm text-blue-700"
+                    className="flex items-center gap-2 p-2.5 rounded-lg bg-[#f0f0ef] border border-[#e0e0e0] text-body-sm text-[#3a3a3a]"
                   >
                     <Paperclip className="w-4 h-4 shrink-0" />
                     <span className="flex-1 truncate">{file.name}</span>
                     {file.size && (
-                      <span className="text-caption text-blue-400 shrink-0">
+                      <span className="text-caption text-[#8a8a8a] shrink-0">
                         {file.size}
                       </span>
                     )}
                     {canDeleteFile && (
-                      <button
-                        onClick={() => handleDeleteFile(file.path)}
-                        disabled={deletingPath === file.path}
-                        className="ml-1 p-1 rounded-md hover:bg-blue-100 active:bg-blue-200 transition-colors disabled:opacity-40"
-                        title="파일 삭제"
-                      >
-                        {deletingPath === file.path ? (
-                          <span className="w-3.5 h-3.5 block border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <X className="w-3.5 h-3.5 text-blue-500" />
-                        )}
-                      </button>
+                      deletingPath === file.path ? (
+                        <span className="ml-1 w-3.5 h-3.5 block border-2 border-[#4a4a4a] border-t-transparent rounded-full animate-spin shrink-0" />
+                      ) : deleteConfirmPath === file.path ? (
+                        <div className="flex items-center gap-1 ml-1 shrink-0">
+                          <span className="text-[11px] text-[#5a5a5a]">삭제?</span>
+                          <button
+                            onClick={() => {
+                              handleDeleteFile(file.path);
+                              setDeleteConfirmPath(null);
+                            }}
+                            className="px-2 py-0.5 text-[11px] font-semibold rounded bg-[#c04a4a] text-white hover:bg-[#a83838] transition-colors"
+                          >
+                            확인
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmPath(null)}
+                            className="px-2 py-0.5 text-[11px] font-semibold rounded bg-[#e4e4e4] text-[#5a5a5a] hover:bg-[#d4d4d4] transition-colors"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirmPath(file.path)}
+                          className="ml-1 p-1 rounded-md hover:bg-[#e4e4e4] active:bg-[#d8d8d8] transition-colors"
+                          title="파일 삭제"
+                        >
+                          <X className="w-3.5 h-3.5 text-[#6a6a6a]" />
+                        </button>
+                      )
                     )}
                   </div>
                 ))}
@@ -581,11 +600,11 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
             <div className="space-y-4">
               <RubricTable rubric={assignment.rubric} />
               {assignment.feedback && (
-                <div className="p-4 bg-green-50 rounded-xl border border-green-100">
-                  <p className="text-body-sm font-semibold text-green-800 mb-1">
+                <div className="p-4 bg-[#f0f2ec] rounded-xl border border-[#dde0d6]">
+                  <p className="text-body-sm font-semibold text-[#2a3a28] mb-1">
                     강사 피드백
                   </p>
-                  <p className="text-body-sm text-green-700 leading-relaxed">
+                  <p className="text-body-sm text-[#3a4a36] leading-relaxed">
                     {assignment.feedback}
                   </p>
                 </div>
@@ -595,11 +614,11 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
 
           {/* 재제출 요청 피드백 */}
           {assignment.status === 'resubmit_required' && assignment.feedback && (
-            <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
-              <p className="text-body-sm font-semibold text-orange-800 mb-1">
+            <div className="p-4 bg-[#f4f0e8] rounded-xl border border-[#e0d8c8]">
+              <p className="text-body-sm font-semibold text-[#4a3820] mb-1">
                 재제출 사유
               </p>
-              <p className="text-body-sm text-orange-700 leading-relaxed">
+              <p className="text-body-sm text-[#5a4a2a] leading-relaxed">
                 {assignment.feedback}
               </p>
             </div>
@@ -611,7 +630,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
               <p className="text-body-sm font-semibold text-gray-700 mb-2">
                 파일 제출
                 {assignment.status === 'resubmit_required' && (
-                  <span className="ml-2 text-orange-500 font-normal">
+                  <span className="ml-2 text-[#b07840] font-normal">
                     (재제출)
                   </span>
                 )}
@@ -681,6 +700,7 @@ const STATUS_FILTER_VALUES = {
 export default function Assignments() {
   const [statusFilter, setStatusFilter] = useState('전체');
   const [phaseFilter, setPhaseFilter] = useState(0); // 0 = 전체
+  const [phaseDropdownOpen, setPhaseDropdownOpen] = useState(false);
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -758,22 +778,17 @@ export default function Assignments() {
 
   return (
     <div
-      className="mx-auto max-w-3xl space-y-6 rounded-3xl px-4 py-6 sm:px-5 md:-mx-2 md:px-8 md:py-8"
+      className="mx-auto max-w-3xl space-y-6 rounded-3xl px-4 py-6 sm:px-5 md:px-8 md:py-8"
       style={{ backgroundColor: pageBg }}
     >
       {/* 헤더 */}
-      <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#e0e0e0] bg-white shadow-sm">
-          <ClipboardList className="h-5 w-5 text-[#4a4a4a]" />
-        </div>
-        <div>
-          <h1 className="font-serif text-[1.75rem] font-semibold leading-tight tracking-tight text-[#2a2a2a] sm:text-[2rem]">
-            과제
-          </h1>
-          <p className="mt-1 text-sm leading-relaxed text-[#6a6a6a]">
-            과제를 제출하고 피드백을 확인하세요
-          </p>
-        </div>
+      <div>
+        <h1 className="text-[1.65rem] font-semibold tracking-tight text-[#2c2b28]">
+          과제
+        </h1>
+        <p className="mt-1 text-[0.95rem] text-[#6b6560]">
+          과제를 제출하고 피드백을 확인하세요.
+        </p>
       </div>
 
       {/* 요약 통계 */}
@@ -807,66 +822,84 @@ export default function Assignments() {
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ebe4e4]">
-            <AlertCircle className="h-5 w-5 text-[#8b2f2f]" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ececec]">
+            <AlertCircle className="h-5 w-5 text-[#4a4a4a]" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-2xl font-bold tabular-nums text-[#8b2f2f]">
+            <p className="text-2xl font-bold tabular-nums text-[#2a2a2a]">
               {stats.pending}
             </p>
             <p className="text-xs font-medium text-[#6a6a6a]">미제출</p>
-            <span className="mt-1 inline-block rounded-full border border-[#ddd4d4] bg-[#f5eded] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#6b3030]">
+            <span className="mt-1 inline-block rounded-full border border-[#d8d8d8] bg-[#efefef] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#4a4a4a]">
               대기
             </span>
           </div>
         </div>
       </div>
 
-      {/* Phase 탭 필터 */}
+      {/* Phase 드롭다운 필터 */}
       {!loading && presentPhases.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="relative">
           <button
-            onClick={() => setPhaseFilter(0)}
-            className={`shrink-0 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
-              phaseFilter === 0
-                ? 'bg-[#2a2a2a] text-white shadow-sm'
-                : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
-            }`}
+            onClick={() => setPhaseDropdownOpen((v) => !v)}
+            className="flex w-full items-center justify-between rounded-xl border border-[#e0e0e0] bg-white px-4 py-2.5 text-sm font-semibold text-[#2a2a2a] shadow-sm hover:bg-[#fafafa] transition-colors"
           >
-            전체
+            <div className="flex items-center gap-2">
+              {phaseFilter === 0 ? (
+                <span className="text-[#2a2a2a]">전체 Phase</span>
+              ) : (
+                <>
+                  <span className={`inline-block h-2 w-2 rounded-full ${getPhaseCfg(phaseFilter).dot}`} />
+                  <span>{getPhaseCfg(phaseFilter).label}</span>
+                  {getPhasePendingCount(phaseFilter) > 0 && (
+                    <span className="rounded-full bg-[#e8e8e8] px-1.5 py-0.5 text-[10px] font-bold text-[#4a4a4a]">
+                      미제출 {getPhasePendingCount(phaseFilter)}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-[#6a6a6a] transition-transform duration-200 ${phaseDropdownOpen ? 'rotate-180' : ''}`}
+            />
           </button>
-          {presentPhases.map((p) => {
-            const cfg = getPhaseCfg(p);
-            const pendingCnt = getPhasePendingCount(p);
-            const isActive = phaseFilter === p;
-            return (
-              <button
-                key={p}
-                onClick={() => setPhaseFilter(p)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-body-sm font-semibold transition-all ${
-                  isActive
-                    ? 'bg-[#2a2a2a] text-white shadow-sm'
-                    : 'border border-[#dedede] bg-[#e8e8e8] text-[#333333] hover:bg-[#dedede]'
-                }`}
-              >
-                <span
-                  className={`inline-block h-1.5 w-1.5 rounded-full ${cfg.dot} ${isActive ? 'ring-2 ring-white/40' : ''}`}
-                />
-                {cfg.label}
-                {pendingCnt > 0 && (
-                  <span
-                    className={`ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold ${
-                      isActive
-                        ? 'bg-white/25 text-white'
-                        : 'bg-[#9a9a9a] text-white'
-                    }`}
-                  >
-                    {pendingCnt}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+
+          {phaseDropdownOpen && (
+            <>
+              {/* 배경 클릭 시 닫기 */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setPhaseDropdownOpen(false)}
+              />
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-[#e0e0e0] bg-white shadow-lg">
+                <button
+                  onClick={() => { setPhaseFilter(0); setPhaseDropdownOpen(false); }}
+                  className={`flex w-full items-center px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[#f5f5f5] ${phaseFilter === 0 ? 'bg-[#f0f0f0] font-semibold text-[#2a2a2a]' : 'text-[#4a4a4a]'}`}
+                >
+                  전체 Phase
+                </button>
+                {presentPhases.map((p) => {
+                  const cfg = getPhaseCfg(p);
+                  const cnt = getPhasePendingCount(p);
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => { setPhaseFilter(p); setPhaseDropdownOpen(false); }}
+                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[#f5f5f5] ${phaseFilter === p ? 'bg-[#f0f0f0] font-semibold text-[#2a2a2a]' : 'text-[#4a4a4a]'}`}
+                    >
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${cfg.dot}`} />
+                      {cfg.label}
+                      {cnt > 0 && (
+                        <span className="ml-auto rounded-full bg-[#e8e8e8] px-1.5 py-0.5 text-[10px] font-bold text-[#4a4a4a]">
+                          미제출 {cnt}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
 

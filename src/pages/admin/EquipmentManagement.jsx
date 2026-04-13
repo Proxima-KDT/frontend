@@ -10,13 +10,11 @@ import {
   History,
   ImagePlus,
   X,
-  Download,
   Search,
   Package,
   Activity,
   AlertTriangle,
   Globe,
-  SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -55,23 +53,23 @@ const statusLabelEn = {
 const ACTION_CONFIG = {
   borrow: {
     label: '대여',
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
+    color: 'text-[#4a7aaa]',
+    bg: 'bg-[#e4ecf4]',
+    border: 'border-[#c8d8ec]',
     Icon: ArrowDownCircle,
   },
   maintenance: {
     label: '수리',
-    color: 'text-orange-500',
-    bg: 'bg-orange-50',
-    border: 'border-orange-200',
+    color: 'text-[#b07840]',
+    bg: 'bg-[#f0e8d8]',
+    border: 'border-[#e0d0b8]',
     Icon: Wrench,
   },
   status_change: {
     label: '상태 변경',
-    color: 'text-gray-500',
-    bg: 'bg-gray-50',
-    border: 'border-gray-200',
+    color: 'text-[#6a6560]',
+    bg: 'bg-[#f5f2ec]',
+    border: 'border-[#e0dbd0]',
     Icon: null,
   },
 };
@@ -222,6 +220,8 @@ export default function EquipmentManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const [requestPage, setRequestPage] = useState(1);
+  const requestPageSize = 10;
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     name: '',
@@ -254,12 +254,6 @@ export default function EquipmentManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  useEffect(() => {
-    const openAdd = () => setShowAddModal(true);
-    window.addEventListener('admin-equipment-open-add', openAdd);
-    return () =>
-      window.removeEventListener('admin-equipment-open-add', openAdd);
-  }, []);
 
   useEffect(() => {
     adminApi
@@ -319,6 +313,7 @@ export default function EquipmentManagement() {
       serial_no: equip.serial_no,
       category: equip.category || '노트북',
       image_url: equip.image_url || '',
+      status: equip.status || 'available',
     });
     setEditImagePreview(equip.image_url || null);
     setEditImageFile(null);
@@ -340,8 +335,14 @@ export default function EquipmentManagement() {
         category: editForm.category,
         image_url: updatedImageUrl || undefined,
       });
+      // 상태가 변경된 경우 별도 API 호출
+      if (editForm.status !== editTarget.status) {
+        await adminApi.updateEquipmentStatus(editTarget.id, { status: editForm.status });
+      }
       setEquipment((prev) =>
-        prev.map((e) => (e.id === editTarget.id ? { ...e, ...updated } : e)),
+        prev.map((e) =>
+          e.id === editTarget.id ? { ...e, ...updated, status: editForm.status } : e,
+        ),
       );
       setShowEditModal(false);
       setEditTarget(null);
@@ -420,6 +421,15 @@ export default function EquipmentManagement() {
     [filtered, page],
   );
 
+  const requestTotalPages = Math.max(1, Math.ceil(requests.length / requestPageSize));
+  const pagedRequests = useMemo(
+    () => requests.slice((requestPage - 1) * requestPageSize, requestPage * requestPageSize),
+    [requests, requestPage],
+  );
+
+  // requests 변경 시 첫 페이지로 리셋
+  useEffect(() => { setRequestPage(1); }, [requests]);
+
   const requestColumns = [
     {
       key: 'student_name',
@@ -450,17 +460,17 @@ export default function EquipmentManagement() {
         <div className="flex gap-2">
           <Button
             size="sm"
-            variant="primary"
+            variant="warm"
             onClick={() => handleApprove(row.id)}
           >
-            승인 · Approve
+            승인
           </Button>
           <Button
             size="sm"
-            variant="danger"
+            variant="ghost"
             onClick={() => setRejectModal(row)}
           >
-            반려 · Reject
+            반려
           </Button>
         </div>
       ),
@@ -520,12 +530,12 @@ export default function EquipmentManagement() {
       render: (val) => {
         const dot =
           val === 'available'
-            ? 'bg-emerald-500'
+            ? 'bg-[#4a8a58]'
             : val === 'borrowed'
-              ? 'bg-amber-500'
+              ? 'bg-[#4a7aaa]'
               : val === 'maintenance'
-                ? 'bg-red-500'
-                : 'bg-gray-400';
+                ? 'bg-[#b07840]'
+                : 'bg-[#a09890]';
         return (
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
@@ -566,7 +576,7 @@ export default function EquipmentManagement() {
             className={`inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white transition-colors ${
               row.status === 'borrowed'
                 ? 'text-gray-200 cursor-not-allowed'
-                : 'text-[#6b7280] hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600'
+                : 'text-[#6b7280] hover:border-[#c8d8ec] hover:bg-[#e4ecf4] hover:text-[#4a7aaa]'
             }`}
             title={
               row.status === 'borrowed'
@@ -582,7 +592,7 @@ export default function EquipmentManagement() {
               setDeleteTarget(row);
               setShowDeleteModal(true);
             }}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#6b7280] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-500"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#6b7280] transition-colors hover:border-[#d4c4c4] hover:bg-[#f0e8e8] hover:text-[#8a6060]"
             title="삭제 · Delete"
           >
             <Trash2 className="h-4 w-4" />
@@ -608,8 +618,8 @@ export default function EquipmentManagement() {
       labelKo: '대여 가능',
       labelEn: 'Available',
       icon: CheckCircle,
-      iconBg: 'bg-emerald-50',
-      iconColor: 'text-emerald-600',
+      iconBg: 'bg-[#e4ede6]',
+      iconColor: 'text-[#4a8a58]',
     },
     {
       key: 'use',
@@ -617,8 +627,8 @@ export default function EquipmentManagement() {
       labelKo: '대여중',
       labelEn: 'In use',
       icon: Activity,
-      iconBg: 'bg-amber-50',
-      iconColor: 'text-amber-600',
+      iconBg: 'bg-[#e4ecf4]',
+      iconColor: 'text-[#4a7aaa]',
     },
     {
       key: 'maint',
@@ -626,8 +636,8 @@ export default function EquipmentManagement() {
       labelKo: '수리중',
       labelEn: 'Maintenance',
       icon: AlertTriangle,
-      iconBg: 'bg-red-50',
-      iconColor: 'text-red-600',
+      iconBg: 'bg-[#f0e8d8]',
+      iconColor: 'text-[#b07840]',
     },
   ];
 
@@ -657,18 +667,25 @@ export default function EquipmentManagement() {
               대여용 장비 현황
             </h1>
           </div>
-          <div className="flex shrink-0 items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-3 py-2 text-caption text-[#6b7280] shadow-sm">
-            <Globe className="h-4 w-4 text-[#9ca3af]" />
-            <span>
-              승인 대기{' '}
-              <span className="font-semibold text-[#121926]">
-                {requests.length}
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="flex items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-3 py-2 text-caption text-[#6b7280] shadow-sm">
+              <Globe className="h-4 w-4 text-[#9ca3af]" />
+              <span>
+                승인 대기{' '}
+                <span className="font-semibold text-[#121926]">
+                  {requests.length}
+                </span>
+                건
               </span>
-              건 · Pending{' '}
-              <span className="font-semibold text-[#121926]">
-                {requests.length}
-              </span>
-            </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2c2b28] px-4 py-2.5 text-[0.85rem] font-semibold text-white shadow-sm transition-colors hover:bg-[#3d3c39]"
+            >
+              <Plus className="h-4 w-4" />
+              장비 등록
+            </button>
           </div>
         </div>
 
@@ -702,75 +719,33 @@ export default function EquipmentManagement() {
 
         {/* 필터 + 표 */}
         <div className="overflow-hidden rounded-3xl border border-[#e4dfd4] bg-white shadow-[0_8px_32px_rgba(15,23,42,0.06)]">
-          <div className="flex flex-col gap-4 border-b border-[#efe9df] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div className="flex flex-wrap gap-2">
-              {FILTER_TABS.map((tab) => {
-                const count =
-                  tab.key === 'all'
-                    ? counts.all
-                    : tab.key === 'pending'
-                      ? requests.length
-                      : counts[tab.key];
-                const active = filter === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => setFilter(tab.key)}
-                    className={`rounded-full px-4 py-2 text-left text-[0.8rem] font-medium transition ${
-                      active
-                        ? 'bg-[#2d2d2d] text-white shadow-sm'
-                        : 'border border-[#e5e7eb] bg-[#fafafa] text-[#4b5563] hover:bg-[#f3f4f6]'
-                    }`}
-                  >
-                    <span className="block leading-tight">{tab.labelKo}</span>
-                    <span
-                      className={`block text-[0.65rem] ${active ? 'text-white/80' : 'text-[#9ca3af]'}`}
-                    >
-                      {tab.labelEn} · {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  showToast({
-                    type: 'info',
-                    message:
-                      '고급 필터는 준비 중입니다. · Advanced filters coming soon.',
-                  })
-                }
-                className="inline-flex items-center gap-2 rounded-full border border-[#e5e7eb] bg-[#faf9f6] px-4 py-2 text-[0.8rem] font-medium text-[#4b5563] transition hover:bg-[#f3f1ec]"
-              >
-                <SlidersHorizontal className="h-4 w-4 text-[#9ca3af]" />
-                고급 필터 · Advanced
-              </button>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={Download}
-                onClick={() => {
-                  if (filter === 'pending') {
-                    showToast({
-                      type: 'info',
-                      message:
-                        '보내기는 장비 목록 탭에서만 사용할 수 있습니다. · Export is only available on equipment tabs.',
-                    });
-                    return;
-                  }
-                  exportEquipmentCsv(filtered);
-                  showToast({
-                    type: 'success',
-                    message: 'CSV 파일로 저장했습니다. · Exported to CSV.',
-                  });
-                }}
-              >
-                보내기 · Export
-              </Button>
-            </div>
+          <div className="flex flex-wrap gap-2 border-b border-[#efe9df] px-4 py-4 sm:px-6">
+            {FILTER_TABS.map((tab) => {
+              const count =
+                tab.key === 'all'
+                  ? counts.all
+                  : tab.key === 'pending'
+                    ? requests.length
+                    : counts[tab.key];
+              const active = filter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setFilter(tab.key)}
+                  className={`rounded-full px-4 py-2 text-[0.8rem] font-semibold transition-colors ${
+                    active
+                      ? 'bg-[#2c2b28] text-white shadow-sm'
+                      : 'border border-[#e0dbd0] bg-[#f5f2ec] text-[#3a3632] hover:bg-[#ede9e1]'
+                  }`}
+                >
+                  {tab.labelKo}
+                  <span className={`ml-1.5 text-[0.72rem] font-normal ${active ? 'text-white/70' : 'text-[#8a847a]'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="p-4 sm:p-6">
@@ -785,10 +760,73 @@ export default function EquipmentManagement() {
                   </Badge>
                 </div>
                 {requests.length > 0 ? (
-                  <Table columns={requestColumns} data={requests} />
+                  <>
+                    <Table columns={requestColumns} data={pagedRequests} />
+                    {requests.length > requestPageSize && (
+                      <div className="mt-6 flex flex-col gap-3 border-t border-[#efe9df] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-caption text-[#8a847a]">
+                          {(requestPage - 1) * requestPageSize + 1}–
+                          {Math.min(requestPage * requestPageSize, requests.length)} 표시 ·
+                          Showing {(requestPage - 1) * requestPageSize + 1}–
+                          {Math.min(requestPage * requestPageSize, requests.length)} of{' '}
+                          {requests.length.toLocaleString()} entries
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={requestPage <= 1}
+                            onClick={() => setRequestPage((p) => Math.max(1, p - 1))}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#5c5852] transition hover:bg-[#f5f3ef] disabled:cursor-not-allowed disabled:opacity-35"
+                            aria-label="이전 페이지"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+                          {Array.from({ length: requestTotalPages }, (_, i) => i + 1)
+                            .filter(
+                              (p) =>
+                                p === 1 ||
+                                p === requestTotalPages ||
+                                Math.abs(p - requestPage) <= 1,
+                            )
+                            .reduce((acc, p, idx, arr) => {
+                              if (idx > 0 && p - arr[idx - 1] > 1) acc.push('…');
+                              acc.push(p);
+                              return acc;
+                            }, [])
+                            .map((p, idx) =>
+                              p === '…' ? (
+                                <span key={`e-${idx}`} className="px-1 text-caption text-[#b4aea4]">…</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  key={p}
+                                  onClick={() => setRequestPage(p)}
+                                  className={`flex h-9 min-w-9 items-center justify-center rounded-full text-sm font-medium transition ${
+                                    p === requestPage
+                                      ? 'bg-[#2d2d2d] text-white shadow-sm'
+                                      : 'text-[#5c5852] hover:bg-[#f5f3ef]'
+                                  }`}
+                                >
+                                  {p}
+                                </button>
+                              ),
+                            )}
+                          <button
+                            type="button"
+                            disabled={requestPage >= requestTotalPages}
+                            onClick={() => setRequestPage((p) => Math.min(requestTotalPages, p + 1))}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e7eb] bg-white text-[#5c5852] transition hover:bg-[#f5f3ef] disabled:cursor-not-allowed disabled:opacity-35"
+                            aria-label="다음 페이지"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="py-12 text-center">
-                    <CheckCircle className="mx-auto mb-2 h-12 w-12 text-emerald-500" />
+                    <CheckCircle className="mx-auto mb-2 h-12 w-12 text-[#4a8a58]" />
                     <p className="text-body-sm text-[#6b7280]">
                       처리 대기 중인 요청이 없습니다. · No pending requests.
                     </p>
@@ -937,7 +975,7 @@ export default function EquipmentManagement() {
                         setAddImagePreview(null);
                         setAddImageFile(null);
                       }}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#5a4a4a] text-white rounded-full flex items-center justify-center hover:bg-[#4a3a3a]"
                     >
                       <X size={10} />
                     </button>
@@ -966,6 +1004,7 @@ export default function EquipmentManagement() {
                 취소 · Cancel
               </Button>
               <Button
+                variant="warm"
                 onClick={async () => {
                   try {
                     const created = await adminApi.createEquipment({
@@ -1028,8 +1067,8 @@ export default function EquipmentManagement() {
               <Button variant="ghost" onClick={() => setRejectModal(null)}>
                 취소 · Cancel
               </Button>
-              <Button variant="danger" onClick={handleReject}>
-                반려 · Reject
+              <Button variant="warm" onClick={handleReject}>
+                반려
               </Button>
             </div>
           </div>
@@ -1064,7 +1103,7 @@ export default function EquipmentManagement() {
                         setEditImageFile(null);
                         setEditForm((p) => ({ ...p, image_url: '' }));
                       }}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#5a4a4a] text-white rounded-full flex items-center justify-center hover:bg-[#4a3a3a]"
                     >
                       <X size={10} />
                     </button>
@@ -1115,6 +1154,30 @@ export default function EquipmentManagement() {
                 setEditForm((p) => ({ ...p, category: e.target.value }))
               }
             />
+            {/* 장비 상태 변경 */}
+            <div>
+              <label className="block text-body-sm font-medium text-gray-700 mb-1.5">
+                장비 상태 · Status
+              </label>
+              {editTarget?.status === 'borrowed' ? (
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-[#e0d8cc] bg-[#faf9f7] text-body-sm text-[#9c9690]">
+                  <AlertTriangle size={14} className="text-[#c07a30] shrink-0" />
+                  대여 중인 장비는 반납 후 상태를 변경할 수 있습니다.
+                </div>
+              ) : (
+                <Select
+                  options={[
+                    { value: 'available', label: '✅ 대여 가능 · Available' },
+                    { value: 'maintenance', label: '🔧 수리중 · Maintenance' },
+                    { value: 'retired', label: '🗑️ 폐기 · Retired' },
+                  ]}
+                  value={editForm.status}
+                  onChange={(e) =>
+                    setEditForm((p) => ({ ...p, status: e.target.value }))
+                  }
+                />
+              )}
+            </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 variant="ghost"
@@ -1125,7 +1188,7 @@ export default function EquipmentManagement() {
               >
                 취소 · Cancel
               </Button>
-              <Button onClick={handleEditSubmit}>저장 · Save</Button>
+              <Button variant="warm" onClick={handleEditSubmit}>저장</Button>
             </div>
           </div>
         </Modal>
@@ -1140,20 +1203,20 @@ export default function EquipmentManagement() {
           title="장비 삭제 · Delete equipment"
         >
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3 bg-[#fdf2f2] rounded-xl border border-[#f0d4d4]">
-              <Trash2 size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-3 p-3 bg-[#f4efef] rounded-xl border border-[#e0d0d0]">
+              <Trash2 size={18} className="text-[#8a6060] shrink-0 mt-0.5" />
               <div>
-                <p className="text-body-sm font-medium text-red-700">
+                <p className="text-body-sm font-medium text-[#5a3a3a]">
                   정말 삭제하시겠습니까?
                 </p>
-                <p className="text-caption text-red-500 mt-0.5">
+                <p className="text-caption text-[#8a6060] mt-0.5">
                   <span className="font-semibold">{deleteTarget?.name}</span>{' '}
                   장비가 영구적으로 삭제됩니다.
                 </p>
               </div>
             </div>
             {deleteTarget?.status === 'borrowed' && (
-              <p className="text-caption text-orange-600 bg-orange-50 p-2 rounded-lg">
+              <p className="text-caption text-[#b07840] bg-[#f0e8d8] p-2 rounded-lg">
                 ⚠️ 대여 중인 장비는 삭제할 수 없습니다.
               </p>
             )}
@@ -1168,11 +1231,11 @@ export default function EquipmentManagement() {
                 취소 · Cancel
               </Button>
               <Button
-                variant="danger"
+                variant="warm"
                 onClick={handleDeleteConfirm}
                 disabled={deleteTarget?.status === 'borrowed'}
               >
-                삭제 · Delete
+                삭제
               </Button>
             </div>
           </div>
@@ -1257,16 +1320,16 @@ export default function EquipmentManagement() {
                           </span>
                           {session.action === 'borrow' &&
                             (session.is_active ? (
-                              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-caption font-medium text-blue-600">
-                                대여중 · Active
+                              <span className="rounded-full bg-[#e4ecf4] px-2 py-0.5 text-caption font-medium text-[#4a7aaa]">
+                                대여중
                               </span>
                             ) : (
-                              <span className="rounded-full bg-green-100 px-2 py-0.5 text-caption font-medium text-green-600">
-                                반납 완료 · Returned
+                              <span className="rounded-full bg-[#e4ede6] px-2 py-0.5 text-caption font-medium text-[#4a8a58]">
+                                반납 완료
                               </span>
                             ))}
                           {session.action !== 'borrow' && (
-                            <span className="rounded-full bg-orange-100 px-2 py-0.5 text-caption font-medium text-orange-500">
+                            <span className="rounded-full bg-[#f0e8d8] px-2 py-0.5 text-caption font-medium text-[#b07840]">
                               {cfg.label}
                             </span>
                           )}
@@ -1275,7 +1338,7 @@ export default function EquipmentManagement() {
                         {session.action === 'borrow' && (
                           <div className="space-y-1 text-caption text-gray-600">
                             <div className="flex items-center gap-2">
-                              <ArrowDownCircle className="h-3.5 w-3.5 shrink-0 text-blue-400" />
+                              <ArrowDownCircle className="h-3.5 w-3.5 shrink-0 text-[#4a7aaa]" />
                               <span className="w-10 shrink-0 text-gray-400">
                                 대여 · Out
                               </span>
@@ -1284,12 +1347,12 @@ export default function EquipmentManagement() {
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <ArrowUpCircle className="h-3.5 w-3.5 shrink-0 text-green-400" />
+                              <ArrowUpCircle className="h-3.5 w-3.5 shrink-0 text-[#4a8a58]" />
                               <span className="w-10 shrink-0 text-gray-400">
                                 반납 · In
                               </span>
                               <span
-                                className={`font-medium ${session.return_at ? 'text-gray-700' : 'text-blue-500'}`}
+                                className={`font-medium ${session.return_at ? 'text-gray-700' : 'text-[#4a7aaa]'}`}
                               >
                                 {session.return_at
                                   ? formatDT(session.return_at)

@@ -13,8 +13,6 @@ import {
   MessageSquare,
   RotateCcw,
   Trash2,
-  Bell,
-  Search,
   Star,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
@@ -465,23 +463,14 @@ export default function AssignmentManagement() {
             Assignment Management
           </p>
         </div>
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7e7a74]">
-          <button className="rounded-full px-3 py-1.5 hover:bg-[#e2dfd8]">Dashboard</button>
-          <button className="rounded-full border border-[#bab7b0] bg-[#e8e5de] px-3 py-1.5 text-[#343230]">
-            Evaluations
-          </button>
-          <button className="rounded-full px-3 py-1.5 hover:bg-[#e2dfd8]">Analytics</button>
-          <button className="rounded-full px-3 py-1.5 hover:bg-[#e2dfd8]">Resources</button>
-          <Search className="h-4 w-4 text-[#7b7871]" />
-          <Bell className="h-4 w-4 text-[#7b7871]" />
+        <div className="flex items-center gap-2">
           <Button
-            variant="primary"
+            variant="warm"
             size="sm"
             icon={Plus}
             onClick={() => setShowAddModal(true)}
-            className="rounded-full !bg-[#69717a] px-5 !text-white hover:!bg-[#535a62]"
           >
-            Create Evaluation
+            과제 추가
           </Button>
         </div>
       </div>

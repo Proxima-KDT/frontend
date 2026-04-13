@@ -77,6 +77,8 @@ const equipmentThumbs = [
 ];
 
 function getEquipmentThumb(item) {
+  // 관리자가 업로드한 실제 이미지 우선 사용
+  if (item.image_url) return item.image_url;
   const txt = `${item.name || ''} ${item.serial_no || ''}`.toLowerCase();
   for (const t of equipmentThumbs) {
     if (txt.includes(t.key.toLowerCase())) return t.src;
@@ -457,7 +459,7 @@ export default function Equipment() {
               >
                 취소
               </Button>
-              <Button fullWidth loading={actionLoading} onClick={handleBorrow}>
+              <Button variant="warm" fullWidth loading={actionLoading} onClick={handleBorrow}>
                 신청하기
               </Button>
             </div>

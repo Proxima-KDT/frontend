@@ -15,7 +15,7 @@ const briefingKey = (name) => `ai-briefing-${name}-${today()}`;
 const ROLE_CONFIG = {
   student: {
     title: 'AI 학습코치',
-    subtitle: '내 출석·과제·점수를 자연어로 물어보세요',
+    subtitle: '내 출석·과제·점수를 물어보세요',
     placeholder: '예) 내 출석률 알려줘',
     sideTitle: '내 학습 현황',
     chips: [
@@ -38,8 +38,16 @@ const ROLE_CONFIG = {
       '상담 기록 요약해줘',
     ],
     workflows: [
-      { name: 'teacher_daily_briefing', label: '일일 브리핑 생성', icon: 'Sparkles' },
-      { name: 'proactive_risk_alert', label: '위험 학생 알림 제안', icon: 'Bell' },
+      {
+        name: 'teacher_daily_briefing',
+        label: '일일 브리핑 생성',
+        icon: 'Sparkles',
+      },
+      {
+        name: 'proactive_risk_alert',
+        label: '위험 학생 알림 제안',
+        icon: 'Bell',
+      },
     ],
   },
   admin: {
@@ -54,7 +62,11 @@ const ROLE_CONFIG = {
       '최근 시스템 경고',
     ],
     workflows: [
-      { name: 'admin_weekly_report', label: '주간 리포트 생성', icon: 'FileText' },
+      {
+        name: 'admin_weekly_report',
+        label: '주간 리포트 생성',
+        icon: 'FileText',
+      },
     ],
   },
 };
@@ -71,12 +83,23 @@ function applyInline(text, key) {
     <span key={key}>
       {parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**'))
-          return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+          return (
+            <strong key={i} className="font-semibold">
+              {part.slice(2, -2)}
+            </strong>
+          );
         if (part.startsWith('*') && part.endsWith('*'))
-          return <em key={i} className="italic">{part.slice(1, -1)}</em>;
+          return (
+            <em key={i} className="italic">
+              {part.slice(1, -1)}
+            </em>
+          );
         if (part.startsWith('`') && part.endsWith('`'))
           return (
-            <code key={i} className="px-1 py-0.5 rounded bg-gray-100 text-gray-800 font-mono text-[0.8em]">
+            <code
+              key={i}
+              className="px-1 py-0.5 rounded bg-[#f0ede6] text-[#5a4a38] font-mono text-[0.8em]"
+            >
               {part.slice(1, -1)}
             </code>
           );
@@ -100,33 +123,46 @@ function MarkdownContent({ text }) {
     const h1 = line.match(/^# (.+)/);
     if (h3) {
       elements.push(
-        <p key={`h3-${i}`} className="text-body font-bold text-gray-900 mt-2 mb-0.5">
+        <p
+          key={`h3-${i}`}
+          className="text-body font-bold text-gray-900 mt-2 mb-0.5"
+        >
           {applyInline(h3[1], i)}
         </p>,
       );
-      i++; continue;
+      i++;
+      continue;
     }
     if (h2) {
       elements.push(
-        <p key={`h2-${i}`} className="text-body-md font-bold text-gray-900 mt-3 mb-1">
+        <p
+          key={`h2-${i}`}
+          className="text-body-md font-bold text-gray-900 mt-3 mb-1"
+        >
           {applyInline(h2[1], i)}
         </p>,
       );
-      i++; continue;
+      i++;
+      continue;
     }
     if (h1) {
       elements.push(
-        <p key={`h1-${i}`} className="text-h3 font-bold text-gray-900 mt-3 mb-1">
+        <p
+          key={`h1-${i}`}
+          className="text-h3 font-bold text-gray-900 mt-3 mb-1"
+        >
           {applyInline(h1[1], i)}
         </p>,
       );
-      i++; continue;
+      i++;
+      continue;
     }
 
     // --- 구분선
     if (/^[-*_]{3,}$/.test(line.trim())) {
       elements.push(<hr key={`hr-${i}`} className="my-2 border-gray-200" />);
-      i++; continue;
+      i++;
+      continue;
     }
 
     // 불릿 리스트 (- 또는 * 로 시작)
@@ -137,7 +173,10 @@ function MarkdownContent({ text }) {
         i++;
       }
       elements.push(
-        <ul key={`ul-${i}`} className="list-disc list-inside space-y-0.5 my-1 pl-1">
+        <ul
+          key={`ul-${i}`}
+          className="list-disc list-inside space-y-0.5 my-1 pl-1"
+        >
           {items.map((item, j) => (
             <li key={j} className="text-body-sm leading-relaxed">
               {applyInline(item, j)}
@@ -156,7 +195,10 @@ function MarkdownContent({ text }) {
         i++;
       }
       elements.push(
-        <ol key={`ol-${i}`} className="list-decimal list-inside space-y-0.5 my-1 pl-1">
+        <ol
+          key={`ol-${i}`}
+          className="list-decimal list-inside space-y-0.5 my-1 pl-1"
+        >
           {items.map((item, j) => (
             <li key={j} className="text-body-sm leading-relaxed">
               {applyInline(item, j)}
@@ -170,7 +212,8 @@ function MarkdownContent({ text }) {
     // 빈 줄
     if (line.trim() === '') {
       elements.push(<div key={`br-${i}`} className="h-1.5" />);
-      i++; continue;
+      i++;
+      continue;
     }
 
     // 일반 단락
@@ -195,8 +238,8 @@ function MessageBubble({ message }) {
       <div
         className={`max-w-[85%] rounded-2xl px-4 py-3 ${
           isUser
-            ? 'bg-primary-500 text-white'
-            : 'bg-white border border-gray-200 text-gray-900'
+            ? 'bg-[#3d3d3d] text-white'
+            : 'bg-white border border-[#e8e4dc] text-[#2c2b28]'
         }`}
       >
         {isUser ? (
@@ -231,12 +274,12 @@ function MessageBubble({ message }) {
 function SummaryCard({ card }) {
   const Icon = Icons[card.icon] || Icons.BarChart3;
   const colorMap = {
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-    rose: 'bg-rose-50 border-rose-200 text-rose-700',
-    amber: 'bg-amber-50 border-amber-200 text-amber-700',
-    blue: 'bg-blue-50 border-blue-200 text-blue-700',
-    violet: 'bg-violet-50 border-violet-200 text-violet-700',
-    slate: 'bg-slate-50 border-slate-200 text-slate-700',
+    emerald: 'bg-[#e8f0ea] border-[#c8dccb] text-[#3a6a48]',
+    rose: 'bg-[#f4e8e8] border-[#e0c8c8] text-[#7a3a3a]',
+    amber: 'bg-[#f4ede0] border-[#e0d0b8] text-[#7a5a28]',
+    blue: 'bg-[#e8eef4] border-[#c8d8e8] text-[#3a5a7a]',
+    violet: 'bg-[#ede8f0] border-[#d4c8e0] text-[#5a4a70]',
+    slate: 'bg-[#f0ede8] border-[#ddd8d0] text-[#4a4440]',
   };
   const klass = colorMap[card.color] || colorMap.slate;
   return (
@@ -251,7 +294,14 @@ function SummaryCard({ card }) {
   );
 }
 
-function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, onRerun }) {
+function WorkflowResultModal({
+  result,
+  loading,
+  onApprove,
+  onReject,
+  onClose,
+  onRerun,
+}) {
   const isInterrupted = Boolean(result?.interrupted);
   const drafts = result?.result?.draft_notifications || [];
   const summary = result?.result?.summary;
@@ -260,8 +310,8 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, on
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-[#faf9f7] rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="px-6 py-4 border-b border-[#e8e4dc] flex items-center justify-between">
           <h2 className="text-h3 font-bold text-gray-900 flex items-center gap-2">
             {isInterrupted ? (
               <>
@@ -305,7 +355,7 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, on
                 {drafts.map((d, i) => (
                   <li
                     key={i}
-                    className="border border-gray-200 rounded-lg p-3 bg-gray-50"
+                    className="border border-[#e8e4dc] rounded-lg p-3 bg-[#faf9f7]"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span
@@ -331,8 +381,8 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, on
           )}
 
           {sentIds && (
-            <section className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-              <p className="text-body-sm font-semibold text-emerald-700 flex items-center gap-2">
+            <section className="bg-[#e8f0ea] border border-[#c8dccb] rounded-lg p-3">
+              <p className="text-body-sm font-semibold text-[#3a6a48] flex items-center gap-2">
                 <Icons.CheckCircle2 className="w-4 h-4" />
                 {sentIds.length}건 발송 완료
               </p>
@@ -344,12 +394,15 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, on
               <summary className="cursor-pointer text-gray-500 hover:text-gray-700 select-none">
                 Graph trace ({trace.length} 노드, 총 {result?.duration_ms}ms)
               </summary>
-              <ul className="mt-2 space-y-1 font-mono text-[10px] bg-gray-50 p-2 rounded">
+              <ul className="mt-2 space-y-1 font-mono text-[10px] bg-[#f0ede6] p-2 rounded">
                 {trace.map((t, i) => (
                   <li key={i} className="text-gray-700">
-                    <span className="text-violet-600">{t.node}</span>
+                    <span className="text-[#8a7060]">{t.node}</span>
                     {t.duration_ms != null && (
-                      <span className="text-gray-400"> ({t.duration_ms}ms)</span>
+                      <span className="text-gray-400">
+                        {' '}
+                        ({t.duration_ms}ms)
+                      </span>
                     )}
                   </li>
                 ))}
@@ -358,7 +411,7 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, on
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex gap-2 justify-between">
+        <div className="px-6 py-4 border-t border-[#e8e4dc] flex gap-2 justify-between">
           {/* 다시 생성 — 캐시 삭제 후 재실행 */}
           {!isInterrupted && onRerun && (
             <button
@@ -382,7 +435,7 @@ function WorkflowResultModal({ result, loading, onApprove, onReject, onClose, on
               <button
                 onClick={onApprove}
                 disabled={loading}
-                className="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 font-medium"
+                className="px-4 py-2 rounded-lg bg-[#3d3d3d] text-white hover:bg-[#2a2a28] disabled:opacity-50 font-medium"
               >
                 {loading ? '처리 중...' : '승인하고 발송'}
               </button>
@@ -484,7 +537,9 @@ export default function AIAgent() {
           );
         }
       })
-      .catch(() => {/* 이력 로드 실패 시 빈 채팅으로 시작 */})
+      .catch(() => {
+        /* 이력 로드 실패 시 빈 채팅으로 시작 */
+      })
       .finally(() => {
         if (!cancelled) setHistoryLoading(false);
       });
@@ -660,17 +715,17 @@ export default function AIAgent() {
       <div className="mb-4 shrink-0 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-h2 font-bold text-gray-900 flex items-center gap-2">
-            <Icons.Sparkles className="w-6 h-6 text-violet-500" />
+            <Icons.Sparkles className="w-6 h-6 text-[#c07a30]" />
             {config.title}
           </h1>
-          <p className="text-body-sm text-gray-500 mt-0.5">
+          <p className="text-body-sm text-[#6b6560] mt-0.5">
             {config.subtitle}
           </p>
         </div>
         {user?.name && (
           <div className="hidden md:block text-right shrink-0">
-            <p className="text-caption text-gray-400">{user.email}</p>
-            <p className="text-body-sm font-semibold text-gray-700">
+            <p className="text-caption text-[#9c9690]">{user.email}</p>
+            <p className="text-body-sm font-semibold text-[#2c2b28]">
               {user.name} · {role}
             </p>
           </div>
@@ -680,10 +735,24 @@ export default function AIAgent() {
       {/* Main layout: col on mobile, row on lg+ */}
       <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
         {/* Chat Panel */}
-        <div className="flex-1 lg:order-1 bg-white rounded-2xl border border-gray-200 flex flex-col min-h-0">
-          {/* Workflow buttons (강사/관리자만) */}
+        <div className="flex-1 lg:order-1 bg-white rounded-2xl border border-[#e8e4dc] flex flex-col min-h-0">
+          {/* 상단 바 — 강사/관리자: 워크플로우 버튼 / 학생: 퀵 칩 */}
+          {config.workflows.length === 0 && config.chips.length > 0 && (
+            <div className="px-4 py-3 border-b border-[#e8e4dc] flex gap-2 items-center overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+              {config.chips.map((chip, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleChip(chip)}
+                  disabled={isSending}
+                  className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-lg border border-[#e0d8cc] bg-[#faf9f7] text-caption text-[#4a4440] hover:border-[#c8b8a8] hover:bg-[#f0ede6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          )}
           {config.workflows.length > 0 && (
-            <div className="px-4 py-3 border-b border-gray-200 flex flex-wrap gap-2 items-center">
+            <div className="px-4 py-3 border-b border-[#e8e4dc] flex flex-wrap gap-2 items-center">
               {config.workflows.map((wf) => {
                 const Icon = Icons[wf.icon] || Icons.Play;
                 const running = workflowLoading === wf.name;
@@ -694,9 +763,11 @@ export default function AIAgent() {
                   return (
                     <button
                       key={wf.name}
-                      onClick={() => setActiveModal({ result: cached, name: wf.name })}
+                      onClick={() =>
+                        setActiveModal({ result: cached, name: wf.name })
+                      }
                       disabled={workflowLoading !== null}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-caption font-medium hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#4a7a58] text-white text-caption font-medium hover:bg-[#3a6a48] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Icons.CheckCircle2 className="w-3.5 h-3.5" />
                       {wf.label} 완료
@@ -709,9 +780,11 @@ export default function AIAgent() {
                     key={wf.name}
                     onClick={() => runWorkflow(wf.name)}
                     disabled={workflowLoading !== null}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-blue-500 text-white text-caption font-medium hover:from-violet-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3d3d3d] text-white text-caption font-medium hover:bg-[#2a2a28] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Icon className={`w-3.5 h-3.5 ${running ? 'animate-pulse' : ''}`} />
+                    <Icon
+                      className={`w-3.5 h-3.5 ${running ? 'animate-pulse' : ''}`}
+                    />
                     {running ? '실행 중...' : wf.label}
                   </button>
                 );
@@ -720,7 +793,7 @@ export default function AIAgent() {
           )}
 
           {/* Messages */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50/50">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-[#faf9f7]">
             {historyLoading ? (
               <div className="space-y-3 py-4">
                 {[80, 55, 90, 60].map((w, i) => (
@@ -729,7 +802,7 @@ export default function AIAgent() {
                     className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className="h-10 rounded-2xl bg-gray-200 animate-pulse"
+                      className="h-10 rounded-2xl bg-[#e8e4dc] animate-pulse"
                       style={{ width: `${w}%` }}
                     />
                   </div>
@@ -740,8 +813,8 @@ export default function AIAgent() {
               </div>
             ) : messages.length === 0 ? (
               <div className="text-center py-12">
-                <Icons.MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-body-sm text-gray-500 mb-4">
+                <Icons.MessageCircle className="w-12 h-12 mx-auto text-[#c8bfb4] mb-3" />
+                <p className="text-body-sm text-[#6b6560] mb-4">
                   아래 예시 질문을 눌러보거나 직접 질문을 입력해보세요
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center max-w-xl mx-auto">
@@ -750,7 +823,7 @@ export default function AIAgent() {
                       key={i}
                       onClick={() => handleChip(chip)}
                       disabled={isSending}
-                      className="px-3 py-1.5 rounded-full border border-gray-200 bg-white text-body-sm text-gray-700 hover:border-primary-300 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 rounded-full border border-[#e0d8cc] bg-white text-body-sm text-[#4a4440] hover:border-[#c8b8a8] hover:bg-[#f5f0ea] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {chip}
                     </button>
@@ -762,15 +835,15 @@ export default function AIAgent() {
               <MessageBubble key={i} message={m} />
             ))}
             {isSending && (
-              <div className="flex items-center gap-2 text-caption text-gray-400 pl-2 mb-3">
+              <div className="flex items-center gap-2 text-caption text-[#9c9690] pl-2 mb-3">
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
+                  <div className="w-2 h-2 rounded-full bg-[#b8a898] animate-bounce" />
                   <div
-                    className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                    className="w-2 h-2 rounded-full bg-[#b8a898] animate-bounce"
                     style={{ animationDelay: '0.15s' }}
                   />
                   <div
-                    className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                    className="w-2 h-2 rounded-full bg-[#b8a898] animate-bounce"
                     style={{ animationDelay: '0.3s' }}
                   />
                 </div>
@@ -781,7 +854,7 @@ export default function AIAgent() {
           </div>
 
           {/* Input bar */}
-          <div className="p-3 border-t border-gray-200">
+          <div className="p-3 border-t border-[#e8e4dc]">
             <div className="flex items-center gap-2">
               <button
                 onClick={handleMic}
@@ -815,12 +888,12 @@ export default function AIAgent() {
                 }}
                 placeholder={config.placeholder}
                 disabled={isSending}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-primary-400 text-body-sm disabled:bg-gray-50"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-[#e0d8cc] focus:outline-none focus:border-[#b8a898] text-body-sm text-[#2c2b28] bg-white disabled:bg-[#f5f0ea]"
               />
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || isSending}
-                className="px-4 py-2.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                className="px-4 py-2.5 rounded-lg bg-[#3d3d3d] text-white hover:bg-[#2a2a28] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                 title="전송"
               >
                 <Icons.Send className="w-5 h-5" />
@@ -839,15 +912,15 @@ export default function AIAgent() {
 
         {/* Side Panel */}
         <div className="lg:w-80 lg:shrink-0 lg:order-2">
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 lg:sticky lg:top-4">
+          <div className="bg-white rounded-2xl border border-[#e8e4dc] p-4 lg:sticky lg:top-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-body font-bold text-gray-900">
+              <h2 className="text-body font-bold text-[#2c2b28]">
                 {config.sideTitle}
               </h2>
               <button
                 onClick={reloadSummary}
                 disabled={summaryLoading}
-                className="p-1 rounded hover:bg-gray-100 text-gray-500 disabled:opacity-50"
+                className="p-1 rounded hover:bg-[#f0ede6] text-[#6b6560] disabled:opacity-50"
                 title="새로고침"
               >
                 <Icons.RefreshCw
@@ -857,9 +930,9 @@ export default function AIAgent() {
             </div>
             {summaryLoading && (
               <div className="space-y-2">
-                <div className="h-16 bg-gray-100 rounded-xl animate-pulse" />
-                <div className="h-16 bg-gray-100 rounded-xl animate-pulse" />
-                <div className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+                <div className="h-16 bg-[#ede9e2] rounded-xl animate-pulse" />
+                <div className="h-16 bg-[#ede9e2] rounded-xl animate-pulse" />
+                <div className="h-16 bg-[#ede9e2] rounded-xl animate-pulse" />
               </div>
             )}
             {!summaryLoading && summary?.cards?.length > 0 && (

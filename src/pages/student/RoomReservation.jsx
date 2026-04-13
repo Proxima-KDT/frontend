@@ -648,6 +648,56 @@ export default function RoomReservation() {
         })}
       </div>
 
+      {/* ── 방 카드 (편의시설 확인) ────────────────────────────────── */}
+      <div>
+        {activeTab === 'all' ? (
+          <div className="space-y-5">
+            {['study', 'meeting'].map((type) => {
+              const typeRooms = filteredRooms.filter((r) => r.type === type);
+              if (!typeRooms.length) return null;
+              const meta = roomTypeMeta[type];
+              const TypeIcon = meta.icon;
+              return (
+                <div key={type}>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <TypeIcon size={20} className={meta.iconColor} />
+                    <h3
+                      className={`text-xl font-bold ${
+                        type === 'study' ? 'text-[#4e5a61]' : 'text-[#5c4d66]'
+                      }`}
+                    >
+                      {meta.label}
+                      <span className="ml-1.5 text-sm font-normal text-gray-400">
+                        {typeRooms.length}개
+                      </span>
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {typeRooms.map((room) => (
+                      <RoomInfoCard
+                        key={room.id}
+                        room={room}
+                        isAvailableNow={availableNowIds.includes(room.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredRooms.map((room) => (
+              <RoomInfoCard
+                key={room.id}
+                room={room}
+                isAvailableNow={availableNowIds.includes(room.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* ── 날짜 선택 칩 바 ─────────────────────────────────────── */}
       <div>
         <p className={`mb-2 text-[1.55rem] font-semibold text-[#2c2b28]`}>
@@ -905,56 +955,6 @@ export default function RoomReservation() {
           </div>
         </Card>
       )}
-
-      {/* ── 방 카드 (편의시설 확인) ────────────────────────────────── */}
-      <div>
-        {activeTab === 'all' ? (
-          <div className="space-y-5">
-            {['study', 'meeting'].map((type) => {
-              const typeRooms = filteredRooms.filter((r) => r.type === type);
-              if (!typeRooms.length) return null;
-              const meta = roomTypeMeta[type];
-              const TypeIcon = meta.icon;
-              return (
-                <div key={type}>
-                  <div className="flex items-center gap-1.5 mb-2.5">
-                    <TypeIcon size={13} className={meta.iconColor} />
-                    <h3
-                      className={`text-sm font-semibold ${
-                        type === 'study' ? 'text-[#4e5a61]' : 'text-[#5c4d66]'
-                      }`}
-                    >
-                      {meta.label}
-                      <span className="ml-1.5 text-xs font-normal text-gray-400">
-                        {typeRooms.length}개
-                      </span>
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {typeRooms.map((room) => (
-                      <RoomInfoCard
-                        key={room.id}
-                        room={room}
-                        isAvailableNow={availableNowIds.includes(room.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredRooms.map((room) => (
-              <RoomInfoCard
-                key={room.id}
-                room={room}
-                isAvailableNow={availableNowIds.includes(room.id)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* ── 내 예약 목록 ─────────────────────────────────────────────────── */}
       <div>

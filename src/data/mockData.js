@@ -517,90 +517,6 @@ export const mockInterviewHistory = [
   },
 ];
 
-// --- 채용 매칭 ---
-export const mockJobs = [
-  {
-    id: 1,
-    company: '테크스타트',
-    position: '주니어 프론트엔드 개발자',
-    match_score: 92,
-    tech_stack: ['React', 'TypeScript', 'Tailwind'],
-    deadline: '2026-04-30',
-    location: '서울 강남구',
-    experience: '신입',
-  },
-  {
-    id: 2,
-    company: '데이터브릿지',
-    position: '주니어 백엔드 개발자',
-    match_score: 85,
-    tech_stack: ['Python', 'FastAPI', 'PostgreSQL'],
-    deadline: '2026-04-25',
-    location: '서울 서초구',
-    experience: '신입',
-  },
-  {
-    id: 3,
-    company: '클라우드나인',
-    position: '풀스택 개발자',
-    match_score: 78,
-    tech_stack: ['React', 'Node.js', 'AWS'],
-    deadline: '2026-05-15',
-    location: '서울 마포구',
-    experience: '신입~1년',
-  },
-  {
-    id: 4,
-    company: '에이아이랩',
-    position: 'ML 엔지니어',
-    match_score: 45,
-    tech_stack: ['Python', 'PyTorch', 'Docker'],
-    deadline: '2026-05-01',
-    location: '성남 분당구',
-    experience: '신입~2년',
-  },
-  {
-    id: 5,
-    company: '핀테크원',
-    position: '웹 개발자',
-    match_score: 88,
-    tech_stack: ['JavaScript', 'React', 'Node.js'],
-    deadline: '2026-04-20',
-    location: '서울 영등포구',
-    experience: '신입',
-  },
-  {
-    id: 6,
-    company: '헬스케어IT',
-    position: '주니어 개발자',
-    match_score: 72,
-    tech_stack: ['Java', 'Spring', 'MySQL'],
-    deadline: '2026-05-10',
-    location: '서울 강서구',
-    experience: '신입',
-  },
-  {
-    id: 7,
-    company: '에듀테크코리아',
-    position: '프론트엔드 개발자',
-    match_score: 90,
-    tech_stack: ['React', 'Next.js', 'Tailwind'],
-    deadline: '2026-04-28',
-    location: '서울 성동구',
-    experience: '신입',
-  },
-  {
-    id: 8,
-    company: '로보틱스랩',
-    position: '임베디드 SW 개발자',
-    match_score: 30,
-    tech_stack: ['C++', 'Python', 'ROS'],
-    deadline: '2026-05-20',
-    location: '대전 유성구',
-    experience: '신입~1년',
-  },
-];
-
 // --- 출석 기록 ---
 export const mockAttendance = [
   { date: '2026-04-01', status: 'present', time: '08:55' },
@@ -2572,13 +2488,6 @@ export const studentMenuItems = [
     ai: true,
   },
   {
-    key: 'jobs',
-    label: '채용 매칭',
-    icon: 'Briefcase',
-    path: '/student/jobs',
-    group: '취업',
-  },
-  {
     key: 'equipment',
     label: '장비 대여',
     icon: 'Monitor',
@@ -3885,7 +3794,7 @@ export const teacherMenuItems = [
   },
   {
     key: 'curriculum',
-    label: '커리큘럼',
+    label: '학습 과정',
     icon: 'Map',
     path: '/teacher/curriculum',
     group: '수업 관리',
@@ -3922,7 +3831,7 @@ export const teacherMenuItems = [
   },
   {
     key: 'counseling-schedule',
-    label: '상담일정',
+    label: '상담 일정',
     icon: 'CalendarDays',
     path: '/teacher/counseling-schedule',
     group: '수강생 면담',
@@ -3951,7 +3860,7 @@ export const adminMenuItems = [
     label: '수강생 현황',
     icon: 'Users',
     path: '/admin',
-    group: '수강생 관리',
+    group: '수강생 면담',
   },
   {
     key: 'courses',
@@ -3979,7 +3888,15 @@ export const adminMenuItems = [
     label: '상담 일정',
     icon: 'CalendarClock',
     path: '/admin/counseling-schedule',
-    group: '수강생 관리',
+    group: '수강생 면담',
+  },
+  {
+    key: 'counseling',
+    label: '상담 기록',
+    icon: 'Headphones',
+    path: '/admin/counseling',
+    group: '수강생 면담',
+    ai: true,
   },
   {
     key: 'room-use',

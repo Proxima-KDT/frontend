@@ -6,7 +6,7 @@ import {
   teacherMenuItems,
   adminMenuItems,
 } from '@/data/mockData';
-import Avatar from '@/components/common/Avatar';
+import { UserCircle } from 'lucide-react';
 import * as Icons from 'lucide-react';
 
 const menuMap = {
@@ -22,10 +22,8 @@ const accentColors = {
 };
 
 const sidebarBgByRole = {
-  student:
-    'bg-[#f3f1ea]',
-  teacher:
-    'bg-[linear-gradient(180deg,#3f4147_0%,#2f3137_42%,#26282e_100%)]',
+  student: 'bg-[#f3f1ea]',
+  teacher: 'bg-[linear-gradient(180deg,#3f4147_0%,#2f3137_42%,#26282e_100%)]',
   admin:
     'bg-[radial-gradient(900px_450px_at_16%_15%,rgba(255,214,170,0.18),rgba(255,214,170,0.04)_38%,transparent_68%),linear-gradient(180deg,#6c4b3f_0%,#5f4338_46%,#584035_100%)]',
 };
@@ -40,16 +38,19 @@ export default function Sidebar({ collapsed = false, onToggle }) {
   const isStudentLightTheme = role === 'student';
   const isTeacherTheme = role === 'teacher';
   const isAdminNavy = role === 'admin';
-  const showEquipmentAddCta =
-    isAdminNavy && location.pathname.startsWith('/admin/equipment');
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  // 서브 과정은 "능력단위평가 관리"가 없으므로 해당 메뉴 비활성화
-  const isSubCourse = selectedCourse?.track_type === 'sub';
+  // 서브 과정은 "능력단위평가"가 없으므로 해당 메뉴 비활성화
+  // - teacher: 선택된 과정의 track_type으로 판별
+  // - student: 본인 과정의 track_type을 profile API에서 받아온 값으로 판별
+  const isSubCourse =
+    role === 'student'
+      ? user?.course_track_type === 'sub'
+      : selectedCourse?.track_type === 'sub';
 
   return (
     <aside
@@ -127,7 +128,9 @@ export default function Sidebar({ collapsed = false, onToggle }) {
           const prevGroup = idx > 0 ? items[idx - 1].group : null;
           const showGroupHeader =
             !collapsed && item.group && item.group !== prevGroup;
-          const isAssessmentMenu = item.path === '/teacher/assessments';
+          const isAssessmentMenu =
+            item.path === '/teacher/assessments' ||
+            item.path === '/student/assessments';
           const isDisabled = isAssessmentMenu && isSubCourse;
           return (
             <div key={item.key}>
@@ -135,7 +138,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                 <p
                   className={`px-5 pt-4 pb-1 text-[0.72rem] font-semibold tracking-[0.12em] uppercase ${
                     isAdminNavy
-                      ? 'text-[#6b7c8f]'
+                      ? 'text-[#8a96a3]'
                       : isTeacherTheme
                         ? 'text-[#9ca3af]'
                         : isStudentLightTheme
@@ -164,7 +167,9 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                 >
                   <Icon className="w-[1rem] h-[1rem] shrink-0 opacity-50" />
                   {!collapsed && (
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                      {item.label}
+                    </span>
                   )}
                 </div>
               ) : (
@@ -177,26 +182,26 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                   ${
                     isAdminNavy
                       ? isActive
-                        ? 'bg-[#1c2636] text-white border-r-2 border-[#7cb4e8] rounded-r-none mr-0'
-                        : 'text-[#9cadbe] hover:bg-white/5 hover:text-[#e8edf4]'
+                        ? 'bg-white/14 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]'
+                        : 'text-[#c5cfd8] hover:bg-white/8 hover:text-[#e8edf4]'
                       : isActive
                         ? isTeacherTheme
                           ? 'bg-white/14 text-[#f9fafb] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]'
                           : isStudentLightTheme
                             ? 'bg-white text-[#2d2a26] shadow-[0_1px_2px_rgba(45,42,38,0.06),0_0_0_1px_rgba(235,232,225,0.95)]'
-                          : 'bg-white/16 text-[#fffaf2] shadow-[inset_0_1px_0_rgba(255,255,255,0.24)]'
+                            : 'bg-white/16 text-[#fffaf2] shadow-[inset_0_1px_0_rgba(255,255,255,0.24)]'
                         : isTeacherTheme
                           ? 'text-[#d1d5db] hover:bg-white/8 hover:text-[#f3f4f6]'
                           : isStudentLightTheme
                             ? 'text-[#6e685f] hover:bg-white/70 hover:text-[#3f352b]'
-                          : 'text-[#f7eee2]/95 hover:bg-white/10 hover:text-[#fffaf2]'
+                            : 'text-[#f7eee2]/95 hover:bg-white/10 hover:text-[#fffaf2]'
                   }
                   ${collapsed ? 'justify-center px-0 mx-1' : ''}
                 `}
                 >
                   {({ isActive }) => (
                     <>
-                      {isActive && !isAdminNavy && (
+                      {isActive && (
                         <div
                           className={`absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-l ${accentColors[role]}`}
                         />
@@ -217,7 +222,9 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                           </span>
                           {item.ai &&
                             !collapsed &&
-                            (isStudentLightTheme || isTeacherTheme) && (
+                            (isStudentLightTheme ||
+                              isTeacherTheme ||
+                              isAdminNavy) && (
                               <span
                                 className="student-menu-ai-badge relative ml-0.5 inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-full border border-amber-200/95 bg-gradient-to-r from-[#6d28d9] via-[#c026d3] to-[#ea580c] px-2 py-0.5"
                                 title="AI 기능"
@@ -238,7 +245,8 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                           {item.ai &&
                             !collapsed &&
                             !isStudentLightTheme &&
-                            !isTeacherTheme && (
+                            !isTeacherTheme &&
+                            !isAdminNavy && (
                               <span className="ml-auto inline-flex shrink-0 items-center gap-0.5 rounded-md bg-gradient-to-r from-violet-500 to-blue-500 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm shadow-violet-500/40 animate-pulse">
                                 AI
                               </span>
@@ -247,7 +255,9 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                       )}
                       {collapsed &&
                         item.ai &&
-                        (isStudentLightTheme || isTeacherTheme) && (
+                        (isStudentLightTheme ||
+                          isTeacherTheme ||
+                          isAdminNavy) && (
                           <span
                             className="student-menu-ai-dot pointer-events-none absolute right-1.5 top-2 h-2 w-2 rounded-full bg-gradient-to-br from-amber-300 to-fuchsia-500 ring-2 ring-white/90 shadow-[0_0_10px_rgba(251,191,36,0.95)]"
                             aria-hidden
@@ -256,7 +266,8 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                       {collapsed &&
                         item.ai &&
                         !isStudentLightTheme &&
-                        !isTeacherTheme && (
+                        !isTeacherTheme &&
+                        !isAdminNavy && (
                           <span
                             className="pointer-events-none absolute -top-0.5 -right-0.5 h-2 w-2 animate-pulse rounded-full bg-violet-400 shadow-sm shadow-violet-400/60"
                             aria-hidden
@@ -276,50 +287,42 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         className={`border-t ${isStudentLightTheme ? 'border-[#ebe8e1]' : 'border-white/10'} p-4 ${collapsed ? 'px-2' : ''}`}
       >
         <div className={`${collapsed ? 'justify-center' : ''}`}>
-          {!collapsed && showEquipmentAddCta && (
-            <button
-              type="button"
-              onClick={() =>
-                window.dispatchEvent(new CustomEvent('admin-equipment-open-add'))
-              }
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg border border-[#3d4f66] bg-[#1e2a3a] py-2.5 text-[0.72rem] font-semibold tracking-wide text-[#dbe7f5] transition-colors hover:bg-[#243044]"
-            >
-              <Icons.Plus className="h-3.5 w-3.5 shrink-0" />
-              장비 등록 · ADD EQUIPMENT
-            </button>
-          )}
-          <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-          <Avatar
-            name={user?.name}
-            size="sm"
-            className={`${isStudentLightTheme ? 'bg-[#ece9e3] text-[#5c5852]' : 'bg-white/20 text-white'}`}
-          />
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className={`text-body-sm font-medium truncate ${isStudentLightTheme ? 'text-[#374151]' : 'text-white'}`}>
-                {user?.name}
-              </p>
-              <p
-                className={`text-caption truncate ${isStudentLightTheme ? 'text-[#6b7280]' : isAdminNavy ? 'text-[#8fa3b8]' : 'text-[#f3e5d2]/70'}`}
-              >
-                {user?.email}
-              </p>
-              {isAdminNavy && (
-                <p className="text-[0.65rem] text-[#6b7c8f] mt-0.5 truncate">
-                  관리자 · Administrator
+          <div
+            className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}
+          >
+            <UserCircle
+              className={`w-7 h-7 shrink-0 ${isStudentLightTheme ? 'text-[#8a847a]' : 'text-white/60'}`}
+            />
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p
+                  className={`text-body-sm font-medium truncate ${isStudentLightTheme ? 'text-[#374151]' : 'text-white'}`}
+                >
+                  {user?.name}
                 </p>
-              )}
-            </div>
-          )}
-          {!collapsed && (
-            <button
-              onClick={handleLogout}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isStudentLightTheme ? 'hover:bg-white/35' : 'hover:bg-white/10'}`}
-              title="로그아웃"
-            >
-              <Icons.LogOut className={`w-4 h-4 ${isStudentLightTheme ? 'text-[#6b7280]' : 'text-white/70'}`} />
-            </button>
-          )}
+                <p
+                  className={`text-caption truncate ${isStudentLightTheme ? 'text-[#6b7280]' : isAdminNavy ? 'text-[#8fa3b8]' : 'text-[#f3e5d2]/70'}`}
+                >
+                  {user?.email}
+                </p>
+                {isAdminNavy && (
+                  <p className="text-[0.65rem] text-[#6b7c8f] mt-0.5 truncate">
+                    관리자 · Administrator
+                  </p>
+                )}
+              </div>
+            )}
+            {!collapsed && (
+              <button
+                onClick={handleLogout}
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isStudentLightTheme ? 'hover:bg-white/35' : 'hover:bg-white/10'}`}
+                title="로그아웃"
+              >
+                <Icons.LogOut
+                  className={`w-4 h-4 ${isStudentLightTheme ? 'text-[#6b7280]' : 'text-white/70'}`}
+                />
+              </button>
+            )}
           </div>
         </div>
       </div>

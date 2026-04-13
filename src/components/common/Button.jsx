@@ -6,7 +6,7 @@ const variants = {
   warm: 'bg-[#3d3d3d] text-white hover:bg-[#323232] active:bg-[#282828]',
   secondary: 'bg-white text-primary-500 border border-primary-200 hover:bg-primary-50',
   ghost: 'bg-transparent text-gray-700 hover:bg-gray-100',
-  danger: 'bg-error-500 text-white hover:bg-error-600 active:bg-error-700',
+  danger: 'bg-[#b05040] text-white hover:bg-[#9a4030] active:bg-[#8a3828]',
 }
 
 const sizes = {

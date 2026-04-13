@@ -29,6 +29,7 @@ export function AuthProvider({ children }) {
         name: data.name,
         role: data.role,
         avatar_url: data.avatar_url,
+        course_track_type: data.course_track_type ?? null,
       });
       return true;
     } catch {

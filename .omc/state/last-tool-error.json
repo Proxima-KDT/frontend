@@ -1,7 +1,0 @@
-{
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"C:\\\\heewon\\\\vibe_coding\\\\frontend\\\\src\\\\pages\\\\admin\\\\AdminRoomReservation.jsx\"}",
-  "error": "File content (10924 tokens) exceeds maximum allowed tokens (10000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
-  "timestamp": "2026-04-12T14:01:42.598Z",
-  "retry_count": 15
-}

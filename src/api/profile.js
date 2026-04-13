@@ -3,11 +3,6 @@ import axiosInstance from './axiosInstance';
 export const profileApi = {
   getMe: () => axiosInstance.get('/api/profile/me').then((r) => r.data),
 
-  updateTargetJobs: (targetJobs) =>
-    axiosInstance
-      .put('/api/profile/target-jobs', { jobs: targetJobs })
-      .then((r) => r.data),
-
   uploadAvatar: (file) => {
     const formData = new FormData();
     formData.append('file', file);

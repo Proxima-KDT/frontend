@@ -171,8 +171,13 @@ export default function Attendance() {
         type: 'success',
         message: `입실 처리가 완료되었습니다. ${scheduleWindow?.class_end ?? '17:50'} 이후 퇴실해주세요.`,
       });
-    } catch {
-      // Storage 버킷이 없어도 체크인은 시도 (URL 없이)
+    } catch (storageErr) {
+      // Storage 업로드 실패 시 서명 없이 체크인 시도
+      // 단, 체크인 자체가 거부된 경우(400)라면 재시도 없이 바로 안내
+      if (storageErr?.response?.data?.detail) {
+        showToast({ type: 'error', message: storageErr.response.data.detail });
+        return;
+      }
       try {
         await attendanceApi.checkIn(null);
         setSignatureSubmitted(true);
@@ -180,8 +185,10 @@ export default function Attendance() {
           type: 'success',
           message: `입실 처리가 완료되었습니다. ${scheduleWindow?.class_end ?? '17:50'} 이후 퇴실해주세요.`,
         });
-      } catch {
-        showToast({ type: 'error', message: '체크인에 실패했습니다.' });
+      } catch (checkInErr) {
+        const msg =
+          checkInErr?.response?.data?.detail ?? '체크인에 실패했습니다.';
+        showToast({ type: 'error', message: msg });
       }
     }
   };
@@ -382,7 +389,7 @@ export default function Attendance() {
           출결 현황
         </h1>
         <p className="mt-1 text-[0.875rem] text-[#6b6560]">
-          Academic Presence · 월별 출석과 서명을 한곳에서 관리합니다.
+          Attendance Record · 월별 출석과 서명을 한곳에서 관리합니다.
         </p>
       </header>
 
@@ -599,26 +606,37 @@ export default function Attendance() {
               checkoutDone={checkoutDone}
               onEarlyLeave={() => setShowEarlyLeaveConfirm(true)}
               earlyLeaveDone={earlyLeaveDone}
+              checkoutTime={scheduleWindow?.class_end ?? '17:50'}
             />
 
-            <div className="mt-4 grid grid-cols-1 gap-2 border-t border-[#ebe8e3] pt-4 sm:grid-cols-2">
-              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
-                <CheckCircle className="h-4 w-4 shrink-0 text-[#5cbf7a]" />
-                09:00 이전 → 출석
-              </div>
-              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-[#e8943a]" />
-                09:00~09:30 → 지각
-              </div>
-              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
-                <XCircle className="h-4 w-4 shrink-0 text-[#e05d5d]" />
-                09:30 이후 → 결석
-              </div>
-              <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
-                <LogOut className="h-4 w-4 shrink-0 text-[#7eb8e8]" />
-                17:50 이후 → 퇴실
-              </div>
-            </div>
+            {/* 출석 기준 — 수업 시간에 따라 동적 표시 */}
+            {(() => {
+              const classStart = scheduleWindow?.class_start ?? '09:00';
+              const classEnd = scheduleWindow?.class_end ?? '17:50';
+              const [sh, sm] = classStart.split(':').map(Number);
+              const lateTotal = sh * 60 + sm + 30;
+              const lateTime = `${String(Math.floor(lateTotal / 60)).padStart(2, '0')}:${String(lateTotal % 60).padStart(2, '0')}`;
+              return (
+                <div className="mt-4 grid grid-cols-1 gap-2 border-t border-[#ebe8e3] pt-4 sm:grid-cols-2">
+                  <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                    <CheckCircle className="h-4 w-4 shrink-0 text-[#5cbf7a]" />
+                    {classStart} 이전 → 출석
+                  </div>
+                  <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-[#e8943a]" />
+                    {classStart}~{lateTime} → 지각
+                  </div>
+                  <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                    <XCircle className="h-4 w-4 shrink-0 text-[#e05d5d]" />
+                    {lateTime} 이후 → 결석
+                  </div>
+                  <div className="flex items-center gap-2 text-[0.8125rem] text-[#5c5852]">
+                    <LogOut className="h-4 w-4 shrink-0 text-[#7eb8e8]" />
+                    {classEnd} 이후 → 퇴실
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -632,7 +650,7 @@ export default function Attendance() {
             <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3">
               <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
                 <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
-                  PRESENT
+                  출석
                 </p>
                 <p className="mt-1 text-xl font-bold text-[#3d8f5a]">
                   {monthStats.present}
@@ -640,7 +658,7 @@ export default function Attendance() {
               </div>
               <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
                 <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
-                  LATE
+                  지각
                 </p>
                 <p className="mt-1 text-xl font-bold text-[#d9782c]">
                   {monthStats.late}
@@ -648,7 +666,7 @@ export default function Attendance() {
               </div>
               <div className="rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-3 py-3 text-center">
                 <p className="text-[0.58rem] font-bold tracking-widest text-[#8a847a]">
-                  ABSENT
+                  결석
                 </p>
                 <p className="mt-1 text-xl font-bold text-[#d14b4b]">
                   {monthStats.absent}

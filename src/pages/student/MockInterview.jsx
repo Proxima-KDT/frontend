@@ -340,20 +340,12 @@ export default function MockInterview() {
   // ─── 점수별 색상 매핑 ──────────────────────────────────────────
   function scoreColor(s) {
     if (s >= 80)
-      return {
-        ring: 'ring-green-400',
-        text: 'text-green-600',
-        bg: 'bg-green-50',
-      };
+      return { ring: 'ring-[#4a7a58]', text: 'text-[#4a7a58]', bg: 'bg-[#e8f0ea]', fill: 'bg-[#4a7a58]' };
     if (s >= 60)
-      return { ring: 'ring-blue-400', text: 'text-blue-600', bg: 'bg-blue-50' };
+      return { ring: 'ring-[#c07a30]', text: 'text-[#c07a30]', bg: 'bg-[#f5f0ea]', fill: 'bg-[#c07a30]' };
     if (s >= 40)
-      return {
-        ring: 'ring-orange-400',
-        text: 'text-orange-600',
-        bg: 'bg-orange-50',
-      };
-    return { ring: 'ring-red-400', text: 'text-red-600', bg: 'bg-red-50' };
+      return { ring: 'ring-[#b07840]', text: 'text-[#b07840]', bg: 'bg-[#f5ede0]', fill: 'bg-[#b07840]' };
+    return { ring: 'ring-[#b05040]', text: 'text-[#b05040]', bg: 'bg-[#f5ebe8]', fill: 'bg-[#b05040]' };
   }
 
   function getLabel(list, val) {
@@ -365,14 +357,14 @@ export default function MockInterview() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-h2 font-bold text-gray-900">AI 모의면접</h1>
-          <p className="text-body-sm text-gray-500 mt-1">
+          <h1 className="text-h2 font-bold text-[#2c2b28]">AI 모의면접</h1>
+          <p className="text-body-sm text-[#6b6560] mt-1">
             음성으로 실전처럼 면접을 연습하고 AI 피드백을 받아보세요.
           </p>
         </div>
 
         {/* 탭 */}
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+        <div className="flex gap-1 p-1 bg-[#ede9e2] rounded-xl w-fit">
           {[
             { key: 'new', label: '새 면접', icon: Play },
             { key: 'history', label: '모의면접 기록', icon: History },
@@ -382,8 +374,8 @@ export default function MockInterview() {
               onClick={() => setSetupTab(key)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-body-sm font-semibold transition-all ${
                 setupTab === key
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white text-[#2c2b28] shadow-sm'
+                  : 'text-[#6b6560] hover:text-[#2c2b28]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -395,7 +387,7 @@ export default function MockInterview() {
         {/* 새 모의면접 탭 */}
         {setupTab === 'new' && (
           <Card>
-            <h2 className="text-h3 font-semibold text-gray-900 mb-4">
+            <h2 className="text-h3 font-semibold text-[#2c2b28] mb-4">
               면접 설정
             </h2>
 
@@ -432,14 +424,14 @@ export default function MockInterview() {
                 placeholder="면접 유형을 선택하세요"
               />
 
-              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+              <div className="p-3 bg-[#f5f0ea] border border-[#e0d8cc] rounded-xl">
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Mic className="w-4 h-4 text-blue-500" />
-                  <span className="text-body-sm font-semibold text-blue-700">
+                  <Mic className="w-4 h-4 text-[#8a7060]" />
+                  <span className="text-body-sm font-semibold text-[#5a4a38]">
                     음성 전용 면접
                   </span>
                 </div>
-                <p className="text-body-sm text-blue-600">
+                <p className="text-body-sm text-[#6b6560]">
                   마이크로 답변하고, AI가 질문을 음성으로 읽어줍니다. 실전
                   면접처럼 준비하세요.
                 </p>
@@ -465,17 +457,17 @@ export default function MockInterview() {
             {historyLoading ? (
               <div className="flex items-center justify-center py-16 gap-3">
                 <Loader2 className="w-5 h-5 text-student-400 animate-spin" />
-                <span className="text-body-sm text-gray-400">
+                <span className="text-body-sm text-[#9c9690]">
                   기록을 불러오는 중...
                 </span>
               </div>
             ) : historyList.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-200 py-16 text-center">
-                <History className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-body text-gray-400">
+              <div className="bg-white rounded-2xl border border-[#e8e4dc] py-16 text-center">
+                <History className="w-10 h-10 text-[#c8bfb4] mx-auto mb-3" />
+                <p className="text-body text-[#9c9690]">
                   아직 모의면접 기록이 없습니다
                 </p>
-                <p className="text-caption text-gray-300 mt-1">
+                <p className="text-caption text-[#b8b0a8] mt-1">
                   새 모의면접을 시작해보세요
                 </p>
               </div>
@@ -504,10 +496,10 @@ export default function MockInterview() {
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+                    className="bg-white rounded-2xl border border-[#e8e4dc] shadow-sm overflow-hidden"
                   >
                     <button
-                      className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors"
+                      className="w-full text-left px-5 py-4 hover:bg-[#faf9f7] transition-colors"
                       onClick={() => handleExpandHistory(item.id)}
                     >
                       <div className="flex items-center gap-4">
@@ -522,37 +514,37 @@ export default function MockInterview() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span className="text-body font-bold text-gray-900">
+                            <span className="text-body font-bold text-[#2c2b28]">
                               {compLabel}
                             </span>
-                            <span className="text-caption text-gray-400">
+                            <span className="text-caption text-[#9c9690]">
                               ·
                             </span>
-                            <span className="text-body-sm text-gray-600">
+                            <span className="text-body-sm text-[#5c5852]">
                               {posLabel}
                             </span>
-                            <span className="text-caption px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">
+                            <span className="text-caption px-2 py-0.5 rounded-full font-medium bg-[#ede9e2] text-[#6b6560]">
                               {typeLabel2}
                             </span>
                           </div>
-                          <p className="text-caption text-gray-400">
+                          <p className="text-caption text-[#9c9690]">
                             {dateStr}
                           </p>
                         </div>
                         {isOpen ? (
-                          <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
+                          <ChevronUp className="w-4 h-4 text-[#9c9690] shrink-0" />
                         ) : (
-                          <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                          <ChevronDown className="w-4 h-4 text-[#9c9690] shrink-0" />
                         )}
                       </div>
                     </button>
 
                     {isOpen && (
-                      <div className="border-t border-gray-100 px-5 py-5 space-y-5">
+                      <div className="border-t border-[#f0ede8] px-5 py-5 space-y-5">
                         {!detail ? (
                           <div className="flex items-center justify-center py-6 gap-2">
                             <Loader2 className="w-4 h-4 text-student-400 animate-spin" />
-                            <span className="text-body-sm text-gray-400">
+                            <span className="text-body-sm text-[#9c9690]">
                               상세 기록을 불러오는 중...
                             </span>
                           </div>
@@ -560,7 +552,7 @@ export default function MockInterview() {
                           <>
                             {(detail.categories?.length ?? 0) > 0 && (
                               <div>
-                                <p className="text-body-sm font-semibold text-gray-700 mb-3">
+                                <p className="text-body-sm font-semibold text-[#4a4440] mb-3">
                                   영역별 점수
                                 </p>
                                 <div className="space-y-2">
@@ -571,12 +563,12 @@ export default function MockInterview() {
                                         key={cat.name}
                                         className="flex items-center gap-3"
                                       >
-                                        <span className="text-body-sm text-gray-600 w-24 shrink-0">
+                                        <span className="text-body-sm text-[#5c5852] w-24 shrink-0">
                                           {cat.name}
                                         </span>
-                                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div className="flex-1 h-2.5 bg-[#ede9e2] rounded-full overflow-hidden">
                                           <div
-                                            className={`h-full rounded-full ${catSc.bg.replace('bg-', 'bg-').replace('-50', '-400')}`}
+                                            className={`h-full rounded-full transition-all duration-500 ${catSc.fill}`}
                                             style={{ width: `${cat.score}%` }}
                                           />
                                         </div>
@@ -593,14 +585,14 @@ export default function MockInterview() {
                             )}
 
                             {detail.summary && (
-                              <div className="p-4 bg-student-50 rounded-xl border border-student-100">
+                              <div className="p-4 bg-[#f5f0ea] rounded-xl border border-[#e0d8cc]">
                                 <div className="flex items-center gap-1.5 mb-2">
-                                  <Sparkles className="w-3.5 h-3.5 text-student-500" />
-                                  <p className="text-body-sm font-semibold text-student-700">
+                                  <Sparkles className="w-3.5 h-3.5 text-[#8a7060]" />
+                                  <p className="text-body-sm font-semibold text-[#5a4a38]">
                                     AI 총평
                                   </p>
                                 </div>
-                                <p className="text-body-sm text-gray-700 leading-relaxed">
+                                <p className="text-body-sm text-[#4a4440] leading-relaxed">
                                   {detail.summary}
                                 </p>
                               </div>
@@ -608,16 +600,16 @@ export default function MockInterview() {
 
                             {detail.improvements?.length > 0 && (
                               <div>
-                                <p className="text-body-sm font-semibold text-gray-700 mb-2">
+                                <p className="text-body-sm font-semibold text-[#4a4440] mb-2">
                                   개선 포인트
                                 </p>
                                 <ul className="space-y-1.5">
                                   {detail.improvements.map((tip, i) => (
                                     <li
                                       key={i}
-                                      className="flex items-start gap-2 text-body-sm text-gray-600"
+                                      className="flex items-start gap-2 text-body-sm text-[#5c5852]"
                                     >
-                                      <span className="shrink-0 w-5 h-5 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-caption font-bold mt-0.5">
+                                      <span className="shrink-0 w-5 h-5 rounded-full bg-[#f0e8d8] text-[#8a6030] flex items-center justify-center text-caption font-bold mt-0.5">
                                         {i + 1}
                                       </span>
                                       {tip}
@@ -629,26 +621,26 @@ export default function MockInterview() {
 
                             {detail.questions?.length > 0 && (
                               <div>
-                                <p className="text-body-sm font-semibold text-gray-700 mb-3">
+                                <p className="text-body-sm font-semibold text-[#4a4440] mb-3">
                                   모의면접 Q&A
                                 </p>
                                 <div className="space-y-3">
                                   {detail.questions.map((q, i) => (
                                     <div key={i} className="space-y-1.5">
                                       <div className="flex items-start gap-2">
-                                        <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-gray-100 text-gray-500">
+                                        <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-[#ede9e2] text-[#6b6560]">
                                           Q{i + 1}
                                         </span>
-                                        <p className="text-body-sm text-gray-700 leading-relaxed">
+                                        <p className="text-body-sm text-[#4a4440] leading-relaxed">
                                           {q}
                                         </p>
                                       </div>
                                       {detail.answers?.[i] && (
                                         <div className="flex items-start gap-2 ml-1">
-                                          <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-student-100 text-student-600">
+                                          <span className="shrink-0 px-1.5 py-0.5 rounded text-caption font-bold bg-[#ede9e2] text-[#6b6560]">
                                             A
                                           </span>
-                                          <p className="text-body-sm text-gray-600 leading-relaxed">
+                                          <p className="text-body-sm text-[#5c5852] leading-relaxed">
                                             {detail.answers[i]}
                                           </p>
                                         </div>
@@ -683,10 +675,10 @@ export default function MockInterview() {
           <Loader2 className="absolute -inset-2 w-24 h-24 text-student-400 animate-spin" />
         </div>
         <div className="text-center space-y-2">
-          <p className="text-h3 font-bold text-gray-900">
+          <p className="text-h3 font-bold text-[#2c2b28]">
             AI가 모의면접 분석을 하고 있습니다
           </p>
-          <p className="text-body-sm text-gray-500">
+          <p className="text-body-sm text-[#6b6560]">
             응답 분석 및 종합 평가를 포함한 상세 리포트를 생성 중입니다...
           </p>
         </div>
@@ -712,19 +704,19 @@ export default function MockInterview() {
     return (
       <div className="flex flex-col h-[calc(100vh-8rem)]">
         {/* 헤더 */}
-        <div className="flex items-center justify-between pb-3 border-b border-gray-200 shrink-0">
+        <div className="flex items-center justify-between pb-3 border-b border-[#e8e4dc] shrink-0">
           <button
             onClick={() => setView('setup')}
-            className="flex items-center gap-1 text-body-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1 text-body-sm text-[#6b6560] hover:text-[#2c2b28] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             설정
           </button>
           <div className="flex items-center gap-2">
-            <Badge variant="student">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f0ede8] text-[#2c2b28] border border-[#e0d8cc]">
               {questionNumber}/{totalQuestions}
-            </Badge>
-            <span className="text-body-sm text-gray-500 hidden sm:block">
+            </span>
+            <span className="text-body-sm text-[#6b6560] hidden sm:block">
               {companyLabel} · {positionLabel}
             </span>
             <Badge variant="default">{typeLabel}</Badge>
@@ -737,22 +729,22 @@ export default function MockInterview() {
         </div>
 
         {/* 대화 히스토리 */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-3 min-h-0">
+        <div className="flex-1 overflow-y-auto py-4 space-y-3 min-h-0 border border-[#e8e4dc] rounded-2xl bg-[#faf9f7] px-4 my-3">
           {messages.map((msg, idx) => (
             <div
               key={idx}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.role === 'ai' && (
-                <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eef2f4]">
-                  <Sparkles className="h-3.5 w-3.5 text-[#6f8391]" />
+                <div className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f0ede8]">
+                  <Sparkles className="h-3.5 w-3.5 text-[#8a7060]" />
                 </div>
               )}
               <div
                 className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3 ${
                   msg.role === 'user'
-                    ? 'rounded-br-md bg-[#4e5a61] text-white'
-                    : 'bg-gray-100 text-gray-900 rounded-bl-md'
+                    ? 'rounded-br-md bg-[#3d3d3d] text-white'
+                    : 'bg-[#f0ede8] text-[#2c2b28] rounded-bl-md'
                 }`}
               >
                 <p className="text-body-sm leading-relaxed">{msg.content}</p>
@@ -763,34 +755,34 @@ export default function MockInterview() {
         </div>
 
         {/* 음성 입력 영역 */}
-        <div className="shrink-0 pt-3 border-t border-gray-200 space-y-3">
+        <div className="shrink-0 pt-3 border-t border-[#e8e4dc] space-y-3">
           {/* 실시간 transcript + 직접 입력 */}
           {(isRecording || transcript) && (
             <div
               className={`rounded-xl border overflow-hidden transition-colors ${
                 isRecording
-                  ? 'border-red-200 bg-red-50'
-                  : 'border-gray-300 bg-white focus-within:border-student-400'
+                  ? 'border-[#e0c4bc] bg-[#f9f0ee]'
+                  : 'border-[#e0d8cc] bg-white focus-within:border-[#b8a898]'
               }`}
             >
               <div
                 className={`flex items-center gap-1.5 px-3 py-1.5 border-b ${
                   isRecording
-                    ? 'border-red-100 bg-red-50'
-                    : 'border-gray-100 bg-gray-50'
+                    ? 'border-[#edd8d4] bg-[#f9f0ee]'
+                    : 'border-[#ede9e2] bg-[#faf9f7]'
                 }`}
               >
                 {isRecording ? (
                   <>
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-caption font-medium text-red-500">
+                    <div className="w-2 h-2 rounded-full bg-[#b05040] animate-pulse" />
+                    <span className="text-caption font-medium text-[#b05040]">
                       녹음 중...
                     </span>
                   </>
                 ) : (
                   <>
-                    <Pencil className="w-3 h-3 text-gray-400" />
-                    <span className="text-caption font-medium text-gray-400">
+                    <Pencil className="w-3 h-3 text-[#9c9690]" />
+                    <span className="text-caption font-medium text-[#9c9690]">
                       음성인식 답변 또는 직접 입력으로 답변을 수정하여
                       제출하세요
                     </span>
@@ -806,7 +798,7 @@ export default function MockInterview() {
                 }}
                 rows={3}
                 placeholder="(음성인식을 이용하지 않으면 직접 입력하세요)"
-                className={`w-full px-3 py-2.5 text-body-sm text-gray-800 leading-relaxed resize-none outline-none bg-transparent placeholder:text-gray-300 ${
+                className={`w-full px-3 py-2.5 text-body-sm text-[#2c2b28] leading-relaxed resize-none outline-none bg-transparent placeholder:text-[#b8b0a8] ${
                   isRecording ? 'cursor-default' : 'cursor-text'
                 }`}
               />
@@ -823,7 +815,7 @@ export default function MockInterview() {
                   setTranscript('');
                   setAnswerConfirmed(false);
                 }}
-                className="flex items-center gap-1.5 text-body-sm text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex items-center gap-1.5 text-body-sm text-[#9c9690] hover:text-[#6b6560] transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
                 다시
@@ -838,8 +830,8 @@ export default function MockInterview() {
                   disabled={!sttSupported || isLoading}
                   className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
                     isRecording
-                      ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
-                      : 'bg-[#4e5a61] hover:bg-[#424d53] shadow-[#4e5a61]/30'
+                      ? 'bg-[#b05040] hover:bg-[#9a4030] shadow-[#b05040]/30'
+                      : 'bg-[#3d3d3d] hover:bg-[#2a2a28] shadow-[#3d3d3d]/30'
                   } disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
                   {isRecording ? (
@@ -849,13 +841,14 @@ export default function MockInterview() {
                   )}
                 </button>
                 {isRecording && (
-                  <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping pointer-events-none" />
+                  <div className="absolute inset-0 rounded-full border-4 border-[#b05040] animate-ping pointer-events-none" />
                 )}
               </div>
             </div>
 
             {/* 제출 버튼 */}
             <Button
+              variant="warm"
               size="md"
               onClick={handleSubmitAnswer}
               disabled={!canSubmit}
@@ -866,7 +859,7 @@ export default function MockInterview() {
           </div>
 
           {!isRecording && !transcript && (
-            <p className="text-caption text-gray-400 text-center pb-1">
+            <p className="text-caption text-[#9c9690] text-center pb-1">
               마이크 버튼을 눌러 답변을 시작하세요
             </p>
           )}
@@ -879,7 +872,7 @@ export default function MockInterview() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 flex-wrap">
-        <h1 className="text-h2 font-bold text-gray-900">면접 리포트</h1>
+        <h1 className="text-h2 font-bold text-[#2c2b28]">면접 리포트</h1>
         <Badge variant="student">{companyLabel}</Badge>
         <Badge variant="default">{positionLabel}</Badge>
         <Badge variant="info">{typeLabel}</Badge>
@@ -887,13 +880,13 @@ export default function MockInterview() {
 
       {/* 종합 점수 */}
       <Card className="flex flex-col items-center py-8">
-        <h2 className="text-h3 font-semibold text-gray-900 mb-4">종합 점수</h2>
+        <h2 className="text-h3 font-semibold text-[#2c2b28] mb-4">종합 점수</h2>
         <ScoreGauge score={report.total_score} label="총점" size={160} />
       </Card>
 
       {/* 영역별 점수 */}
       <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-4">
+        <h2 className="text-h3 font-semibold text-[#2c2b28] mb-4">
           영역별 점수
         </h2>
         <CategoryScoreBar categories={report.categories} />
@@ -902,26 +895,26 @@ export default function MockInterview() {
       {/* 총평 */}
       <Card>
         <div className="flex items-center gap-1.5 mb-3">
-          <Sparkles className="w-4 h-4 text-[#6f8391]" />
-          <h2 className="text-h3 font-semibold text-gray-900">AI 총평</h2>
+          <Sparkles className="w-4 h-4 text-[#8a7060]" />
+          <h2 className="text-h3 font-semibold text-[#2c2b28]">AI 총평</h2>
         </div>
-        <p className="text-body-sm text-gray-700 leading-relaxed">
+        <p className="text-body-sm text-[#4a4440] leading-relaxed">
           {report.summary}
         </p>
       </Card>
 
       {/* 개선 포인트 */}
       <Card>
-        <h2 className="text-h3 font-semibold text-gray-900 mb-3">
+        <h2 className="text-h3 font-semibold text-[#2c2b28] mb-3">
           개선 포인트
         </h2>
         <ul className="space-y-2">
           {report.improvements.map((tip, idx) => (
             <li
               key={idx}
-              className="flex items-start gap-2 text-body-sm text-gray-700"
+              className="flex items-start gap-2 text-body-sm text-[#4a4440]"
             >
-              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#eef2f4] text-caption font-semibold text-[#4e5a61]">
+              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#f0ede8] text-caption font-semibold text-[#8a7060]">
                 {idx + 1}
               </span>
               {tip}

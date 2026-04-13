@@ -13,6 +13,7 @@ export default function SignatureCanvas({
   checkoutDone = false,
   onEarlyLeave,
   earlyLeaveDone = false,
+  checkoutTime = '17:50',
 }) {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -205,7 +206,7 @@ export default function SignatureCanvas({
                 }
                 title={
                   checkoutDisabled
-                    ? '17:50 이후 퇴실 가능합니다'
+                    ? `${checkoutTime} 이후 퇴실 가능합니다`
                     : earlyLeaveDone
                       ? '이미 조퇴 처리되었습니다'
                       : '퇴실 처리'
@@ -254,7 +255,7 @@ export default function SignatureCanvas({
 
       {submitted && checkoutDisabled && !checkoutDone && !earlyLeaveDone && (
         <p className="text-caption text-gray-400 mt-2">
-          17:50 이후 퇴실 버튼이 활성화됩니다
+          {checkoutTime} 이후 퇴실 버튼이 활성화됩니다
         </p>
       )}
     </div>

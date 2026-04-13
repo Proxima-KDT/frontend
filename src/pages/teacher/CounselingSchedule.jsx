@@ -13,8 +13,6 @@ import {
   User,
   X,
   Circle,
-  Search,
-  Bell,
   Plus,
   CalendarX,
   CalendarCheck,
@@ -367,22 +365,13 @@ export default function CounselingSchedule() {
 
   return (
     <div className="relative rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <div className="relative w-full max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9a968e]" />
-          <input
-            readOnly
-            value=""
-            placeholder="상담 검색 (Search consultations)"
-            className="h-10 w-full rounded-full border border-[#e4e1db] bg-[#f7f6f2] pl-10 pr-4 text-sm text-[#6f6b64] placeholder:text-[#b4b0a8]"
-          />
-        </div>
-        <div className="flex items-center gap-3 text-[#7e7a74]">
-          <Bell className="h-4 w-4" />
-          <h1 className="text-[1.65rem] text-[#999792]">
-            상담일정 관리
-          </h1>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-[1.65rem] font-semibold tracking-tight text-[#2c2b28]">
+          상담 일정
+        </h1>
+        <p className="mt-1 text-[0.95rem] text-[#6b6560]">
+          상담 일정을 관리하세요.
+        </p>
       </div>
 
       {/* 통계 카드 */}
@@ -672,14 +661,6 @@ export default function CounselingSchedule() {
           </div>
         )}
       </Card>
-
-      <button
-        type="button"
-        className="fixed bottom-8 right-8 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#5f6972] text-white shadow-[0_12px_28px_rgba(40,44,48,0.35)] transition-colors hover:bg-[#4f5961]"
-        title="새 일정"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
 
       {/* 면담 상세 Drawer */}
       <Drawer

@@ -26,7 +26,6 @@ const ConceptQuiz = lazy(() => import('@/pages/student/ConceptQuiz'));
 const MyPage = lazy(() => import('@/pages/student/MyPage'));
 const VoiceFeedback = lazy(() => import('@/pages/student/VoiceFeedback'));
 const MockInterview = lazy(() => import('@/pages/student/MockInterview'));
-const JobMatching = lazy(() => import('@/pages/student/JobMatching'));
 const Attendance = lazy(() => import('@/pages/student/Attendance'));
 const StudentQuestions = lazy(() => import('@/pages/student/Questions'));
 const StudentEquipment = lazy(() => import('@/pages/student/Equipment'));
@@ -75,6 +74,7 @@ const AdminRoomReservation = lazy(
 const RegisterStudent = lazy(() => import('@/pages/admin/RegisterStudent'));
 const RegisterTeacher = lazy(() => import('@/pages/admin/RegisterTeacher'));
 const CourseManagement = lazy(() => import('@/pages/admin/CourseManagement'));
+const AdminCounseling = lazy(() => import('@/pages/admin/Counseling'));
 
 // Common 페이지 (통합 AI 에이전트 — 모든 role 공통)
 const AIAgent = lazy(() => import('@/pages/common/AIAgent'));
@@ -175,14 +175,6 @@ export default function AppRouter() {
             element={
               <ProtectedRoute role="student">
                 <MockInterview />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student/jobs"
-            element={
-              <ProtectedRoute role="student">
-                <JobMatching />
               </ProtectedRoute>
             }
           />
@@ -363,6 +355,14 @@ export default function AppRouter() {
             element={
               <ProtectedRoute role="admin">
                 <AdminCounselingSchedule />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/counseling"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminCounseling />
               </ProtectedRoute>
             }
           />

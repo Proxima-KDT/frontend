@@ -134,7 +134,7 @@ export default function AssessmentManagement() {
   const [signedFiles, setSignedFiles] = useState([]);
 
   const current = assessments.find((a) => a.phaseId === activePhase);
-  const phaseColor = PHASE_COLORS[(activePhase - 1) % 6];
+  const phaseColor = PHASE_COLORS[Math.max(0, (Number(activePhase) - 1)) % 6] ?? PHASE_COLORS[0];
 
   const fetchSignedFiles = (assessment, student) => {
     // 항상 API에서 signed URL 조회 — files 배열에 의존하지 않음
@@ -306,17 +306,6 @@ export default function AssessmentManagement() {
             Competency Evaluation Management
           </p>
         </div>
-        <div className="flex items-center gap-2 text-[11px] font-semibold text-[#7e7a74]">
-          <span className="px-2 py-1">Dashboard</span>
-          <span className="rounded-full border border-[#bab7b0] bg-[#e8e5de] px-3 py-1">Evaluations</span>
-          <span className="px-2 py-1">Analytics</span>
-          <span className="px-2 py-1">Resources</span>
-          <Search className="h-4 w-4" />
-          <Bell className="h-4 w-4" />
-          <Button variant="primary" size="sm" className="rounded-full !bg-[#69717a] !text-white hover:!bg-[#535a62]">
-            Create Evaluation
-          </Button>
-        </div>
       </div>
 
       {/* Phase 탭 */}
@@ -466,7 +455,7 @@ export default function AssessmentManagement() {
             </p>
             <div className="space-y-2">
               {current.studentSubmissions.map((student) => {
-                const statusCfg = STATUS_CONFIG[student.status];
+                const statusCfg = STATUS_CONFIG[student.status] ?? STATUS_CONFIG.pending;
                 return (
                   <div
                     key={student.studentId}
@@ -476,7 +465,7 @@ export default function AssessmentManagement() {
                       className={`w-8 h-8 rounded-full ${phaseColor.light} flex items-center justify-center shrink-0`}
                     >
                       <span className={`text-xs font-bold ${phaseColor.text}`}>
-                        {student.studentName[0]}
+                        {student.studentName?.[0] ?? '?'}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">

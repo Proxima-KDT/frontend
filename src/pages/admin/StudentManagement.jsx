@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { adminApi } from '@/api/admin';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -13,7 +13,7 @@ export default function StudentManagement() {
 
   useEffect(() => {
     adminApi
-      .getUsers()
+      .getStudents()
       .then((data) => setUsers(data))
       .catch(() =>
         showToast({
@@ -42,9 +42,9 @@ export default function StudentManagement() {
         ) / filtered.length
       ).toFixed(1)
     : '0.0';
-  const needSupportCount = filtered.filter((u) => u.status === 'at_risk').length;
+  const needSupportCount = filtered.filter((u) => u.is_at_risk === true).length;
   const focusStudent =
-    filtered.find((u) => u.status === 'at_risk') ?? filtered[0] ?? null;
+    filtered.find((u) => u.is_at_risk === true) ?? filtered[0] ?? null;
 
   const columns = [
     {
@@ -56,8 +56,12 @@ export default function StudentManagement() {
             {val?.[0] ?? '?'}
           </div>
           <div>
-            <span className="font-medium text-gray-900 block">{val ?? '이름 없음'}</span>
-            <span className="text-caption text-gray-500">{row.enrolled_at ?? '-'}</span>
+            <span className="font-medium text-gray-900 block">
+              {val ?? '이름 없음'}
+            </span>
+            <span className="text-caption text-gray-500">
+              {row.enrolled_at ?? '-'}
+            </span>
           </div>
         </div>
       ),
@@ -65,7 +69,11 @@ export default function StudentManagement() {
     {
       key: 'attendance_rate',
       label: '출석률',
-      render: (val) => <span className="text-body-sm font-semibold text-[#505a66]">{val ?? 0}%</span>,
+      render: (val) => (
+        <span className="text-body-sm font-semibold text-[#505a66]">
+          {val ?? 0}%
+        </span>
+      ),
     },
     {
       key: 'performance',
@@ -80,7 +88,9 @@ export default function StudentManagement() {
                 style={{ width: `${Math.min(100, score)}%` }}
               />
             </div>
-            <span className={`text-body-sm font-semibold ${score < 70 ? 'text-[#b85b5b]' : 'text-[#505a66]'}`}>
+            <span
+              className={`text-body-sm font-semibold ${score < 70 ? 'text-[#b85b5b]' : 'text-[#505a66]'}`}
+            >
               {score}%
             </span>
           </div>
@@ -88,16 +98,13 @@ export default function StudentManagement() {
       },
     },
     {
-      key: 'status',
+      key: 'is_at_risk',
       label: '상태',
-      render: (val) => {
-        const isRisk = val === 'at_risk';
-        return (
-          <Badge variant={isRisk ? 'soft-error' : 'soft-info'}>
-            {isRisk ? '지원 필요' : '양호'}
-          </Badge>
-        );
-      },
+      render: (val) => (
+        <Badge variant={val ? 'soft-error' : 'soft-info'}>
+          {val ? '지원 필요' : '양호'}
+        </Badge>
+      ),
     },
     {
       key: 'actions',
@@ -120,7 +127,9 @@ export default function StudentManagement() {
           <h1 className="text-[2.2rem] text-[#2f333a]">
             수강생 현황 (Student Roster Overview)
           </h1>
-          <p className="text-sm text-[#7b7872]">개별 학습 진행도와 출결을 함께 확인합니다. (AI 기반 인사이트 포함)</p>
+          <p className="text-sm text-[#7b7872]">
+            개별 학습 진행도와 출결을 함께 확인합니다. (AI 기반 인사이트 포함)
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative w-72">
@@ -133,34 +142,50 @@ export default function StudentManagement() {
               className="h-10 w-full rounded-full border border-[#e4e1db] bg-[#f7f6f2] pl-9 pr-4 text-body-sm outline-none"
             />
           </div>
-          <Bell className="w-4 h-4 text-[#7c7a74]" />
         </div>
       </div>
 
       <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
         <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
-          <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#8a857d]">평균 성과 (Average Performance)</p>
-          <p className="mt-1 text-4xl font-semibold text-[#2f3f54]">{avgPerformance}%</p>
+          <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#8a857d]">
+            평균 성과 (Average Performance)
+          </p>
+          <p className="mt-1 text-4xl font-semibold text-[#2f3f54]">
+            {avgPerformance}%
+          </p>
         </Card>
         <Card className="rounded-2xl border border-[#e2ded7] bg-[#f8f7f4] shadow-none">
-          <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#8a857d]">출석률 (Attendance Rate)</p>
-          <p className="mt-1 text-4xl font-semibold text-[#2f3f54]">{avgAttendance}%</p>
+          <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#8a857d]">
+            출석률 (Attendance Rate)
+          </p>
+          <p className="mt-1 text-4xl font-semibold text-[#2f3f54]">
+            {avgAttendance}%
+          </p>
         </Card>
         <Card className="rounded-2xl border border-[#decf8e] bg-[#e6c55a] shadow-none">
-          <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#705b1f]">지원 필요 (AI)</p>
-          <p className="mt-1 text-4xl font-semibold text-[#4a3a14]">{needSupportCount}</p>
+          <p className="text-[0.7rem] uppercase tracking-[0.12em] text-[#705b1f]">
+            지원 필요 (AI)
+          </p>
+          <p className="mt-1 text-4xl font-semibold text-[#4a3a14]">
+            {needSupportCount}
+          </p>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
-        <Card padding="p-0" className="rounded-3xl border border-[#e1ddd6] bg-[#f8f7f4] shadow-none">
+        <Card
+          padding="p-0"
+          className="rounded-3xl border border-[#e1ddd6] bg-[#f8f7f4] shadow-none"
+        >
           <div className="flex items-center justify-between px-5 pt-5">
-            <h3 className="text-[1.5rem] text-[#32363d]">
-              최근 등록 수강생
-            </h3>
+            <h3 className="text-[1.5rem] text-[#32363d]">최근 등록 수강생</h3>
             <div className="flex gap-2">
-              <button className="rounded-full bg-[#f0efeb] px-2.5 py-1 text-[11px] text-[#7a756c]">Sort: Name</button>
-              <button className="rounded-full bg-[#f0efeb] px-2.5 py-1 text-[11px] text-[#7a756c]">Filter: All</button>
+              <button className="rounded-full bg-[#f0efeb] px-2.5 py-1 text-[11px] text-[#7a756c]">
+                Sort: Name
+              </button>
+              <button className="rounded-full bg-[#f0efeb] px-2.5 py-1 text-[11px] text-[#7a756c]">
+                Filter: All
+              </button>
             </div>
           </div>
           <Table columns={columns} data={filtered} />
@@ -175,10 +200,16 @@ export default function StudentManagement() {
                 <p className="text-[1.35rem] text-[#2f333a]">
                   {focusStudent?.name ?? '선택된 수강생 없음'}
                 </p>
-                <p className="text-xs text-[#7e7a72]">{focusStudent?.email ?? '-'}</p>
+                <p className="text-xs text-[#7e7a72]">
+                  {focusStudent?.email ?? '-'}
+                </p>
                 <div className="mt-1">
-                  <Badge variant={focusStudent?.status === 'at_risk' ? 'soft-error' : 'soft-info'}>
-                    {focusStudent?.status === 'at_risk' ? '지원 필요' : '양호'}
+                  <Badge
+                    variant={
+                      focusStudent?.is_at_risk ? 'soft-error' : 'soft-info'
+                    }
+                  >
+                    {focusStudent?.is_at_risk ? '지원 필요' : '양호'}
                   </Badge>
                 </div>
               </div>
@@ -192,7 +223,8 @@ export default function StudentManagement() {
               AI 관찰 (AI Observation)
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[#ece8dc]">
-              성과 대비 출석률이 낮은 수강생은 주간 체크인을 강화하고, 과제 제출 전 짧은 피드백 루프를 제공하면 개선 효과가 큽니다.
+              성과 대비 출석률이 낮은 수강생은 주간 체크인을 강화하고, 과제 제출
+              전 짧은 피드백 루프를 제공하면 개선 효과가 큽니다.
             </p>
           </Card>
           <Card className="rounded-3xl border border-[#e1ddd6] bg-[#f8f7f4] shadow-none">
@@ -200,7 +232,11 @@ export default function StudentManagement() {
               최근 제출 (Recent Submissions)
             </p>
             <div className="mt-2 space-y-2 text-sm text-[#56524c]">
-              <p>• 과제 제출률 상위 그룹: {filtered.filter((u) => (u.attendance_rate ?? 0) >= 90).length}명</p>
+              <p>
+                • 과제 제출률 상위 그룹:{' '}
+                {filtered.filter((u) => (u.attendance_rate ?? 0) >= 90).length}
+                명
+              </p>
               <p>• 집중 지원 대상: {needSupportCount}명</p>
               <p>• 전체 수강생: {filtered.length}명</p>
             </div>

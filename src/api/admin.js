@@ -43,22 +43,27 @@ export const adminApi = {
     axiosInstance.post('/api/admin/users/teachers', data).then((r) => r.data),
 
   // 과정(course) + 기수(cohort) 목록
-  getCourses: () =>
-    axiosInstance.get('/api/admin/courses').then((r) => r.data),
+  getCourses: () => axiosInstance.get('/api/admin/courses').then((r) => r.data),
 
   // 강의 CRUD
   createCourse: (data) =>
     axiosInstance.post('/api/admin/courses', data).then((r) => r.data),
   updateCourse: (courseId, data) =>
-    axiosInstance.put(`/api/admin/courses/${courseId}`, data).then((r) => r.data),
+    axiosInstance
+      .put(`/api/admin/courses/${courseId}`, data)
+      .then((r) => r.data),
   deleteCourse: (courseId) =>
     axiosInstance.delete(`/api/admin/courses/${courseId}`).then((r) => r.data),
 
   // 기수 CRUD
   createCohort: (courseId, data) =>
-    axiosInstance.post(`/api/admin/courses/${courseId}/cohorts`, data).then((r) => r.data),
+    axiosInstance
+      .post(`/api/admin/courses/${courseId}/cohorts`, data)
+      .then((r) => r.data),
   updateCohort: (cohortId, data) =>
-    axiosInstance.put(`/api/admin/cohorts/${cohortId}`, data).then((r) => r.data),
+    axiosInstance
+      .put(`/api/admin/cohorts/${cohortId}`, data)
+      .then((r) => r.data),
   deleteCohort: (cohortId) =>
     axiosInstance.delete(`/api/admin/cohorts/${cohortId}`).then((r) => r.data),
 
@@ -69,7 +74,9 @@ export const adminApi = {
   // 관리자 비밀번호 재발급
   updateUserPassword: (userId, newPassword) =>
     axiosInstance
-      .post(`/api/admin/users/${userId}/password`, { new_password: newPassword })
+      .post(`/api/admin/users/${userId}/password`, {
+        new_password: newPassword,
+      })
       .then((r) => r.data),
 
   // ── 장비 관리 ─────────────────────────────────────
@@ -143,5 +150,22 @@ export const adminApi = {
   deleteReservation: (reservationId) =>
     axiosInstance
       .delete(`/api/admin/rooms/reservations/${reservationId}`)
+      .then((r) => r.data),
+
+  // ── 면담 기록 ─────────────────────────────────────
+  uploadCounselingAudio: (formData, studentName) =>
+    axiosInstance
+      .post('/api/admin/counseling/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        params: { student_name: studentName },
+      })
+      .then((r) => r.data),
+
+  getCounselingRecords: () =>
+    axiosInstance.get('/api/admin/counseling-records').then((r) => r.data),
+
+  updateCounselingNote: (recordId, note) =>
+    axiosInstance
+      .patch(`/api/admin/counseling-records/${recordId}/note`, { note })
       .then((r) => r.data),
 };
