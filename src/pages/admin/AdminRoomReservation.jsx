@@ -184,7 +184,7 @@ export default function AdminRoomReservation() {
   const [bookedSlots, setBookedSlots] = useState([]);
   const [myReservations, setMyReservations] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(true);
-  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [, setSlotsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('meeting');
   const [showAvailableNow, setShowAvailableNow] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
@@ -594,7 +594,7 @@ export default function AdminRoomReservation() {
             bg: 'bg-[#f4f0f7]',
             iconColor: 'text-[#6b5b73]',
           },
-        ].map(({ label, total, available, icon, bg, iconColor }) => {
+        ].map(({ label, total, available, icon }) => {
           const StatIcon = icon;
           return (
             <Card

@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useCourse } from '@/context/CourseContext';
 import {
@@ -28,12 +28,11 @@ const sidebarBgByRole = {
     'bg-[radial-gradient(900px_450px_at_16%_15%,rgba(255,214,170,0.18),rgba(255,214,170,0.04)_38%,transparent_68%),linear-gradient(180deg,#6c4b3f_0%,#5f4338_46%,#584035_100%)]',
 };
 
-export default function Sidebar({ collapsed = false, onToggle }) {
+export default function Sidebar({ collapsed = false }) {
   const { user, role, logout } = useAuth();
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse } =
     useCourse();
   const navigate = useNavigate();
-  const location = useLocation();
   const items = menuMap[role] || [];
   const isStudentLightTheme = role === 'student';
   const isTeacherTheme = role === 'teacher';

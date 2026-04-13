@@ -21,27 +21,6 @@ export const SKILL_AXIS_COLORS = [
 
 const AXIS_COLORS = SKILL_AXIS_COLORS;
 
-function axisLabelFromTickPayload(payload) {
-  if (payload == null) return '';
-  if (typeof payload === 'string') return payload;
-  const inner = payload.payload ?? payload;
-  if (typeof inner === 'string') return inner;
-  return (
-    inner?.subject ?? inner?.value ?? payload.subject ?? payload.value ?? ''
-  );
-}
-
-/** 긴 한글 라벨이 잘리지 않도록 2줄로 나눔 (대략 중간·공백 우선) */
-function splitAxisLabel(text) {
-  const t = String(text || '').trim();
-  if (t.length <= 6) return [t];
-  const space = t.indexOf(' ');
-  if (space > 0 && space < t.length - 1) {
-    return [t.slice(0, space), t.slice(space + 1)];
-  }
-  const mid = Math.ceil(t.length / 2);
-  return [t.slice(0, mid), t.slice(mid)];
-}
 
 export default function SkillRadarChart({
   data,
@@ -55,55 +34,6 @@ export default function SkillRadarChart({
   const chartMargin = isEditorial
     ? { top: 36, right: 52, bottom: 36, left: 52 }
     : { top: 24, right: 24, bottom: 24, left: 24 };
-
-  const renderAngleTick = (props) => {
-    const { payload, x, y, textAnchor, index } = props;
-    if (x == null || y == null) return null;
-    const label = axisLabelFromTickPayload(payload);
-    if (!label) return null;
-    const fill = AXIS_COLORS[(index ?? 0) % AXIS_COLORS.length];
-    const fontSize = isEditorial ? 10 : size === 'mini' ? 10 : 11.5;
-    if (isEditorial) {
-      const lines = splitAxisLabel(label);
-      const firstDy = lines.length > 1 ? '-0.35em' : '0.35em';
-      return (
-        <text
-          x={x}
-          y={y}
-          textAnchor={textAnchor || 'middle'}
-          fill={fill}
-          fontSize={fontSize}
-          fontWeight={600}
-          fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
-        >
-          {lines.map((line, i) => (
-            <tspan key={i} x={x} dy={i === 0 ? firstDy : '1.05em'}>
-              {line}
-            </tspan>
-          ))}
-        </text>
-      );
-    }
-    const lines = splitAxisLabel(label);
-    const firstDy = lines.length > 1 ? '-0.35em' : '0.35em';
-    return (
-      <text
-        x={x}
-        y={y}
-        textAnchor={textAnchor || 'middle'}
-        fill={fill}
-        fontSize={fontSize}
-        fontWeight={600}
-        fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
-      >
-        {lines.map((line, i) => (
-          <tspan key={i} x={x} dy={i === 0 ? firstDy : '1.2em'}>
-            {line}
-          </tspan>
-        ))}
-      </text>
-    );
-  };
 
   const renderScoreDot = (props) => {
     const { cx, cy, index } = props;

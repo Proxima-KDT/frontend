@@ -225,7 +225,7 @@ export default function RoomReservationManagement() {
   // ── 예약 현황 탭 상태 ─────────────────────────────────────────────────
   const [selectedDate, setSelectedDate] = useState(TODAY);
   const [bookedSlots, setBookedSlots] = useState([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [, setSlotsLoading] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [activeRoomTab, setActiveRoomTab] = useState('all');
 

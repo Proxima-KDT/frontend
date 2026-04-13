@@ -10,6 +10,7 @@ import {
   Bell,
   Search,
   CircleHelp,
+  RotateCcw,
 } from 'lucide-react';
 import { teacherApi } from '@/api/teacher';
 import { useCourse } from '@/context/CourseContext';
@@ -233,6 +234,27 @@ export default function AssessmentManagement() {
     }));
   };
 
+  // fetch → Blob → objectURL 방식 (supabase.co 크로스 오리진 URL 은 a.download 가 무시돼 새 탭으로 열리므로 blob 으로 강제)
+  const forceDownload = (name, url) =>
+    fetch(url)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
+      })
+      .catch(() =>
+        showToast({
+          message: `${name} 다운로드에 실패했습니다.`,
+          type: 'error',
+        }),
+      );
+
   const handleDownloadFile = (assessment, student) => {
     teacherApi
       .getAssessmentFiles(assessment.id, student.studentId)
@@ -241,22 +263,25 @@ export default function AssessmentManagement() {
           showToast({ message: '다운로드할 파일이 없습니다.', type: 'info' });
           return;
         }
-        files.forEach((f) => window.open(f.url, '_blank'));
+        files.forEach((f) => forceDownload(f.name, f.url));
       })
       .catch(() =>
         showToast({ message: '파일 다운로드에 실패했습니다.', type: 'error' }),
       );
   };
 
-  const handleConfirmGrade = () => {
+  const handleConfirmGrade = (requireResubmit = false) => {
     const { assessment, student } = aiModal;
+    const payload = requireResubmit
+      ? { feedback: aiResult.feedback, require_resubmit: true }
+      : {
+          score: aiResult.score,
+          feedback: aiResult.feedback,
+          rubricScores: aiResult.rubricScores,
+          passed: aiResult.passed,
+        };
     teacherApi
-      .gradeAssessmentSubmission(assessment.id, student.studentId, {
-        score: aiResult.score,
-        feedback: aiResult.feedback,
-        rubric_scores: aiResult.rubricScores,
-        passed: aiResult.passed,
-      })
+      .gradeAssessmentSubmission(assessment.id, student.studentId, payload)
       .then(() => {
         setAssessments((prev) =>
           prev.map((a) =>
@@ -267,6 +292,15 @@ export default function AssessmentManagement() {
                   studentSubmissions: a.studentSubmissions.map((s) =>
                     s.studentId !== student.studentId
                       ? s
+                      : requireResubmit
+                      ? {
+                          ...s,
+                          status: 'resubmit_required',
+                          score: null,
+                          passed: null,
+                          feedback: aiResult.feedback,
+                          rubricScores: null,
+                        }
                       : {
                           ...s,
                           status: 'graded',
@@ -280,10 +314,20 @@ export default function AssessmentManagement() {
           ),
         );
         handleCloseAiModal();
-        showToast({ message: '채점이 확정되었습니다.', type: 'success' });
+        showToast({
+          message: requireResubmit
+            ? '재제출을 요청했습니다.'
+            : '채점이 확정되었습니다.',
+          type: 'success',
+        });
       })
       .catch(() =>
-        showToast({ message: '채점 확정에 실패했습니다.', type: 'error' }),
+        showToast({
+          message: requireResubmit
+            ? '재제출 요청에 실패했습니다.'
+            : '채점 확정에 실패했습니다.',
+          type: 'error',
+        }),
       );
   };
 
@@ -577,6 +621,7 @@ export default function AssessmentManagement() {
                             <Button
                               variant="secondary"
                               size="sm"
+                              className="bg-white! text-[#59606a]! border-[#d9d2c6]! hover:bg-[#f5f1ea]!"
                               onClick={() =>
                                 handleOpenManualModal(current, student)
                               }
@@ -587,6 +632,7 @@ export default function AssessmentManagement() {
                               variant="primary"
                               size="sm"
                               icon={Sparkles}
+                              className="bg-[#59606a]! text-white! hover:bg-[#444b55]!"
                               onClick={() =>
                                 handleOpenAiModal(current, student)
                               }
@@ -666,8 +712,8 @@ export default function AssessmentManagement() {
                       </span>
                       <button
                         className="shrink-0 cursor-pointer rounded-lg p-1 hover:bg-white"
-                        onClick={() => window.open(f.url, '_blank')}
-                        title="파일 열기"
+                        onClick={() => forceDownload(f.name, f.url)}
+                        title="파일 다운로드"
                       >
                         <Download className="h-3.5 w-3.5 text-[#7c7870]" />
                       </button>
@@ -690,7 +736,7 @@ export default function AssessmentManagement() {
                   </p>
                 </div>
                 <Button
-                  variant="primary"
+                  variant="warm"
                   fullWidth
                   icon={Sparkles}
                   onClick={handleRunAi}
@@ -790,14 +836,23 @@ export default function AssessmentManagement() {
                   />
                 </div>
 
-                <Button
-                  variant="primary"
-                  fullWidth
-                  className="bg-[#59606a]! text-white! hover:bg-[#444b55]!"
-                  onClick={handleConfirmGrade}
-                >
-                  채점 확정
-                </Button>
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="secondary"
+                    className="flex-1 bg-[#f5ede0]! text-[#8a5a2e]! border-[#d9c4a0]! hover:bg-[#ecdfc8]!"
+                    icon={RotateCcw}
+                    onClick={() => handleConfirmGrade(true)}
+                  >
+                    재제출 요청
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="flex-1 bg-[#59606a]! text-white! hover:bg-[#444b55]!"
+                    onClick={() => handleConfirmGrade(false)}
+                  >
+                    채점 확정
+                  </Button>
+                </div>
               </>
             )}
           </div>

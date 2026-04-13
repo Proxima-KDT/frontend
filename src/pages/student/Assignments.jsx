@@ -131,6 +131,20 @@ function formatKoDate(iso) {
   });
 }
 
+function formatKoDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
 function subjectCategoryLine(subject) {
   if (!subject) return '과제';
   if (/[가-힣]/.test(subject)) return subject;
@@ -172,7 +186,7 @@ function DueDateBadge({ dueDate, status }) {
   );
 }
 
-function RubricTable({ rubric }) {
+function RubricTable({ rubric, totalScore, isGraded }) {
   if (!rubric || rubric.length === 0) {
     return (
       <div className="mt-4">
@@ -183,7 +197,10 @@ function RubricTable({ rubric }) {
       </div>
     );
   }
-  const total = rubric.reduce((s, r) => s + (r.score ?? 0), 0);
+  const hasItemScores = rubric.some((r) => r.score != null);
+  const total = hasItemScores
+    ? rubric.reduce((s, r) => s + (r.score ?? 0), 0)
+    : (isGraded && totalScore != null ? totalScore : 0);
   const max = rubric.reduce(
     (s, r) => s + (r.maxScore ?? r.max_score ?? 0),
     0,
@@ -218,6 +235,8 @@ function RubricTable({ rubric }) {
                 <td className="px-4 py-2.5 text-right font-semibold text-student-600">
                   {r.score != null ? (
                     `${r.score}점`
+                  ) : isGraded ? (
+                    <span className="text-gray-400 font-normal">-</span>
                   ) : (
                     <span className="text-gray-400 font-normal">미채점</span>
                   )}
@@ -227,7 +246,12 @@ function RubricTable({ rubric }) {
           </tbody>
           <tfoot className="bg-gray-50 border-t border-gray-200">
             <tr>
-              <td className="px-4 py-2.5 font-bold text-gray-800">합계</td>
+              <td className="px-4 py-2.5 font-bold text-gray-800">
+                합계
+                {!hasItemScores && isGraded && (
+                  <span className="ml-1.5 text-[11px] font-normal text-gray-400">(종합 채점)</span>
+                )}
+              </td>
               <td className="px-4 py-2.5 text-right text-gray-500">{max}점</td>
               <td className="px-4 py-2.5 text-right font-bold text-student-700">
                 {total}점
@@ -588,7 +612,7 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
                 ))}
                 {getAssignmentSubmittedAt(assignment) && (
                   <p className="text-caption text-gray-400">
-                    제출일시: {getAssignmentSubmittedAt(assignment)}
+                    제출일시: {formatKoDateTime(getAssignmentSubmittedAt(assignment))}
                   </p>
                 )}
               </div>
@@ -598,7 +622,11 @@ function AssignmentCard({ assignment, onSubmitted, onFileDeleted }) {
           {/* 루브릭 & 피드백 (채점 완료) */}
           {assignment.status === 'graded' && (
             <div className="space-y-4">
-              <RubricTable rubric={assignment.rubric} />
+              <RubricTable
+                rubric={assignment.rubric}
+                totalScore={assignment.score}
+                isGraded={assignment.status === 'graded'}
+              />
               {assignment.feedback && (
                 <div className="p-4 bg-[#f0f2ec] rounded-xl border border-[#dde0d6]">
                   <p className="text-body-sm font-semibold text-[#2a3a28] mb-1">

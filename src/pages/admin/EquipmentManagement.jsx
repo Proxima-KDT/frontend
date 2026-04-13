@@ -175,31 +175,6 @@ function calcDuration(borrowAt, returnAt) {
   return m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
 }
 
-function exportEquipmentCsv(rows) {
-  const headers = ['name', 'serial_no', 'category', 'status_ko', 'borrower'];
-  const lines = [
-    headers.join(','),
-    ...rows.map((r) =>
-      [
-        `"${(r.name || '').replace(/"/g, '""')}"`,
-        `"${(r.serial_no || '').replace(/"/g, '""')}"`,
-        `"${(r.category || '').replace(/"/g, '""')}"`,
-        r.status,
-        `"${(r.borrower || '').replace(/"/g, '""')}"`,
-      ].join(','),
-    ),
-  ];
-  const blob = new Blob(['\uFEFF' + lines.join('\n')], {
-    type: 'text/csv;charset=utf-8;',
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `equipment-export-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 function ThBilingual({ en, ko }) {
   return (
     <span className="block leading-tight">

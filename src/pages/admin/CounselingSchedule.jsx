@@ -425,7 +425,7 @@ export default function CounselingSchedule() {
 
           {/* 요일 헤더 */}
           <div className="mb-1 grid grid-cols-7 rounded-t-xl bg-[#f8f7f4]">
-            {DAYS_OF_WEEK.map((d, i) => (
+            {DAYS_OF_WEEK.map((d) => (
               <div
                 key={d}
                 className="py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-[#8f8a80]"

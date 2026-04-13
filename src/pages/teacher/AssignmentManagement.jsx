@@ -221,7 +221,7 @@ export default function AssignmentManagement() {
     );
     if (validRubric.length === 0) {
       showToast({
-        message: '루브릭 항목을 최소 1개 이상 입력하세요.',
+        message: '평가 기준 항목을 최소 1개 이상 입력하세요.',
         type: 'error',
       });
       return;
@@ -333,7 +333,7 @@ export default function AssignmentManagement() {
     teacherApi
       .getAiAssignmentFeedback(assignment.id, student.studentId)
       .then((result) => {
-        // 백엔드가 반환한 루브릭 점수로 폼 갱신
+        // 백엔드가 반환한 평가 기준 점수로 폼 갱신
         const merged = assignment.rubric.map((r) => {
           const ai = result.rubricScores?.find((s) => s.item === r.item);
           return {
@@ -382,7 +382,7 @@ export default function AssignmentManagement() {
         status: requireResubmit ? 'resubmit_required' : 'graded',
         score: requireResubmit ? null : feedbackForm.score,
         feedback: feedbackForm.text,
-        rubric_scores: requireResubmit ? null : feedbackForm.rubricScores,
+        rubricScores: requireResubmit ? null : feedbackForm.rubricScores,
         require_resubmit: requireResubmit,
       })
       .then(() => {
@@ -701,7 +701,7 @@ export default function AssignmentManagement() {
                                 </p>
                               )}
 
-                              {/* 루브릭 */}
+                              {/* 평가 기준 */}
                               {assignment.rubric?.length > 0 && (
                                 <div>
                                   <p className="text-caption font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -910,7 +910,7 @@ export default function AssignmentManagement() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium text-gray-700">
-                채점 기준 (루브릭)
+                채점 기준 (평가 기준)
               </p>
               <span className="text-xs text-gray-500">
                 총 배점: {rubricTotal}점
@@ -986,10 +986,10 @@ export default function AssignmentManagement() {
           maxWidth="max-w-[560px]"
         >
           <div className="space-y-5">
-            {/* 루브릭 채점 */}
+            {/* 평가 기준 채점 */}
             <div className="rounded-xl border border-[#e0ddd6] bg-[#f8f7f4] px-4 py-3">
               <p className="mb-3 text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
-                루브릭 채점
+                평가 기준 채점
               </p>
               <div className="space-y-2">
                 {feedbackForm.rubricScores.map((r) => (
@@ -1060,7 +1060,7 @@ export default function AssignmentManagement() {
             <div className="flex gap-2 pt-1">
               <Button
                 variant="secondary"
-                className="flex-1"
+                className="flex-1 bg-[#f5ede0]! text-[#8a5a2e]! border-[#d9c4a0]! hover:bg-[#ecdfc8]!"
                 icon={RotateCcw}
                 onClick={() => handleSubmitFeedback(true)}
               >

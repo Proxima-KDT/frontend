@@ -91,20 +91,7 @@ export default function SignatureCanvas({
     }
   }, [onSave, hasSignature]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const resizeCanvas = () => {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = 200;
-      drawGuide();
-    };
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    return () => window.removeEventListener('resize', resizeCanvas);
-  }, []);
-
-  // guideName 변경 시 가이드 텍스트 다시 그리기
+  // guideName 변경 시 가이드 텍스트 다시 그리기 — resizeCanvas에서도 호출하므로 먼저 선언
   const drawGuide = useCallback(() => {
     if (!guideName || submitted) return;
     const canvas = canvasRef.current;
@@ -121,6 +108,19 @@ export default function SignatureCanvas({
     ctx.fillText(guideName, canvas.width / 2, canvas.height / 2);
     ctx.restore();
   }, [guideName, submitted]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const resizeCanvas = () => {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = 200;
+      drawGuide();
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    return () => window.removeEventListener('resize', resizeCanvas);
+  }, [drawGuide]);
 
   useEffect(() => {
     if (!submitted) drawGuide();

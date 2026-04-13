@@ -45,10 +45,6 @@ function speakText(text, onEnd) {
   window.speechSynthesis.speak(utter);
 }
 
-function stopSpeaking() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-}
-
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────
 export default function MockInterview() {
   const [view, setView] = useState('setup');
@@ -73,9 +69,9 @@ export default function MockInterview() {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [sttSupported, setSttSupported] = useState(true);
-  const [isTtsEnabled, setIsTtsEnabled] = useState(true);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [answerConfirmed, setAnswerConfirmed] = useState(false);
+  const [isTtsEnabled] = useState(true);
+  const [, setIsSpeaking] = useState(false);
+  const [, setAnswerConfirmed] = useState(false);
 
   // Report state
   const [report, setReport] = useState(null);

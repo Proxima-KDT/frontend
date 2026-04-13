@@ -11,6 +11,7 @@ import {
   X,
   Paperclip,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { assessmentsApi } from '@/api/assessments';
 import { useToast } from '@/context/ToastContext';
@@ -18,6 +19,20 @@ import Skeleton from '@/components/common/Skeleton';
 
 const pageBg = '#F7F5F0';
 const GOLD = '#c9a962';
+
+function formatKoDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
 
 const PHASE_COLORS = [
   'bg-[#8a7060]',
@@ -53,6 +68,12 @@ const STATUS_CONFIG = {
     badgeClass: 'bg-[#edf1e8] text-[#5e7455]',
     icon: CheckCircle2,
     iconClass: 'text-[#7f9078]',
+  },
+  resubmit_required: {
+    label: '재제출 요청',
+    badgeClass: 'bg-[#f5e6d8] text-[#8a5a2e]',
+    icon: AlertTriangle,
+    iconClass: 'text-[#b07840]',
   },
 };
 
@@ -115,11 +136,11 @@ function ScoreRing({ score, maxScore, passed }) {
   );
 }
 
-function RubricTable({ rubric, totalScore }) {
+function RubricTable({ rubric, totalScore, isGraded = false }) {
   const max = rubric.reduce((s, r) => s + r.maxScore, 0);
-  const isGraded = rubric.some((r) => r.score !== null);
-  // totalScore는 AssessmentCard에서 전달받는 값 (DB의 채점 점수)
-  // 없으면 rubric에서 계산한 값으로 fallback
+  const hasItemScores = rubric.some((r) => r.score !== null);
+  const showScoreColumn = isGraded || hasItemScores;
+  // totalScore가 있으면 우선, 없으면 항목별 점수 합계로 fallback
   const total = totalScore ?? rubric.reduce((s, r) => s + (r.score ?? 0), 0);
 
   return (
@@ -133,7 +154,7 @@ function RubricTable({ rubric, totalScore }) {
             <th className="text-right px-4 py-2.5 text-gray-600 font-semibold">
               배점
             </th>
-            {isGraded && (
+            {showScoreColumn && (
               <th className="text-right px-4 py-2.5 text-gray-600 font-semibold">
                 득점
               </th>
@@ -147,18 +168,31 @@ function RubricTable({ rubric, totalScore }) {
               <td className="px-4 py-2.5 text-right text-gray-500">
                 {r.maxScore}점
               </td>
-              {isGraded && (
+              {showScoreColumn && (
                 <td className="px-4 py-2.5 text-right font-semibold text-[#2c2b28]">
-                  {r.score !== null ? `${r.score}점` : '-'}
+                  {r.score !== null && r.score !== undefined ? (
+                    `${r.score}점`
+                  ) : isGraded ? (
+                    <span className="text-gray-400 font-normal">-</span>
+                  ) : (
+                    <span className="text-gray-400 font-normal">미채점</span>
+                  )}
                 </td>
               )}
             </tr>
           ))}
         </tbody>
-        {isGraded && (
+        {showScoreColumn && (
           <tfoot className="bg-gray-50 border-t border-gray-200">
             <tr>
-              <td className="px-4 py-2.5 font-bold text-gray-800">합계</td>
+              <td className="px-4 py-2.5 font-bold text-gray-800">
+                합계
+                {!hasItemScores && isGraded && (
+                  <span className="ml-1.5 text-[11px] font-normal text-gray-400">
+                    (종합 채점)
+                  </span>
+                )}
+              </td>
               <td className="px-4 py-2.5 text-right text-gray-500">{max}점</td>
               <td className="px-4 py-2.5 text-right font-bold text-[#2c2b28]">
                 {total}점
@@ -242,13 +276,16 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
   const [resubmitting, setResubmitting] = useState(false);
 
   const isLocked = assessment.status === 'locked';
-  const isOpen = assessment.status === 'open';
+  const isResubmitRequired = assessment.status === 'resubmit_required';
+  const isOpen = assessment.status === 'open' || isResubmitRequired;
   const isGraded = assessment.status === 'graded';
   const isSubmitted = assessment.status === 'submitted';
 
   // 마감기한 이내 재제출 가능 여부 (period.end 날짜까지 사용)
   const today = new Date().toISOString().split('T')[0];
-  const canResubmit = isSubmitted && assessment.period.end >= today;
+  const canResubmit =
+    isResubmitRequired ||
+    (isSubmitted && assessment.period.end >= today);
 
   const handleSubmit = async () => {
     if (uploadedFiles.length === 0) return;
@@ -403,6 +440,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
             <RubricTable
               rubric={assessment.rubric}
               totalScore={isGraded ? assessment.score : undefined}
+              isGraded={isGraded}
             />
           </div>
 
@@ -467,7 +505,7 @@ function AssessmentCard({ assessment, colorClass, onSubmitted }) {
                   ))}
                   {assessment.submitted_at && !resubmitting && (
                     <p className="text-caption text-gray-400">
-                      제출일시: {assessment.submitted_at}
+                      제출일시: {formatKoDateTime(assessment.submitted_at)}
                     </p>
                   )}
                 </div>
