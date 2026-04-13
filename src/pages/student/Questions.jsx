@@ -222,7 +222,7 @@ export default function Questions() {
                                 <span>&middot;</span>
                               </>
                             )}
-                            <span>{q.created_at}</span>
+                            <span>{new Date(q.created_at).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
 
                           {q.answer ? (

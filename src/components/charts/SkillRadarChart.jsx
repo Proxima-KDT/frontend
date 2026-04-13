@@ -26,7 +26,9 @@ function axisLabelFromTickPayload(payload) {
   if (typeof payload === 'string') return payload;
   const inner = payload.payload ?? payload;
   if (typeof inner === 'string') return inner;
-  return inner?.subject ?? inner?.value ?? payload.subject ?? payload.value ?? '';
+  return (
+    inner?.subject ?? inner?.value ?? payload.subject ?? payload.value ?? ''
+  );
 }
 
 /** 긴 한글 라벨이 잘리지 않도록 2줄로 나눔 (대략 중간·공백 우선) */
@@ -48,11 +50,11 @@ export default function SkillRadarChart({
   variant = 'default',
 }) {
   const isEditorial = variant === 'editorial';
-  const height = size === 'mini' ? 220 : isEditorial ? 320 : 330;
-  const outerRadius = size === 'mini' ? 78 : isEditorial ? 88 : 118;
+  const height = size === 'mini' ? 220 : isEditorial ? 320 : 360;
+  const outerRadius = size === 'mini' ? 78 : isEditorial ? 88 : 108;
   const chartMargin = isEditorial
     ? { top: 36, right: 52, bottom: 36, left: 52 }
-    : { top: 16, right: 28, bottom: 16, left: 28 };
+    : { top: 24, right: 24, bottom: 24, left: 24 };
 
   const renderAngleTick = (props) => {
     const { payload, x, y, textAnchor, index } = props;
@@ -82,18 +84,23 @@ export default function SkillRadarChart({
         </text>
       );
     }
+    const lines = splitAxisLabel(label);
+    const firstDy = lines.length > 1 ? '-0.35em' : '0.35em';
     return (
       <text
         x={x}
         y={y}
         textAnchor={textAnchor || 'middle'}
-        dy="0.35em"
         fill={fill}
         fontSize={fontSize}
         fontWeight={600}
         fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
       >
-        {label}
+        {lines.map((line, i) => (
+          <tspan key={i} x={x} dy={i === 0 ? firstDy : '1.2em'}>
+            {line}
+          </tspan>
+        ))}
       </text>
     );
   };
@@ -106,7 +113,7 @@ export default function SkillRadarChart({
       <circle
         cx={cx}
         cy={cy}
-        r={isEditorial ? 4.5 : 5}
+        r={isEditorial ? 4.5 : 9.5}
         fill={fill}
         stroke="#ffffff"
         strokeWidth={1.5}
@@ -121,9 +128,9 @@ export default function SkillRadarChart({
     return (
       <text
         x={x}
-        y={y - 8}
+        y={y - 10}
         textAnchor="middle"
-        fontSize={isEditorial ? 10 : 11}
+        fontSize={isEditorial ? 10 : 15}
         fontWeight={700}
         fill={fill}
         fontFamily="'Inter', 'Pretendard Variable', 'Pretendard', system-ui, sans-serif"
@@ -148,11 +155,7 @@ export default function SkillRadarChart({
         margin={chartMargin}
       >
         <PolarGrid stroke={gridStroke} strokeOpacity={isEditorial ? 1 : 0.9} />
-        <PolarAngleAxis
-          dataKey="subject"
-          tickLine={false}
-          tick={renderAngleTick}
-        />
+        <PolarAngleAxis dataKey="subject" tickLine={false} tick={false} />
         <PolarRadiusAxis
           angle={90}
           domain={[0, 100]}

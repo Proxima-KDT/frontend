@@ -17,7 +17,7 @@ export default function SignupPage() {
             회원가입이 제한되었습니다
           </h1>
           <p className="text-body-sm text-gray-500 leading-relaxed">
-            EduPilot의 학생·강사 계정은 관리자가 직접 등록합니다.
+            UniSphere의 학생·강사 계정은 관리자가 직접 등록합니다.
             <br />
             계정 발급이 필요하다면 담당 관리자(멘토)에게 문의해 주세요.
           </p>

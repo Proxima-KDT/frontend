@@ -268,7 +268,7 @@ export default function Attendance() {
       (a) => a.status === 'early_leave',
     ).length;
     const total = present + late + absent + earlyLeave;
-    const rate = total > 0 ? Math.round((present / total) * 1000) / 10 : 0;
+    const rate = total > 0 ? Math.round(((present + late) / total) * 1000) / 10 : 0;
     return { present, late, absent, earlyLeave, rate };
   }, [filteredAttendance]);
 

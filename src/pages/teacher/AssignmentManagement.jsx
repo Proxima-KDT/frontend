@@ -84,14 +84,21 @@ const STATUS_CONFIG = {
   },
 };
 
-const PHASE_COLORS = [
-  'bg-[#dce8ea] text-[#5b7480]',
-  'bg-[#e4e1ef] text-[#6b648a]',
-  'bg-[#e6eddc] text-[#667a4f]',
-  'bg-[#f1e6d3] text-[#8a6a39]',
-  'bg-[#efe1df] text-[#8a5f59]',
-  'bg-[#e2e5eb] text-[#5f6d82]',
+const PHASE_PALETTE = [
+  { bg: 'bg-[#f0ebe0]', text: 'text-[#5a4a30]', dot: 'bg-[#c07a30]' },
+  { bg: 'bg-[#e4ecf4]', text: 'text-[#2a405a]', dot: 'bg-[#4a7aaa]' },
+  { bg: 'bg-[#e4ede6]', text: 'text-[#2a4a30]', dot: 'bg-[#4a8a58]' },
+  { bg: 'bg-[#f0e8d8]', text: 'text-[#4a3820]', dot: 'bg-[#b07840]' },
+  { bg: 'bg-[#e0ece8]', text: 'text-[#2a4a40]', dot: 'bg-[#4a8a78]' },
+  { bg: 'bg-[#eae4f0]', text: 'text-[#3a2a5a]', dot: 'bg-[#7a6aaa]' },
 ];
+
+function getPhaseCfg(phase) {
+  const n = Number(phase);
+  if (!n || n < 1)
+    return { bg: 'bg-[#eeece8]', text: 'text-[#5a5852]', dot: 'bg-[#a09890]' };
+  return PHASE_PALETTE[(n - 1) % PHASE_PALETTE.length];
+}
 
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status];
@@ -456,7 +463,7 @@ export default function AssignmentManagement() {
     <div className="relative rounded-3xl bg-[#efede8] px-4 py-5 sm:px-6 md:-mx-2 md:px-8 md:py-7">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#d8d5cf] pb-3">
         <div>
-          <h1 className="text-[2rem] leading-tight text-[#2a2a2a]">
+          <h1 className="text-[1.5rem] font-semibold leading-tight text-[#2a2a2a]">
             과제 관리
           </h1>
           <p className="mt-1 text-[0.8rem] font-medium tracking-wide text-[#a39c92]">
@@ -476,36 +483,55 @@ export default function AssignmentManagement() {
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
-          <p className="text-sm font-semibold text-[#5c5852]">
-            전체 제출 수{' '}
-            <span className="text-xl font-bold tabular-nums text-[#1f2f43]">
-              {totalSubmissionCount}
-            </span>
-          </p>
-          <p className="mt-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
-            Total Assignments
-          </p>
-          <p className="mt-1 text-5xl text-[#1f2f43]">{assignments.length}</p>
-          <ClipboardList className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
+        <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+                Total Assignments
+              </p>
+              <p className="mt-1 text-[2rem] font-bold tabular-nums leading-none text-[#1f2f43]">
+                {assignments.length}
+              </p>
+              <p className="mt-2 text-xs text-[#7c7872]">
+                전체 제출{' '}
+                <span className="font-semibold text-[#1f2f43]">
+                  {totalSubmissionCount}
+                </span>
+                건
+              </p>
+            </div>
+            <ClipboardList className="h-9 w-9 shrink-0 text-[#d8d6d0]" />
+          </div>
         </Card>
-        <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
-          <p className="text-sm font-semibold text-[#5c5852]">제출 대기</p>
-          <p className="mt-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
-            Pending Submissions
-          </p>
-          <p className="mt-1 text-5xl text-[#1f2f43]">{totalPending}</p>
-          <FileText className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
+        <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+                Pending Submissions
+              </p>
+              <p className="mt-1 text-[2rem] font-bold tabular-nums leading-none text-[#1f2f43]">
+                {totalPending}
+              </p>
+              <p className="mt-2 text-xs text-[#7c7872]">채점 대기 건수</p>
+            </div>
+            <FileText className="h-9 w-9 shrink-0 text-[#d8d6d0]" />
+          </div>
         </Card>
-        <Card className="relative rounded-[26px] border border-[#e1ded8] bg-[#f7f6f2]">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
-            Grading Requests
-          </p>
-          <p className="mt-1 text-5xl text-[#1f2f43]">{totalResubmit}</p>
-          <span className="mt-3 inline-flex rounded-full bg-[#d9bf63] px-3 py-1 text-[10px] font-bold uppercase text-[#4a3a14]">
-            High Priority
-          </span>
-          <Star className="absolute bottom-5 right-5 h-14 w-14 text-[#d8d6d0]" />
+        <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8d877e]">
+                Grading Requests
+              </p>
+              <p className="mt-1 text-[2rem] font-bold tabular-nums leading-none text-[#1f2f43]">
+                {totalResubmit}
+              </p>
+              <span className="mt-2 inline-flex rounded-full bg-[#d9bf63] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[#4a3a14]">
+                High Priority
+              </span>
+            </div>
+            <Star className="h-9 w-9 shrink-0 text-[#d8d6d0]" />
+          </div>
         </Card>
       </div>
 
@@ -548,225 +574,267 @@ export default function AssignmentManagement() {
             return (
               <section key={phase}>
                 <div className="mb-3 flex items-center justify-between gap-3 border-b border-[#dbd7d0] pb-2">
-                  <h2 className="text-[2rem] text-[#202020]">
-                    Phase {String(phase).padStart(2, '0')}
-                  </h2>
-                  <span className="text-sm italic text-[#7c7870]">
-                    {(minOpen || '').replaceAll('-', '.')} - {(maxDue || '').replaceAll('-', '.')}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full shrink-0 ${getPhaseCfg(phase).dot}`}
+                    />
+                    <h2 className="text-[0.82rem] font-bold uppercase tracking-[0.1em] text-[#3a3830]">
+                      Phase {String(phase).padStart(2, '0')}
+                      {phaseAssignments[0]?.subject
+                        ? ` · ${phaseAssignments[0].subject}`
+                        : ''}
+                    </h2>
+                  </div>
+                  <span className="text-xs text-[#7c7870]">
+                    {(minOpen || '').replaceAll('-', '.')} –{' '}
+                    {(maxDue || '').replaceAll('-', '.')}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
                   {phaseAssignments.map((assignment) => {
-          const submitted = assignment.studentSubmissions.filter(
-            (s) => s.status !== 'pending',
-          ).length;
-          const total = assignment.studentSubmissions.length;
-          const graded = assignment.studentSubmissions.filter(
-            (s) => s.status === 'graded',
-          ).length;
-          const pendingGrade = assignment.studentSubmissions.filter(
-            (s) => s.status === 'submitted',
-          ).length;
-          const isExpanded = expandedId === assignment.id;
+                    const submitted = assignment.studentSubmissions.filter(
+                      (s) => s.status !== 'pending',
+                    ).length;
+                    const total = assignment.studentSubmissions.length;
+                    const graded = assignment.studentSubmissions.filter(
+                      (s) => s.status === 'graded',
+                    ).length;
+                    const pendingGrade = assignment.studentSubmissions.filter(
+                      (s) => s.status === 'submitted',
+                    ).length;
+                    const isExpanded = expandedId === assignment.id;
 
                     return (
-            <Card key={assignment.id} padding="p-0" className="relative rounded-[24px] border border-[#ddd9d2] bg-[#f7f6f2]">
-              <button
-                className="w-full cursor-pointer rounded-[24px] p-6 text-left transition-colors hover:bg-[#f2f0ea]"
-                onClick={() => setExpandedId(isExpanded ? null : assignment.id)}
-              >
-                <div className="mb-3 flex items-start justify-between gap-4">
-                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${PHASE_COLORS[(assignment.phase - 1) % 6]}`}>
-                    {assignment.subject || `Phase ${assignment.phase}`}
-                  </span>
-                </div>
-                <p className="text-[2rem] leading-tight text-[#1f2f43]">
-                    {assignment.title}
-                </p>
-                <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[#e0ddd6] pt-4 text-sm">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
-                      제출
-                    </p>
-                    <p className="text-[1.6rem] font-semibold text-[#1f2f43]">{submitted}/{total}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
-                      채점 완료
-                    </p>
-                    <p className="text-[1.6rem] font-semibold text-[#1f2f43]">{graded}/{total}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
-                      제출 기한
-                    </p>
-                    <p className="text-[1.6rem] font-semibold text-[#884c3a]">{assignment.dueDate || '-'}</p>
-                  </div>
-                </div>
-              </button>
-
-              {/* 삭제 버튼 — 카드 우상단 */}
-              <button
-                className="absolute top-3 right-10 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                title="과제 삭제"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDeleteConfirm(assignment);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-
-              {/* 학생 제출 목록 */}
-              {isExpanded && (
-                <div className="border-t border-[#e2ddd4]">
-                  {/* ── 과제 정보 패널 ── */}
-                  <div className="p-4 bg-[#f7f5f0] border-b border-[#ece8e1] space-y-3">
-                    {/* 기간 */}
-                    <div className="flex items-center gap-4 text-caption text-gray-500">
-                      <span>
-                        <span className="font-semibold text-gray-700">
-                          공개
-                        </span>{' '}
-                        {assignment.openDate || '—'}
-                      </span>
-                      <span className="text-gray-300">→</span>
-                      <span>
-                        <span className="font-semibold text-gray-700">
-                          마감
-                        </span>{' '}
-                        {assignment.dueDate || '—'}
-                      </span>
-                    </div>
-
-                    {/* 과제 설명 */}
-                    {assignment.description && (
-                      <p className="text-body-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-                        {assignment.description}
-                      </p>
-                    )}
-
-                    {/* 루브릭 */}
-                    {assignment.rubric?.length > 0 && (
-                      <div>
-                        <p className="text-caption font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                          채점 기준
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {assignment.rubric.map((r) => (
-                            <span
-                              key={r.item}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-caption text-gray-700"
-                            >
-                              <span className="font-semibold">{r.item}</span>
-                              <span className="text-gray-400">
-                                {r.maxScore}점
-                              </span>
-                            </span>
-                          ))}
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#edeae3] border border-[#dfd9cf] text-caption font-semibold text-[#4b5563]">
-                            총{' '}
-                            {assignment.rubric.reduce(
-                              (s, r) => s + (r.maxScore ?? 0),
-                              0,
-                            )}
-                            점
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-4">
-                    {/* 제출률 프로그레스 */}
-                    <div className="mb-4">
-                      <ProgressBar
-                        value={
-                          total > 0 ? Math.round((submitted / total) * 100) : 0
-                        }
-                        label="제출률"
-                        color="bg-[#6b7280]"
-                        size="sm"
-                      />
-                    </div>
-
-                    {/* 학생 행 */}
-                    <div className="space-y-2">
-                      {assignment.studentSubmissions.map((student) => (
-                        <div
-                          key={student.studentId}
-                          className="flex items-center gap-3 rounded-xl bg-[#eceae4] p-3 transition-colors hover:bg-[#e4e1db]"
+                      <Card
+                        key={assignment.id}
+                        padding="p-0"
+                        className="relative overflow-hidden rounded-2xl border border-[#ddd9d2] bg-[#f7f6f2] shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+                      >
+                        <button
+                          className="w-full cursor-pointer rounded-t-2xl px-5 py-4 pr-10 text-left transition-colors hover:bg-[#f2f0ea]"
+                          onClick={() =>
+                            setExpandedId(isExpanded ? null : assignment.id)
+                          }
                         >
-                          <div className="w-8 h-8 rounded-full bg-[#e8eef2] flex items-center justify-center shrink-0">
-                            <span className="text-xs font-bold text-[#4b5563]">
-                              {student.studentName[0]}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 text-sm">
-                              {student.studentName}
-                            </p>
-                            {student.submittedAt && (
-                              <p className="text-caption text-gray-500">
-                                {student.submittedAt}
-                              </p>
-                            )}
-                          </div>
-                          <StatusBadge status={student.status} />
-                          {student.score !== null && (
-                            <span className="font-bold text-gray-900 text-sm">
-                              {student.score}점
-                            </span>
-                          )}
-                          {student.files.length > 0 && (
-                            <button
-                              className="p-1.5 rounded-lg hover:bg-white text-gray-500 cursor-pointer transition-colors"
-                              title="파일 다운로드"
-                              onClick={() =>
-                                handleDownload(assignment, student)
-                              }
+                          <div className="mb-2 flex items-center gap-2">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${getPhaseCfg(assignment.phase).bg} ${getPhaseCfg(assignment.phase).text}`}
                             >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          )}
-                          <div className="flex gap-1.5 shrink-0">
-                            {student.status === 'submitted' && (
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                icon={MessageSquare}
-                                className="!bg-[#59606a] !text-white hover:!bg-[#444b55]"
-                                onClick={() =>
-                                  openFeedbackModal(assignment, student)
-                                }
-                              >
-                                피드백
-                              </Button>
-                            )}
-                            {student.status === 'graded' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  openFeedbackModal(assignment, student)
-                                }
-                              >
-                                수정
-                              </Button>
-                            )}
-                            {student.status === 'resubmit_required' && (
-                              <span className="text-xs text-orange-600 font-medium px-1">
-                                재제출 대기중
+                              {assignment.subject ||
+                                `Phase ${assignment.phase}`}
+                            </span>
+                            {pendingGrade > 0 && (
+                              <span className="rounded-full bg-[#f0e8d8] px-2 py-0.5 text-[10px] font-bold text-[#8a5a30]">
+                                미채점 {pendingGrade}
                               </span>
                             )}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
+                          <p className="text-[1.05rem] font-bold leading-snug text-[#1f2f43]">
+                            {assignment.title}
+                          </p>
+                          <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[#e0ddd6] pt-3">
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                                제출
+                              </p>
+                              <p className="text-base font-bold tabular-nums text-[#1f2f43]">
+                                {submitted}/{total}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                                채점 완료
+                              </p>
+                              <p className="text-base font-bold tabular-nums text-[#1f2f43]">
+                                {graded}/{total}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                                제출 기한
+                              </p>
+                              <p className="text-sm font-semibold text-[#884c3a]">
+                                {assignment.dueDate || '-'}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* 삭제 버튼 — 카드 우상단 */}
+                        <button
+                          className="absolute top-3 right-3 p-1.5 rounded-lg text-[#ccc8c2] hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                          title="과제 삭제"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirm(assignment);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+
+                        {/* 학생 제출 목록 */}
+                        {isExpanded && (
+                          <div className="border-t border-[#e2ddd4]">
+                            {/* ── 과제 정보 패널 ── */}
+                            <div className="p-4 bg-[#f7f5f0] border-b border-[#ece8e1] space-y-3">
+                              {/* 기간 */}
+                              <div className="flex items-center gap-4 text-caption text-gray-500">
+                                <span>
+                                  <span className="font-semibold text-gray-700">
+                                    공개
+                                  </span>{' '}
+                                  {assignment.openDate || '—'}
+                                </span>
+                                <span className="text-gray-300">→</span>
+                                <span>
+                                  <span className="font-semibold text-gray-700">
+                                    마감
+                                  </span>{' '}
+                                  {assignment.dueDate || '—'}
+                                </span>
+                              </div>
+
+                              {/* 과제 설명 */}
+                              {assignment.description && (
+                                <p className="text-body-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                  {assignment.description}
+                                </p>
+                              )}
+
+                              {/* 루브릭 */}
+                              {assignment.rubric?.length > 0 && (
+                                <div>
+                                  <p className="text-caption font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    채점 기준
+                                  </p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {assignment.rubric.map((r) => (
+                                      <span
+                                        key={r.item}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-caption text-gray-700"
+                                      >
+                                        <span className="font-semibold">
+                                          {r.item}
+                                        </span>
+                                        <span className="text-gray-400">
+                                          {r.maxScore}점
+                                        </span>
+                                      </span>
+                                    ))}
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#edeae3] border border-[#dfd9cf] text-caption font-semibold text-[#4b5563]">
+                                      총{' '}
+                                      {assignment.rubric.reduce(
+                                        (s, r) => s + (r.maxScore ?? 0),
+                                        0,
+                                      )}
+                                      점
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="p-4">
+                              {/* 제출률 프로그레스 */}
+                              <div className="mb-4">
+                                <ProgressBar
+                                  value={
+                                    total > 0
+                                      ? Math.round((submitted / total) * 100)
+                                      : 0
+                                  }
+                                  label="제출률"
+                                  color="bg-[#6b7280]"
+                                  size="sm"
+                                />
+                              </div>
+
+                              {/* 학생 행 */}
+                              <div className="space-y-2">
+                                {assignment.studentSubmissions.map(
+                                  (student) => (
+                                    <div
+                                      key={student.studentId}
+                                      className="flex items-center gap-3 rounded-xl bg-[#eceae4] p-3 transition-colors hover:bg-[#e4e1db]"
+                                    >
+                                      <div className="w-8 h-8 rounded-full bg-[#e8eef2] flex items-center justify-center shrink-0">
+                                        <span className="text-xs font-bold text-[#4b5563]">
+                                          {student.studentName[0]}
+                                        </span>
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 text-sm">
+                                          {student.studentName}
+                                        </p>
+                                        {student.submittedAt && (
+                                          <p className="text-caption text-gray-500">
+                                            {student.submittedAt}
+                                          </p>
+                                        )}
+                                      </div>
+                                      <StatusBadge status={student.status} />
+                                      {student.score !== null && (
+                                        <span className="font-bold text-gray-900 text-sm">
+                                          {student.score}점
+                                        </span>
+                                      )}
+                                      {student.files.length > 0 && (
+                                        <button
+                                          className="p-1.5 rounded-lg hover:bg-white text-gray-500 cursor-pointer transition-colors"
+                                          title="파일 다운로드"
+                                          onClick={() =>
+                                            handleDownload(assignment, student)
+                                          }
+                                        >
+                                          <Download className="w-4 h-4" />
+                                        </button>
+                                      )}
+                                      <div className="flex gap-1.5 shrink-0">
+                                        {student.status === 'submitted' && (
+                                          <Button
+                                            variant="primary"
+                                            size="sm"
+                                            icon={MessageSquare}
+                                            className="!bg-[#59606a] !text-white hover:!bg-[#444b55]"
+                                            onClick={() =>
+                                              openFeedbackModal(
+                                                assignment,
+                                                student,
+                                              )
+                                            }
+                                          >
+                                            피드백
+                                          </Button>
+                                        )}
+                                        {student.status === 'graded' && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              openFeedbackModal(
+                                                assignment,
+                                                student,
+                                              )
+                                            }
+                                          >
+                                            수정
+                                          </Button>
+                                        )}
+                                        {student.status ===
+                                          'resubmit_required' && (
+                                          <span className="text-xs text-orange-600 font-medium px-1">
+                                            재제출 대기중
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Card>
                     );
                   })}
                 </div>
@@ -774,15 +842,6 @@ export default function AssignmentManagement() {
             );
           })}
       </div>
-
-      <button
-        type="button"
-        onClick={() => setShowAddModal(true)}
-        className="fixed bottom-8 right-8 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#69717a] text-white shadow-[0_12px_30px_rgba(49,53,58,0.35)] transition-colors hover:bg-[#565e67]"
-        title="과제 추가"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
 
       {/* 과제 추가 모달 */}
       <Modal
@@ -903,7 +962,12 @@ export default function AssignmentManagement() {
               과제가 추가되면 전체 수강생에게 자동으로 배정됩니다.
             </p>
           </div>
-          <Button variant="primary" fullWidth className="!bg-[#59606a] !text-white hover:!bg-[#444b55]" onClick={handleCreateAssignment}>
+          <Button
+            variant="primary"
+            fullWidth
+            className="!bg-[#59606a] !text-white hover:!bg-[#444b55]"
+            onClick={handleCreateAssignment}
+          >
             과제 추가하기
           </Button>
         </div>
@@ -923,14 +987,14 @@ export default function AssignmentManagement() {
         >
           <div className="space-y-5">
             {/* 루브릭 채점 */}
-            <div>
-              <p className="text-sm font-semibold text-gray-700 mb-3">
+            <div className="rounded-xl border border-[#e0ddd6] bg-[#f8f7f4] px-4 py-3">
+              <p className="mb-3 text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
                 루브릭 채점
               </p>
               <div className="space-y-2">
                 {feedbackForm.rubricScores.map((r) => (
                   <div key={r.item} className="flex items-center gap-3">
-                    <span className="flex-1 text-sm text-gray-700">
+                    <span className="flex-1 text-sm text-[#3a3830]">
                       {r.item}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -942,18 +1006,20 @@ export default function AssignmentManagement() {
                         onChange={(e) =>
                           handleRubricScoreChange(r.item, e.target.value)
                         }
-                        className="w-16 text-center border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-16 rounded-lg border border-[#ddd9d2] bg-white px-2 py-1.5 text-center text-sm text-[#2f333a] outline-none focus:border-[#59606a] focus:ring-1 focus:ring-[#59606a]"
                       />
-                      <span className="text-caption text-gray-400">
+                      <span className="text-xs text-[#9e9890]">
                         /{r.maxScore}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <span className="font-semibold text-gray-700">총점</span>
-                <span className="text-h3 font-bold text-primary-600">
+              <div className="mt-3 flex items-center justify-between border-t border-[#e0ddd6] pt-3">
+                <span className="text-sm font-semibold text-[#3a3830]">
+                  총점
+                </span>
+                <span className="text-lg font-bold tabular-nums text-[#59606a]">
                   {feedbackForm.score}점
                 </span>
               </div>
@@ -961,8 +1027,10 @@ export default function AssignmentManagement() {
 
             {/* 피드백 텍스트 */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-gray-700">피드백</p>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-[#8d877e]">
+                  피드백
+                </p>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -982,7 +1050,7 @@ export default function AssignmentManagement() {
                 rows={4}
               />
               {aiLoading && (
-                <p className="text-caption text-gray-500 mt-1.5">
+                <p className="mt-1.5 text-xs text-[#9e9890]">
                   AI가 코드를 분석하고 있습니다...
                 </p>
               )}
@@ -1000,7 +1068,7 @@ export default function AssignmentManagement() {
               </Button>
               <Button
                 variant="primary"
-                className="flex-1 !bg-[#59606a] !text-white hover:!bg-[#444b55]"
+                className="flex-1 bg-[#59606a]! text-white! hover:bg-[#444b55]!"
                 onClick={() => handleSubmitFeedback(false)}
                 disabled={!feedbackForm.text.trim()}
               >

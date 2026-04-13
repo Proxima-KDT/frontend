@@ -14,6 +14,8 @@ import {
   X,
   Circle,
   Plus,
+  CalendarCheck,
+  CalendarX,
 } from 'lucide-react';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -173,6 +175,36 @@ export default function CounselingSchedule() {
       })
       .catch(() => {
         // 실패 시 이전 상태로 롤백
+        setBlockedSlots((prev) => ({ ...prev, [selectedDate]: prevSlots }));
+        showToast({ message: '슬롯 상태 변경에 실패했습니다.', type: 'error' });
+      });
+  }
+
+  const blockableSlots = TIME_SLOTS.filter(
+    (slot) => getSlotStatus(slot).type !== 'booked',
+  );
+  const currentDayBlocked = blockedSlots[selectedDate] || [];
+  const isAllBlocked =
+    blockableSlots.length > 0 &&
+    blockableSlots.every((slot) => currentDayBlocked.includes(slot));
+
+  function handleBlockAll() {
+    const prevSlots = currentDayBlocked;
+    const updatedSlots = isAllBlocked ? [] : blockableSlots;
+
+    setBlockedSlots((prev) => ({ ...prev, [selectedDate]: updatedSlots }));
+
+    counselingManageApi
+      .updateBlockedSlots(selectedDate, updatedSlots)
+      .then(() =>
+        showToast({
+          message: isAllBlocked
+            ? '오늘 전체 차단이 해제되었습니다.'
+            : '오늘 전체가 차단되었습니다.',
+          type: isAllBlocked ? 'info' : 'warning',
+        }),
+      )
+      .catch(() => {
         setBlockedSlots((prev) => ({ ...prev, [selectedDate]: prevSlots }));
         showToast({ message: '슬롯 상태 변경에 실패했습니다.', type: 'error' });
       });
@@ -473,9 +505,25 @@ export default function CounselingSchedule() {
           <h2 className="mb-1 text-[2rem] text-[#333740]">
             {MONTH_NAMES[selectedMonth - 1]} {selectedDay} ({selectedDow})
           </h2>
-          <p className="mb-4 text-caption text-[#7f7b72]">
+          <p className="mb-3 text-caption text-[#7f7b72]">
             Manage daily availability
           </p>
+          <button
+            type="button"
+            onClick={handleBlockAll}
+            className={`mb-4 flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+              isAllBlocked
+                ? 'border border-[#c5c2bc] bg-[#f5f4f1] text-[#4a4640] hover:bg-[#ecebe7]'
+                : 'border border-[#8a857d] bg-[#5f6972] text-white hover:bg-[#4e5760]'
+            }`}
+          >
+            {isAllBlocked ? (
+              <CalendarCheck className="h-3.5 w-3.5" />
+            ) : (
+              <CalendarX className="h-3.5 w-3.5" />
+            )}
+            {isAllBlocked ? '전체 해제' : '오늘 전체 차단'}
+          </button>
 
           <div className="space-y-2">
             {TIME_SLOTS.map((slot) => {
@@ -522,9 +570,6 @@ export default function CounselingSchedule() {
               );
             })}
           </div>
-          <Button className="mt-4 w-full rounded-xl !bg-[#5f6972] !text-white hover:!bg-[#4e5760]">
-            + 슬롯 일괄 수정
-          </Button>
         </Card>
       </div>
 

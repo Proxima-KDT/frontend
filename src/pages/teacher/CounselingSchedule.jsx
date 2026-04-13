@@ -502,30 +502,28 @@ export default function CounselingSchedule() {
 
         {/* 시간 슬롯 패널 */}
         <Card className="rounded-[28px] border border-[#d8d5cd] bg-[#e4e2db] shadow-none">
-          <div className="mb-1 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <h2 className="text-[2rem] text-[#333740]">
-              {MONTH_NAMES[selectedMonth - 1]} {selectedDay} ({selectedDow})
-            </h2>
-            <button
-              type="button"
-              onClick={handleBlockAll}
-              className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-                isAllBlocked
-                  ? 'border border-[#c5c2bc] bg-[#f5f4f1] text-[#4a4640] hover:bg-[#ecebe7]'
-                  : 'border border-[#8a857d] bg-[#5f6972] text-white hover:bg-[#4e5760]'
-              }`}
-            >
-              {isAllBlocked ? (
-                <CalendarCheck className="h-3.5 w-3.5" />
-              ) : (
-                <CalendarX className="h-3.5 w-3.5" />
-              )}
-              {isAllBlocked ? '전체 해제' : '오늘 전체 차단'}
-            </button>
-          </div>
-          <p className="mb-4 text-caption text-[#7f7b72]">
-            슬롯을 클릭해 차단·해제할 수 있습니다. 예약된 슬롯은 그대로 유지됩니다.
+          <h2 className="mb-1 text-[2rem] text-[#333740]">
+            {MONTH_NAMES[selectedMonth - 1]} {selectedDay} ({selectedDow})
+          </h2>
+          <p className="mb-3 text-caption text-[#7f7b72]">
+            Manage daily availability
           </p>
+          <button
+            type="button"
+            onClick={handleBlockAll}
+            className={`mb-4 flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+              isAllBlocked
+                ? 'border border-[#c5c2bc] bg-[#f5f4f1] text-[#4a4640] hover:bg-[#ecebe7]'
+                : 'border border-[#8a857d] bg-[#5f6972] text-white hover:bg-[#4e5760]'
+            }`}
+          >
+            {isAllBlocked ? (
+              <CalendarCheck className="h-3.5 w-3.5" />
+            ) : (
+              <CalendarX className="h-3.5 w-3.5" />
+            )}
+            {isAllBlocked ? '전체 해제' : '오늘 전체 차단'}
+          </button>
 
           <div className="space-y-2">
             {TIME_SLOTS.map((slot) => {

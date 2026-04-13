@@ -100,10 +100,10 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
               <GraduationCap className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-white font-bold">EduPilot</span>
+            <span className="text-white font-bold">UniSphere</span>
           </div>
           <p className="text-sm text-gray-400">
-            © 2026 EduPilot. AI 기반 IT교육 통합 관리 플랫폼
+            © 2026 UniSphere. AI 기반 IT교육 통합 관리 플랫폼
           </p>
         </div>
       </footer>

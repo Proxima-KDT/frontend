@@ -36,7 +36,11 @@ function formatSubmittedAt(raw) {
   const now = new Date();
   const todayStr = now.toDateString();
   const yesterdayStr = new Date(now - 86400000).toDateString();
-  const hhmm = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const hhmm = d.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
   if (d.toDateString() === todayStr) return `오늘 ${hhmm}`;
   if (d.toDateString() === yesterdayStr) return `어제 ${hhmm}`;
   const month = d.getMonth() + 1;
@@ -45,9 +49,22 @@ function formatSubmittedAt(raw) {
 }
 
 const STATUS_CONFIG = {
+  // DB 레코드 없음 (백엔드에서 pending으로 내려옴)
   pending: {
     label: '미제출',
-    classes: 'bg-gray-100 text-gray-500',
+    classes: 'bg-[#eeece8] text-[#7a756c]',
+    Icon: Clock,
+  },
+  // assessment_status_enum: 평가 기간 전 잠김
+  locked: {
+    label: '미개방',
+    classes: 'bg-[#e8e6e2] text-[#a09890]',
+    Icon: Clock,
+  },
+  // assessment_status_enum: 평가 기간 중, 미제출
+  open: {
+    label: '미제출',
+    classes: 'bg-[#eeece8] text-[#7a756c]',
     Icon: Clock,
   },
   submitted: {
@@ -66,6 +83,9 @@ const STATUS_CONFIG = {
     Icon: RefreshCcw,
   },
 };
+
+// 제출 파일이 있는 상태 (다운로드 버튼 표시 조건)
+const HAS_FILES_STATUS = new Set(['submitted', 'graded', 'resubmit_required']);
 
 function normalizeAssessments(data) {
   return data.map((a) => ({
@@ -134,7 +154,8 @@ export default function AssessmentManagement() {
   const [signedFiles, setSignedFiles] = useState([]);
 
   const current = assessments.find((a) => a.phaseId === activePhase);
-  const phaseColor = PHASE_COLORS[Math.max(0, (Number(activePhase) - 1)) % 6] ?? PHASE_COLORS[0];
+  const phaseColor =
+    PHASE_COLORS[Math.max(0, Number(activePhase) - 1) % 6] ?? PHASE_COLORS[0];
 
   const fetchSignedFiles = (assessment, student) => {
     // 항상 API에서 signed URL 조회 — files 배열에 의존하지 않음
@@ -269,21 +290,21 @@ export default function AssessmentManagement() {
   // 서브 과정은 능력단위평가가 없어 안내 카드만 렌더링
   if (isSubCourse) {
     return (
-      <div>
-        <h1 className="text-h1 font-bold text-gray-900 mb-6">
+      <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
+        <h1 className="mb-6 text-[1.5rem] font-semibold text-[#2a2a2a]">
           능력단위평가 관리
         </h1>
-        <Card>
+        <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-              <AlertTriangle className="w-7 h-7 text-gray-400" />
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eeece8]">
+              <AlertTriangle className="h-6 w-6 text-[#9e9890]" />
             </div>
-            <h2 className="text-h3 font-bold text-gray-800 mb-2">
+            <h2 className="mb-2 text-base font-bold text-[#2f333a]">
               서브 과정은 능력단위평가가 없습니다
             </h2>
-            <p className="text-body-sm text-gray-500 max-w-sm">
+            <p className="max-w-sm text-sm text-[#7c7870]">
               현재 선택된{' '}
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-[#2f333a]">
                 {selectedCourse?.name}
               </span>
               은(는) 단기 과정으로 능력단위평가 대상이 아닙니다. 사이드바에서
@@ -299,7 +320,7 @@ export default function AssessmentManagement() {
     <div className="rounded-3xl bg-[#efede8] px-4 py-6 sm:px-6 md:-mx-2 md:px-8 md:py-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#dbd8d1] pb-3">
         <div>
-          <h1 className="text-[2rem] text-[#2a2a2a]">
+          <h1 className="text-[1.5rem] font-semibold text-[#2a2a2a]">
             능력단위평가 관리
           </h1>
           <p className="mt-1 text-[0.8rem] font-medium tracking-wide text-[#a39c92]">
@@ -332,220 +353,276 @@ export default function AssessmentManagement() {
       {current && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-            <Card className="rounded-3xl border border-[#e1ded8] bg-[#f3f1ec]">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#8c867d]">
-                Evaluation Module
+            <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#9e9890]">
+                평가 모듈
               </p>
-              <h2 className="mt-2 text-[2.55rem] leading-[1.1] text-[#1f2f43]">
+              <h2 className="mt-1.5 text-[1.2rem] font-bold leading-snug text-[#1f2f43]">
                 {current.title}
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#65625d]">
-                {current.subject || 'Assessing fundamental programming competencies and practical structures.'}
-              </p>
-              <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#dfddd7] bg-[#f8f7f4] px-4 py-3 text-sm text-[#5f6369]">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#8f8a80]">Due Date</p>
-                  <p className="font-semibold text-[#2f3237]">{current.period.end || '-'}</p>
+              {current.subject && (
+                <p className="mt-1.5 text-sm leading-relaxed text-[#7c7870]">
+                  {current.subject}
+                </p>
+              )}
+              <div className="mt-4 flex flex-wrap gap-3">
+                <div className="rounded-xl border border-[#e0ddd6] bg-white px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9e9890]">
+                    마감일
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-[#2f333a]">
+                    {current.period.end || '-'}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-[#dfddd7] bg-[#f8f7f4] px-4 py-3 text-sm text-[#5f6369]">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#8f8a80]">AI Processing</p>
-                  <p className="font-semibold text-[#2f3237]">Active</p>
+                <div className="rounded-xl border border-[#e0ddd6] bg-white px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9e9890]">
+                    합격 기준
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-[#2f333a]">
+                    {current.passScore}점 이상
+                  </p>
+                </div>
+                <div className="rounded-xl border border-[#e0ddd6] bg-white px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9e9890]">
+                    채점 기준
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-[#2f333a]">
+                    {current.rubric.reduce((s, r) => s + (r.maxScore ?? 0), 0)}
+                    점
+                  </p>
                 </div>
               </div>
             </Card>
-            <Card className="rounded-3xl border border-[#27272a] bg-[#1d1c1f] text-white">
+            <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-[1.4rem]">Grading Rubric</h3>
-                <CircleHelp className="h-4 w-4 text-white/60" />
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#9e9890]">
+                  채점 기준
+                </p>
+                <span className="text-[10px] font-semibold text-[#7c7870]">
+                  총 {current.rubric.reduce((s, r) => s + (r.maxScore ?? 0), 0)}
+                  점
+                </span>
               </div>
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {current.rubric.map((r) => (
-                  <div key={r.item} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <div className="mb-1 flex items-center justify-between">
-                      <p className="text-xs font-semibold text-[#f4f4f5]">{r.item}</p>
-                      <span className="text-[10px] text-[#c6c6ce]">{r.maxScore}%</span>
-                    </div>
-                    <p className="text-[10px] text-[#a7a7b0]">Criterion-based evaluation detail</p>
+                  <div
+                    key={r.item}
+                    className="flex items-center justify-between rounded-xl border border-[#e0ddd6] bg-white px-3 py-2.5"
+                  >
+                    <p className="text-sm font-medium text-[#2f333a]">
+                      {r.item}
+                    </p>
+                    <span className="text-xs font-bold text-[#59606a]">
+                      {r.maxScore}점
+                    </span>
                   </div>
                 ))}
               </div>
-              <Button variant="secondary" fullWidth className="mt-4 !rounded-xl !border-white/30 !bg-white/90 !text-[#2a2a2a] hover:!bg-white">
-                Edit Weightage
-              </Button>
             </Card>
           </div>
 
           {/* 제출 통계 */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-            <Card className="rounded-3xl border border-[#e1ded8] bg-[#f8f7f4]">
-              <p className="mb-3 text-[1.7rem] text-[#30343a]">Submission Insights</p>
+          <div className="grid grid-cols-1 gap-4">
+            <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
+              <p className="mb-4 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#9e9890]">
+                제출 현황
+              </p>
               <div className="space-y-3">
-            {[
-              {
-                label: 'Submission Rate',
-                value: current.studentSubmissions.filter(
-                  (s) => s.status !== 'pending',
-                ).length,
-                total: current.studentSubmissions.length,
-                barColor: 'bg-[#586067]',
-                textColor: 'text-[#374151]',
-              },
-              {
-                label: 'Grading Progress',
-                value: current.studentSubmissions.filter(
-                  (s) => s.status === 'graded',
-                ).length,
-                total: current.studentSubmissions.length,
-                barColor: 'bg-[#6f8791]',
-                textColor: 'text-[#374151]',
-              },
-              {
-                label: 'Predicted Pass Rate',
-                value: current.studentSubmissions.filter(
-                  (s) => s.passed === true,
-                ).length,
-                total: current.studentSubmissions.length,
-                barColor: 'bg-[#8c7632]',
-                textColor: 'text-[#8a6a28]',
-              },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <div className="mb-1 flex items-center justify-between text-xs text-[#77726a]">
-                  <p>{stat.label}</p>
-                  <p>{stat.value}/{stat.total}</p>
-                </div>
-                <p className={`text-h3 font-bold ${stat.textColor}`}>
-                  {stat.total > 0 ? Math.round((stat.value / stat.total) * 100) : 0}%
-                </p>
-                <ProgressBar
-                  value={
-                    stat.total > 0
-                      ? Math.round((stat.value / stat.total) * 100)
-                      : 0
-                  }
-                  size="sm"
-                  showValue={false}
-                  color={stat.barColor}
-                  className="mt-2"
-                />
+                {[
+                  {
+                    label: '제출률',
+                    value: current.studentSubmissions.filter(
+                      (s) => s.status !== 'pending',
+                    ).length,
+                    total: current.studentSubmissions.length,
+                    barColor: 'bg-[#586067]',
+                    textColor: 'text-[#374151]',
+                  },
+                  {
+                    label: '채점 진행률',
+                    value: current.studentSubmissions.filter(
+                      (s) => s.status === 'graded',
+                    ).length,
+                    total: current.studentSubmissions.length,
+                    barColor: 'bg-[#6f8791]',
+                    textColor: 'text-[#374151]',
+                  },
+                  {
+                    label: '예상 합격률',
+                    value: current.studentSubmissions.filter(
+                      (s) => s.passed === true,
+                    ).length,
+                    total: current.studentSubmissions.length,
+                    barColor: 'bg-[#8c7632]',
+                    textColor: 'text-[#8a6a28]',
+                  },
+                ].map((stat) => (
+                  <div key={stat.label}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <p className="font-medium text-[#5a554e]">{stat.label}</p>
+                      <p className="font-semibold text-[#2f333a]">
+                        {stat.value}/{stat.total}명
+                      </p>
+                    </div>
+                    <p className={`text-h3 font-bold ${stat.textColor}`}>
+                      {stat.total > 0
+                        ? Math.round((stat.value / stat.total) * 100)
+                        : 0}
+                      %
+                    </p>
+                    <ProgressBar
+                      value={
+                        stat.total > 0
+                          ? Math.round((stat.value / stat.total) * 100)
+                          : 0
+                      }
+                      size="sm"
+                      showValue={false}
+                      color={stat.barColor}
+                      className="mt-2"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-              </div>
-            </Card>
-            <Card className="rounded-3xl border border-[#e2ddcf] bg-[#f1ebd9]">
-              <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[#917c3b]">
-                AI Observation
-              </p>
-              <p className="text-sm leading-relaxed text-[#60594d]">
-                학생들이 특정 핵심 항목에서 반복적으로 점수가 낮아 루브릭 예시 답안을 추가하면 전체 평균이 개선될 가능성이 높습니다.
-              </p>
             </Card>
           </div>
 
           {/* 학생별 제출 현황 */}
-          <Card className="rounded-3xl border border-[#e1ded8] bg-[#f8f7f4]">
+          <Card className="rounded-2xl border border-[#e1ded8] bg-[#f7f6f2]">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-[1.55rem] text-[#31353b]">
-                Recent Submissions
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#9e9890]">
+                학생별 제출 현황
               </p>
-              <p className="text-xs font-semibold text-[#656b74]">View All Students +</p>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-[#9e9890]">
+                  전체 {current.studentSubmissions.length}명
+                </span>
+                <span className="text-[#e0ddd6]">·</span>
+                <span className="font-semibold text-[#4a7a55]">
+                  채점완료{' '}
+                  {
+                    current.studentSubmissions.filter(
+                      (s) => s.status === 'graded',
+                    ).length
+                  }
+                  명
+                </span>
+                <span className="text-[#e0ddd6]">·</span>
+                <span className="font-semibold text-[#7c7870]">
+                  미제출{' '}
+                  {
+                    current.studentSubmissions.filter(
+                      (s) => !HAS_FILES_STATUS.has(s.status),
+                    ).length
+                  }
+                  명
+                </span>
+              </div>
             </div>
-            <p className="mb-3 text-sm text-[#6f716d]">
-              학생별 제출 현황
-            </p>
-            <div className="space-y-2">
-              {current.studentSubmissions.map((student) => {
-                const statusCfg = STATUS_CONFIG[student.status] ?? STATUS_CONFIG.pending;
-                return (
-                  <div
-                    key={student.studentId}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
+            <div className="max-h-[432px] overflow-y-auto overscroll-contain rounded-xl border border-[#e8e5e0] pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d8d4ce] [&::-webkit-scrollbar-track]:bg-transparent">
+              <div className="space-y-1.5 p-1">
+                {current.studentSubmissions.map((student) => {
+                  const statusCfg =
+                    STATUS_CONFIG[student.status] ?? STATUS_CONFIG.pending;
+                  return (
                     <div
-                      className={`w-8 h-8 rounded-full ${phaseColor.light} flex items-center justify-center shrink-0`}
+                      key={student.studentId}
+                      className="flex items-center gap-3 rounded-xl bg-[#f0eee9] p-3 transition-colors hover:bg-[#eceae4]"
                     >
-                      <span className={`text-xs font-bold ${phaseColor.text}`}>
-                        {student.studentName?.[0] ?? '?'}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 text-sm">
-                        {student.studentName}
-                      </p>
-                      {formatSubmittedAt(student.submittedAt) && (
-                        <p className="text-caption text-gray-400 mt-0.5">
-                          제출 {formatSubmittedAt(student.submittedAt)}
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${phaseColor.light}`}
+                      >
+                        <span
+                          className={`text-xs font-bold ${phaseColor.text}`}
+                        >
+                          {student.studentName?.[0] ?? '?'}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-[#2f333a]">
+                          {student.studentName}
                         </p>
-                      )}
-                    </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${statusCfg.classes}`}
-                    >
-                      {statusCfg.label}
-                    </span>
-                    {student.score !== null && (
+                        {formatSubmittedAt(student.submittedAt) && (
+                          <p className="mt-0.5 text-xs text-[#9e9890]">
+                            제출 {formatSubmittedAt(student.submittedAt)}
+                          </p>
+                        )}
+                      </div>
                       <span
-                        className={`font-bold text-sm shrink-0 ${student.passed ? 'text-green-600' : 'text-error-500'}`}
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${statusCfg.classes}`}
                       >
-                        {student.score}점 {student.passed ? '✓' : '✗'}
+                        {statusCfg.label}
                       </span>
-                    )}
-                    {student.status !== 'pending' && (
-                      <button
-                        onClick={() => handleDownloadFile(current, student)}
-                        className="p-1.5 rounded-lg hover:bg-white text-gray-500 cursor-pointer transition-colors shrink-0"
-                        title="제출 파일 다운로드"
-                      >
-                        <Download className="w-4 h-4" />
-                      </button>
-                    )}
-                    <div className="flex gap-1.5 shrink-0">
-                      {student.status === 'submitted' && (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() =>
-                              handleOpenManualModal(current, student)
-                            }
-                          >
-                            직접 채점
-                          </Button>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            icon={Sparkles}
-                            onClick={() => handleOpenAiModal(current, student)}
-                          >
-                            AI 채점
-                          </Button>
-                        </>
+                      {student.score !== null && (
+                        <span
+                          className={`shrink-0 text-sm font-bold ${
+                            student.passed ? 'text-[#4a7a55]' : 'text-[#b85b5b]'
+                          }`}
+                        >
+                          {student.score}점 {student.passed ? '✓' : '✗'}
+                        </span>
                       )}
-                      {student.status === 'graded' && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleOpenManualModal(current, student)
-                            }
-                          >
-                            직접 재채점
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={Sparkles}
-                            onClick={() => handleOpenAiModal(current, student)}
-                          >
-                            AI 재채점
-                          </Button>
-                        </>
+                      {HAS_FILES_STATUS.has(student.status) && (
+                        <button
+                          onClick={() => handleDownloadFile(current, student)}
+                          className="shrink-0 cursor-pointer rounded-lg p-1.5 text-[#9e9890] transition-colors hover:bg-white hover:text-[#59606a]"
+                          title="제출 파일 다운로드"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
                       )}
+                      <div className="flex gap-1.5 shrink-0">
+                        {student.status === 'submitted' && (
+                          <>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() =>
+                                handleOpenManualModal(current, student)
+                              }
+                            >
+                              직접 채점
+                            </Button>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              icon={Sparkles}
+                              onClick={() =>
+                                handleOpenAiModal(current, student)
+                              }
+                            >
+                              AI 채점
+                            </Button>
+                          </>
+                        )}
+                        {student.status === 'graded' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleOpenManualModal(current, student)
+                              }
+                            >
+                              직접 재채점
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={Sparkles}
+                              onClick={() =>
+                                handleOpenAiModal(current, student)
+                              }
+                            >
+                              AI 재채점
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </Card>
         </div>
@@ -563,9 +640,9 @@ export default function AssessmentManagement() {
           <div className="space-y-4">
             {/* 경고 배너 — AI 모드에서만 표시 */}
             {aiModal.mode === 'ai' && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex gap-2">
-                <AlertTriangle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-yellow-700">
+              <div className="flex gap-2 rounded-xl border border-[#dfc888] bg-[#f4ead8] p-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#8a6420]" />
+                <p className="text-xs text-[#7a5a20]">
                   AI 채점 결과는 참고용입니다. 반드시 검토 후 확정하세요.
                 </p>
               </div>
@@ -574,25 +651,25 @@ export default function AssessmentManagement() {
             {/* 제출 파일 — signed URL 기준으로 렌더링 */}
             {signedFiles.length > 0 && (
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">
+                <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-[#9e9890]">
                   제출 파일
                 </p>
                 <div className="space-y-1.5">
                   {signedFiles.map((f) => (
                     <div
                       key={f.name}
-                      className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg"
+                      className="flex items-center gap-2 rounded-xl border border-[#e0ddd6] bg-[#f4f3f0] p-2.5"
                     >
-                      <FileText className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span className="text-sm text-gray-700 flex-1 truncate">
+                      <FileText className="h-4 w-4 shrink-0 text-[#9e9890]" />
+                      <span className="flex-1 truncate text-sm text-[#3a3830]">
                         {f.name}
                       </span>
                       <button
-                        className="p-1 rounded hover:bg-gray-200 cursor-pointer shrink-0"
+                        className="shrink-0 cursor-pointer rounded-lg p-1 hover:bg-white"
                         onClick={() => window.open(f.url, '_blank')}
                         title="파일 열기"
                       >
-                        <Download className="w-3.5 h-3.5 text-gray-500" />
+                        <Download className="h-3.5 w-3.5 text-[#7c7870]" />
                       </button>
                     </div>
                   ))}
@@ -603,11 +680,11 @@ export default function AssessmentManagement() {
             {!aiResult ? (
               /* AI 채점 시작 전 */
               <div className="space-y-3">
-                <div className={`p-3 rounded-xl ${phaseColor.light}`}>
+                <div className={`rounded-xl p-3 ${phaseColor.light}`}>
                   <p className={`text-sm font-semibold ${phaseColor.text}`}>
                     {aiModal.assessment.title}
                   </p>
-                  <p className="text-caption text-gray-600 mt-1">
+                  <p className="mt-1 text-xs text-[#7c7870]">
                     루브릭 {aiModal.assessment.rubric.length}개 항목 기준으로
                     자동 채점합니다.
                   </p>
@@ -623,12 +700,12 @@ export default function AssessmentManagement() {
                 </Button>
                 {aiLoading && (
                   <div>
-                    <p className="text-caption text-gray-500 mb-2 text-center">
+                    <p className="mb-2 text-center text-xs text-[#9e9890]">
                       코드를 분석하고 루브릭을 적용하는 중...
                     </p>
                     <ProgressBar
                       value={72}
-                      color="bg-primary-500"
+                      color="bg-[#59606a]"
                       showValue={false}
                     />
                   </div>
@@ -637,24 +714,24 @@ export default function AssessmentManagement() {
             ) : (
               /* AI 채점 결과 */
               <>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                  <p className="text-sm font-semibold text-green-700">
+                <div className="rounded-xl border border-[#b8d4b0] bg-[#e8ede5] p-3">
+                  <p className="text-sm font-semibold text-[#3a5a40]">
                     {aiModal.mode === 'manual' ? '직접 채점' : 'AI 채점 완료'}
                   </p>
-                  <p className="text-caption text-gray-600 mt-0.5">
+                  <p className="mt-0.5 text-xs text-[#7c7870]">
                     점수와 피드백을 검토하고 수정한 뒤 확정하세요.
                   </p>
                 </div>
 
                 {/* 루브릭 점수 (수정 가능) */}
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                <div className="rounded-xl border border-[#e0ddd6] bg-[#f8f7f4] px-4 py-3">
+                  <p className="mb-3 text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-[#9e9890]">
                     루브릭 채점
                   </p>
                   <div className="space-y-2">
                     {aiResult.rubricScores.map((r) => (
                       <div key={r.item} className="flex items-center gap-3">
-                        <span className="flex-1 text-sm text-gray-700">
+                        <span className="flex-1 text-sm text-[#3a3830]">
                           {r.item}
                         </span>
                         <div className="flex items-center gap-1.5">
@@ -666,23 +743,29 @@ export default function AssessmentManagement() {
                             onChange={(e) =>
                               handleUpdateAiScore(r.item, e.target.value)
                             }
-                            className="w-16 text-center border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-16 rounded-lg border border-[#ddd9d2] bg-white px-2 py-1.5 text-center text-sm text-[#2f333a] outline-none focus:border-[#59606a] focus:ring-1 focus:ring-[#59606a]"
                           />
-                          <span className="text-caption text-gray-400">
+                          <span className="text-xs text-[#9e9890]">
                             /{r.maxScore}
                           </span>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                    <span className="font-semibold text-gray-700">총점</span>
+                  <div className="mt-3 flex items-center justify-between border-t border-[#e0ddd6] pt-3">
+                    <span className="text-sm font-semibold text-[#3a3830]">
+                      총점
+                    </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-h3 font-bold text-primary-600">
+                      <span className="text-lg font-bold tabular-nums text-[#59606a]">
                         {aiResult.score}점
                       </span>
                       <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-bold ${aiResult.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                        className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                          aiResult.passed
+                            ? 'bg-[#e2ede5] text-[#3a5a40]'
+                            : 'bg-[#f3e8e8] text-[#944848]'
+                        }`}
                       >
                         {aiResult.passed ? '합격' : '불합격'}
                       </span>
@@ -692,8 +775,8 @@ export default function AssessmentManagement() {
 
                 {/* AI 피드백 (수정 가능) */}
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    AI 피드백
+                  <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-[#9e9890]">
+                    피드백
                   </p>
                   <Textarea
                     value={aiResult.feedback}
@@ -710,6 +793,7 @@ export default function AssessmentManagement() {
                 <Button
                   variant="primary"
                   fullWidth
+                  className="bg-[#59606a]! text-white! hover:bg-[#444b55]!"
                   onClick={handleConfirmGrade}
                 >
                   채점 확정
